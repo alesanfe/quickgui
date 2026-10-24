@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
+import 'package:path/path.dart' as p;
 
 import '../../globals.dart';
 import '../../mixins/preferences_mixin.dart';
@@ -37,6 +38,95 @@ class _DownloaderMenuState extends State<DownloaderMenu> with PreferencesMixin {
         savePreference(prefWorkingDirectory, home);
       }
     });
+  }
+
+  Future<void> _importImage() async {
+    final files = await FilePicker.pickFiles(
+      dialogTitle: context.t('Select a disk image to import'),
+      type: FileType.custom,
+      allowedExtensions: ['iso', 'img', 'qcow2'],
+    );
+    final imagePath = files.isNotEmpty ? files.single.path : null;
+    if (imagePath == null || imagePath.isEmpty || !mounted) {
+      return;
+    }
+
+    final nameController = TextEditingController(
+      text: p.basenameWithoutExtension(imagePath),
+    );
+    final vmName = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.t('Import a disk image')),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              context.t(
+                'The file will be moved into a new virtual machine folder inside the working directory.',
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: nameController,
+              autofocus: true,
+              decoration: InputDecoration(
+                labelText: context.t('Virtual machine name'),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(context.t('Cancel')),
+          ),
+          TextButton(
+            onPressed: () =>
+                Navigator.of(context).pop(nameController.text.trim()),
+            child: Text(context.t('Import')),
+          ),
+        ],
+      ),
+    );
+    if (vmName == null || vmName.isEmpty || !mounted) {
+      return;
+    }
+
+    final proc = await Process.run('quickget', [
+      '--create-config',
+      vmName,
+      imagePath,
+    ]);
+    if (!mounted) {
+      return;
+    }
+    final output = '${proc.stdout}${proc.stderr}'.trim();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          proc.exitCode == 0
+              ? context.t('Virtual machine imported')
+              : context.t('Error'),
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: SelectableText(
+              output.isEmpty ? '${proc.exitCode}' : output,
+              style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(context.t('OK')),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -101,6 +191,11 @@ class _DownloaderMenuState extends State<DownloaderMenu> with PreferencesMixin {
                     ),
                   ),
                 ],
+              ),
+              TextButton.icon(
+                icon: const Icon(Icons.upload_file),
+                label: Text(context.t('Import a disk image')),
+                onPressed: _importImage,
               ),
             ],
           ),
