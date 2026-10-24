@@ -12,6 +12,7 @@ import 'package:quickgui/app/app.dart';
 import 'package:quickgui/app/globals.dart';
 import 'package:quickgui/infrastructure/app_info/app_version.dart';
 import 'package:quickgui/app/settings/app_settings.dart';
+import 'package:quickgui/features/settings/providers/settings_providers.dart';
 import 'package:quickgui/features/catalog/domain/operating_system.dart';
 import 'package:quickgui/features/catalog/domain/option.dart';
 import 'package:quickgui/shared/presentation/os_assets/osicons.dart';
@@ -124,11 +125,19 @@ void main() async {
     }
   }
 
+  // Single AppSettings instance shared by package:provider (legacy) and
+  // Riverpod (bridge: migrate consumers file by file to appSettingsProvider).
+  final appSettings = AppSettings();
   runApp(
     ProviderScope(
+      overrides: [appSettingsProvider.overrideWith((_) => appSettings)],
       child: provider_pkg.MultiProvider(
-        providers: [provider_pkg.ChangeNotifierProvider(create: (_) => AppSettings())],
-        builder: (context, _) => const App(),
+        providers: [
+          provider_pkg.ChangeNotifierProvider<AppSettings>.value(
+            value: appSettings,
+          ),
+        ],
+        child: const App(),
       ),
     ),
   );
