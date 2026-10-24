@@ -40,6 +40,24 @@ class _DownloaderState extends State<Downloader> with PreferencesMixin {
   bool _downloadFinished = false;
   var controller = StreamController<double>();
   Process? _process;
+  final List<String> _outputChunks = [];
+  int _outputLength = 0;
+  bool _showOutput = false;
+  static const int _maxOutputLength = 512 * 1024;
+
+  void _captureOutput(String chunk) {
+    _outputChunks.add(chunk);
+    _outputLength += chunk.length;
+    // Bound the buffer: drop the oldest chunks when it grows too large.
+    while (_outputLength > _maxOutputLength && _outputChunks.isNotEmpty) {
+      _outputLength -= _outputChunks.removeAt(0).length;
+    }
+    if (_showOutput && mounted) {
+      setState(() {});
+    }
+  }
+
+  String get _processOutput => _outputChunks.join();
 
   @override
   void initState() {
@@ -90,9 +108,14 @@ class _DownloaderState extends State<Downloader> with PreferencesMixin {
     }
 
     Process.start('quickget', options).then((process) {
+      process.stdout.transform(utf8.decoder).forEach(_captureOutput);
       if (widget.option!.downloader != 'zsync') {
-        process.stderr.transform(utf8.decoder).forEach(parseCurlProgress);
+        process.stderr.transform(utf8.decoder).forEach((chunk) {
+          _captureOutput(chunk);
+          parseCurlProgress(chunk);
+        });
       } else {
+        process.stderr.transform(utf8.decoder).forEach(_captureOutput);
         controller.add(-1);
       }
 
@@ -174,6 +197,43 @@ class _DownloaderState extends State<Downloader> with PreferencesMixin {
                         ),
                       ),
                     ),
+                    TextButton.icon(
+                      icon: Icon(
+                        _showOutput
+                            ? Icons.expand_less
+                            : Icons.expand_more,
+                      ),
+                      label: Text(
+                        context.t('Show terminal output'),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _showOutput = !_showOutput;
+                        });
+                      },
+                    ),
+                    if (_showOutput)
+                      Container(
+                        height: 160,
+                        width: 560,
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: SingleChildScrollView(
+                          reverse: true,
+                          child: SelectableText(
+                            _processOutput,
+                            style: const TextStyle(
+                              fontFamily: 'monospace',
+                              fontSize: 11,
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 );
               },

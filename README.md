@@ -131,6 +131,19 @@ open ./build/macos/Build/Products/Release/quickgui.app
 - Select the Version of the operating system you want to use.
 - Click the "Download" button.
   - The ISO will be downloaded
+
+## First boot of a new VM
+
+Some guests need a few extra steps after their first boot:
+
+- **macOS guests**: macOS Ventura and newer require a host CPU with SSE 4.2 and
+  AVX2 support. See the [Quickemu documentation](https://github.com/quickemu-project/quickemu/wiki/04-Advanced-quickemu-configuration)
+  for details.
+- **Linux guests**: install the SPICE guest tools inside the VM for clipboard
+  sharing and automatic display resizing, e.g. `sudo apt install spice-agent`
+  on Debian/Ubuntu.
+- **Windows guests**: see the Quickemu wiki for post-install drivers and
+  tooling.
 - When the download is complete, click the "Dismiss" button.
 
 <div align="center">
