@@ -806,6 +806,12 @@ class _ManagerState extends State<Manager>
                     await Shell().run(
                       hostWrap('quickemu --vm "$currentVm.conf" --resume'),
                     );
+                  case 'screenshot':
+                    final r = await Shell().run(
+                      hostWrap('quickemu --vm "$currentVm.conf" --screenshot'),
+                    );
+                    if (!context.mounted) return;
+                    _showProcessOutput(r);
                   case 'clone':
                     _cloneVm(context, currentVm);
                   case 'export':
@@ -960,6 +966,16 @@ class _ManagerState extends State<Manager>
                     child: ListTile(
                       leading: const Icon(Icons.play_circle),
                       title: Text(context.t('Resume')),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                if (active)
+                  PopupMenuItem(
+                    value: 'screenshot',
+                    child: ListTile(
+                      leading: const Icon(Icons.screenshot_monitor),
+                      title: Text(context.t('Screenshot')),
                       dense: true,
                       contentPadding: EdgeInsets.zero,
                     ),

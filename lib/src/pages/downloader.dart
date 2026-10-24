@@ -22,12 +22,19 @@ class Downloader extends StatefulWidget {
     required this.operatingSystem,
     required this.version,
     this.option,
+    this.customConf,
     super.key,
   });
 
   final OperatingSystem operatingSystem;
   final Version version;
   final Option? option;
+
+  /// Extra key="value" entries applied to the generated .conf after the
+  /// download completes (pre-download customisation wizard).
+  /// Extra key="value" entries applied to the generated .conf after the
+  /// download completes (pre-download customisation wizard).
+  final Map<String, String>? customConf;
 
   @override
   State<Downloader> createState() => _DownloaderState();
@@ -133,6 +140,25 @@ class _DownloaderState extends State<Downloader> with PreferencesMixin {
           '${widget.operatingSystem.name} ${widget.version.version} — ${DateTime.now()}',
         );
         savePreference('downloadHistory', history);
+        final conf = widget.customConf ?? {};
+        if (conf.isNotEmpty && !cancelled) {
+          // Apply wizard values to the newest generated .conf.
+          final confs =
+              Directory.current
+                  .listSync()
+                  .whereType<File>()
+                  .where((f) => f.path.endsWith('.conf'))
+                  .toList()
+                ..sort(
+                  (a, b) =>
+                      b.lastModifiedSync().compareTo(a.lastModifiedSync()),
+                );
+          if (confs.isNotEmpty) {
+            for (final e in conf.entries) {
+              writeConfValue(confs.first.path, e.key, e.value);
+            }
+          }
+        }
         setState(() {
           _downloadFinished = true;
 

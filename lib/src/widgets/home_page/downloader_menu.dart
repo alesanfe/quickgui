@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
@@ -48,6 +49,13 @@ class _DownloaderMenuState extends State<DownloaderMenu> with PreferencesMixin {
     );
     final imagePath = files.isNotEmpty ? files.single.path : null;
     if (imagePath == null || imagePath.isEmpty || !mounted) {
+      return;
+    }
+    await _importImageFile(imagePath);
+  }
+
+  Future<void> _importImageFile(String imagePath) async {
+    if (!mounted) {
       return;
     }
 
@@ -132,72 +140,86 @@ class _DownloaderMenuState extends State<DownloaderMenu> with PreferencesMixin {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Container(
-        color: Theme.of(context).colorScheme.primaryContainer,
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "${context.t('Directory where the machines are stored')}:",
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+      child: DropTarget(
+        onDragDone: (detail) {
+          for (final file in detail.files) {
+            if (file.path.isNotEmpty) {
+              _importImageFile(file.path);
+              break;
+            }
+          }
+        },
+        child: Container(
+          color: Theme.of(context).colorScheme.primaryContainer,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "${context.t('Directory where the machines are stored')}:",
+                        style: TextStyle(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onPrimaryContainer,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Theme.of(context)
-                            .colorScheme
-                            .onSurface,
-                        backgroundColor: Theme.of(context).colorScheme.surface,
-                      ),
-                      onPressed: () async {
-                        var folder = await FilePicker.getDirectoryPath(
-                          dialogTitle: "Pick a folder",
-                        );
-                        if (folder != null && folder.isNotEmpty) {
-                          setState(() {
-                            Directory.current = folder;
-                            _currentPath = folder;
-                          });
-                          savePreference(
-                            prefWorkingDirectory,
-                            Directory.current.path,
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: Theme.of(context)
+                              .colorScheme
+                              .onSurface,
+                          backgroundColor: Theme.of(context)
+                              .colorScheme
+                              .surface,
+                        ),
+                        onPressed: () async {
+                          var folder = await FilePicker.getDirectoryPath(
+                            dialogTitle: "Pick a folder",
                           );
-                        }
-                      },
-                      child: Text(_currentPath),
+                          if (folder != null && folder.isNotEmpty) {
+                            setState(() {
+                              Directory.current = folder;
+                              _currentPath = folder;
+                            });
+                            savePreference(
+                              prefWorkingDirectory,
+                              Directory.current.path,
+                            );
+                          }
+                        },
+                        child: Text(_currentPath),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(thickness: 2),
+                const Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 12),
+                            child: HomePageButtonGroup(),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-              ),
-              const Divider(thickness: 2),
-              const Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 12),
-                          child: HomePageButtonGroup(),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              TextButton.icon(
-                icon: const Icon(Icons.upload_file),
-                label: Text(context.t('Import a disk image')),
-                onPressed: _importImage,
-              ),
-            ],
+                TextButton.icon(
+                  icon: const Icon(Icons.upload_file),
+                  label: Text(context.t('Import a disk image')),
+                  onPressed: _importImage,
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -209,11 +209,14 @@ class _HomePageButtonGroupState extends State<HomePageButtonGroup>
                       );
                       return;
                     }
+                    final custom = await _customizeDialog(context);
+                    if (!context.mounted || custom == null) return;
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => Downloader(
                           operatingSystem: _selectedOperatingSystem!,
                           version: _selectedVersion!,
+                          customConf: custom,
                           option: _selectedOption,
                         ),
                       ),
@@ -346,4 +349,54 @@ class _HomePageButtonGroupState extends State<HomePageButtonGroup>
       ),
     );
   }
+
+  Future<Map<String, String>?> _customizeDialog(BuildContext context) {
+    final ram = TextEditingController(text: '4G');
+    final cores = TextEditingController();
+    final disk = TextEditingController(text: '64G');
+    return showDialog<Map<String, String>>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.t('Customise VM (optional)')),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: ram,
+              decoration: InputDecoration(labelText: context.t('RAM')),
+            ),
+            TextField(
+              controller: cores,
+              decoration: InputDecoration(
+                labelText: context.t('CPU cores'),
+              ),
+            ),
+            TextField(
+              controller: disk,
+              decoration: InputDecoration(
+                labelText: context.t('Disk size'),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(context.t('Cancel')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop({
+              if (ram.text.trim().isNotEmpty) 'ram': ram.text.trim(),
+              if (cores.text.trim().isNotEmpty)
+                'cpu_cores': cores.text.trim(),
+              if (disk.text.trim().isNotEmpty)
+                'disk_size': disk.text.trim(),
+            }),
+            child: Text(context.t('Download')),
+          ),
+        ],
+      ),
+    );
+  }
 }
+
