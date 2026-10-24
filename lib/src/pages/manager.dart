@@ -151,6 +151,58 @@ class _ManagerState extends State<Manager>
     });
   }
 
+  void _confirmDeleteVm(BuildContext context, String currentVm) {
+    showDialog<String?>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: Text(context.t('Delete {0}', args: [currentVm])),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              context.t(
+                'You are about to delete {0}. This cannot be undone. Would you like to delete the disk image but keep the configuration, or delete the whole VM?',
+                args: [currentVm],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _vmConfFiles[currentVm] ?? '$currentVm.conf',
+              style: const TextStyle(fontFamily: 'monospace', fontSize: 11),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            child: Text(context.t('Cancel')),
+            onPressed: () => Navigator.pop(context, 'cancel'),
+          ),
+          TextButton(
+            child: Text(context.t('Delete disk image')),
+            onPressed: () => Navigator.pop(context, 'disk'),
+          ),
+          TextButton(
+            child: Text(context.t('Delete whole VM')),
+            onPressed: () => Navigator.pop(context, 'vm'),
+          ),
+        ],
+      ),
+    ).then((result) async {
+      result = result ?? 'cancel';
+      if (result != 'cancel') {
+        List<String> command = [
+          'quickemu',
+          '--vm',
+          '$currentVm.conf',
+          '--delete-$result',
+        ];
+        var shell = Shell();
+        await shell.run(command.join(' '));
+      }
+    });
+  }
+
   void _showProcessOutput(List<ProcessResult> results) {
     final output = results
         .map((r) => '${r.stdout}${r.stderr}')
@@ -377,21 +429,6 @@ class _ManagerState extends State<Manager>
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             IconButton(
-              icon: const Icon(Icons.settings, semanticLabel: 'Settings'),
-              tooltip: context.t('Edit configuration'),
-              onPressed: active
-                  ? null
-                  : () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => VmConfigEditorDialog(
-                          vmName: currentVm,
-                          confPath: _vmConfFiles[currentVm]!,
-                        ),
-                      );
-                    },
-            ),
-            IconButton(
               icon: Icon(
                 active ? Icons.play_arrow : Icons.play_arrow_outlined,
                 color: active ? Colors.green : buttonColor,
@@ -478,70 +515,58 @@ class _ManagerState extends State<Manager>
                       });
                     },
             ),
-            IconButton(
-              icon: Icon(
-                Icons.delete,
-                color: active ? null : buttonColor,
-                semanticLabel: 'Delete',
-              ),
-              onPressed: active
-                  ? null
-                  : () {
-                      showDialog<String?>(
-                        context: context,
-                        builder: (BuildContext context) => AlertDialog(
-                          title: Text(
-                            context.t('Delete {0}', args: [currentVm]),
-                          ),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                context.t(
-                                  'You are about to delete {0}. This cannot be undone. Would you like to delete the disk image but keep the configuration, or delete the whole VM?',
-                                  args: [currentVm],
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                _vmConfFiles[currentVm] ?? '$currentVm.conf',
-                                style: const TextStyle(
-                                  fontFamily: 'monospace',
-                                  fontSize: 11,
-                                ),
-                              ),
-                            ],
-                          ),
-                          actions: [
-                            TextButton(
-                              child: Text(context.t('Cancel')),
-                              onPressed: () => Navigator.pop(context, 'cancel'),
-                            ),
-                            TextButton(
-                              child: Text(context.t('Delete disk image')),
-                              onPressed: () => Navigator.pop(context, 'disk'),
-                            ),
-                            TextButton(
-                              child: Text(context.t('Delete whole VM')),
-                              onPressed: () => Navigator.pop(context, 'vm'),
-                            ), // set up the AlertDialog
-                          ],
-                        ),
-                      ).then((result) async {
-                        result = result ?? 'cancel';
-                        if (result != 'cancel') {
-                          List<String> command = [
-                            'quickemu',
-                            '--vm',
-                            '$currentVm.conf',
-                            '--delete-$result',
-                          ];
-                          var shell = Shell();
-                          await shell.run(command.join(' '));
-                        }
-                      });
-                    },
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert, semanticLabel: 'More actions'),
+              tooltip: context.t('More actions'),
+              enabled: !active,
+              onSelected: (choice) {
+                switch (choice) {
+                  case 'config':
+                    showDialog(
+                      context: context,
+                      builder: (context) => VmConfigEditorDialog(
+                        vmName: currentVm,
+                        confPath: _vmConfFiles[currentVm]!,
+                      ),
+                    );
+                  case 'folder':
+                    Shell().run(
+                      '${Platform.isMacOS ? 'open' : 'xdg-open'} "$currentVm"',
+                    );
+                  case 'delete':
+                    _confirmDeleteVm(context, currentVm);
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'config',
+                  child: ListTile(
+                    leading: const Icon(Icons.settings),
+                    title: Text(context.t('Edit configuration')),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'folder',
+                  child: ListTile(
+                    leading: const Icon(Icons.folder_open),
+                    title: Text(context.t('Open VM folder')),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  value: 'delete',
+                  child: ListTile(
+                    leading: const Icon(Icons.delete),
+                    title: Text(context.t('Delete')),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
             ),
           ],
         ),

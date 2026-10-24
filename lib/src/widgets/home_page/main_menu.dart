@@ -25,7 +25,13 @@ class MainMenu extends StatelessWidget {
                       fullscreenDialog: true,
                       pageBuilder: (context, animation1, animation2) =>
                           const Manager(),
-                      transitionDuration: Duration.zero,
+                      transitionDuration: const Duration(milliseconds: 150),
+                      transitionsBuilder: (
+                        context,
+                        animation,
+                        secondaryAnimation,
+                        child,
+                      ) => FadeTransition(opacity: animation, child: child),
                     ),
                   );
                 },
@@ -33,13 +39,18 @@ class MainMenu extends StatelessWidget {
               ),
               HomePageButton(
                 onPressed: () {
-                  //Navigator.of(context).push(MaterialPageRoute(builder: (context) => const DownloaderPage()));
                   Navigator.of(context).push(
                     PageRouteBuilder(
                       fullscreenDialog: true,
                       pageBuilder: (context, animation1, animation2) =>
                           const DownloaderPage(),
-                      transitionDuration: Duration.zero,
+                      transitionDuration: const Duration(milliseconds: 150),
+                      transitionsBuilder: (
+                        context,
+                        animation,
+                        secondaryAnimation,
+                        child,
+                      ) => FadeTransition(opacity: animation, child: child),
                     ),
                   );
                 },
