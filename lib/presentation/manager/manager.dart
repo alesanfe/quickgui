@@ -14,6 +14,10 @@ import 'package:version/version.dart';
 
 import 'package:quickgui/app/globals.dart';
 import 'package:quickgui/application/preferences_mixin.dart';
+import 'package:quickgui/application/virtual_machines/delete_vm.dart';
+import 'package:quickgui/application/virtual_machines/start_vm.dart';
+import 'package:quickgui/application/virtual_machines/stop_vm.dart';
+import 'package:quickgui/domain/common/result.dart';
 import 'package:quickgui/domain/catalog/osicons.dart';
 import 'package:quickgui/domain/virtual_machine/vminfo.dart';
 import 'package:quickgui/presentation/vm_details/vm_config_editor.dart';
@@ -290,7 +294,14 @@ class _ManagerState extends State<Manager>
     });
   }
 
-  void _confirmDeleteVm(BuildContext context, String currentVm) {
+  void _confirmDeleteVm(BuildContext context, String currentVm) async {
+    // Preview what will be deleted via the backend's safe delete plan.
+    final planResult = await DeleteVm(backend).plan(currentVm);
+    final planText = switch (planResult) {
+      Ok<List<String>>(value: final v) when v.isNotEmpty => v.join('\n'),
+      _ => '',
+    };
+    if (!context.mounted) return;
     showDialog<String?>(
       context: context,
       builder: (BuildContext context) => AlertDialog(
@@ -306,10 +317,16 @@ class _ManagerState extends State<Manager>
               ),
             ),
             const SizedBox(height: 8),
-            Text(
-              _vmConfFiles[currentVm] ?? '$currentVm.conf',
-              style: const TextStyle(fontFamily: 'monospace', fontSize: 11),
-            ),
+            if (planText.isNotEmpty)
+              Text(
+                planText,
+                style: const TextStyle(fontFamily: 'monospace', fontSize: 11),
+              )
+            else
+              Text(
+                _vmConfFiles[currentVm] ?? '$currentVm.conf',
+                style: const TextStyle(fontFamily: 'monospace', fontSize: 11),
+              ),
           ],
         ),
         actions: [
@@ -727,9 +744,18 @@ class _ManagerState extends State<Manager>
                       } else if (_spicy) {
                         command.addAll(['--display', 'spice']);
                       }
-                      var results = await backend.runAction(command.sublist(1));
+                      final startResult = await StartVm(backend)(
+                        currentVm,
+                        display: command.contains('--display')
+                            ? command[command.indexOf('--display') + 1]
+                            : null,
+                      );
                       if (!mounted) return;
-                      _showProcessOutput([results]);
+                      if (startResult is Err) {
+                        _showProcessOutput([
+                          ProcessResult(0, 1, '', startResult.failure.message),
+                        ]);
+                      }
                       VmInfo info = _parseVmInfo(currentVm);
                       activeVms[currentVm] = info;
                       setState(() {
@@ -777,14 +803,7 @@ class _ManagerState extends State<Manager>
                             await fetchQuickemuVersion(),
                           );
                           if (quickemuVersion >= Version(4, 9, 6)) {
-                            shell.run(
-                              [
-                                'quickemu',
-                                '--vm',
-                                '$currentVm.conf',
-                                '--kill',
-                              ].join(' '),
-                            );
+                            StopVm(backend)(currentVm);
                           } else {
                             shell.run(
                               hostWrap(['killall', currentVm].join(' ')),
