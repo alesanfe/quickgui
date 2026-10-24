@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -17,50 +18,69 @@ import 'src/model/osicons.dart';
 import 'src/model/version.dart';
 
 Future<List<OperatingSystem>> loadOperatingSystems(bool showUbuntus) async {
-  var process = await runHost('quickget', ['--list-csv']);
-  var stdout = process.stdout as String;
+  var process = await runHost('quickget', ['--list-json']);
+  var stdout = '';
+  var rows = <List<String>>[];
+  if (process.exitCode == 0 && (process.stdout as String).trim().isNotEmpty) {
+    try {
+      for (final e in jsonDecode(process.stdout as String) as List) {
+        final m = e as Map<String, dynamic>;
+        rows.add([
+          '${m['Display Name']}',
+          '${m['OS']}',
+          '${m['Release']}',
+          '${m['Option']}',
+          '${m['Downloader']}',
+        ]);
+      }
+    } catch (_) {
+      rows.clear();
+    }
+  }
+  if (rows.isEmpty) {
+    // Fall back to the CSV output when --list-json is unavailable.
+    process = await runHost('quickget', ['--list-csv']);
+    stdout = process.stdout as String;
+  }
   var output = <OperatingSystem>[];
   OperatingSystem? currentOperatingSystem;
   Version? currentVersion;
 
-  stdout
-      .split('\n')
-      .skip(1)
-      .where((element) => element.isNotEmpty)
-      .map((e) => e.trim())
-      .forEach((element) {
-        var chunks = element.split(",");
-        Tuple5 supportedVersion;
-        if (chunks.length == 4) // Legacy version of quickget
-        {
-          supportedVersion = Tuple5.fromList([...chunks, "curl"]);
-        } else {
-          var t5 = [
-            chunks[0],
-            chunks[1],
-            chunks[2],
-            chunks[3],
-            chunks[4],
-          ].toList();
-          supportedVersion = Tuple5.fromList(t5);
-        }
+  final lines = rows.isEmpty
+      ? stdout
+            .split('\n')
+            .skip(1)
+            .where((element) => element.isNotEmpty)
+            .map((e) => e.trim())
+            .map((e) => e.split(','))
+            .toList()
+      : rows;
+  for (final chunks in lines) {
+    Tuple5 supportedVersion;
+    if (chunks.length == 4) // Legacy version of quickget
+    {
+      supportedVersion = Tuple5.fromList([...chunks, "curl"]);
+    } else {
+      var t5 = [chunks[0], chunks[1], chunks[2], chunks[3], chunks[4]].toList();
+      supportedVersion = Tuple5.fromList(t5);
+    }
 
-        if (currentOperatingSystem?.code != supportedVersion.item2) {
-          currentOperatingSystem = OperatingSystem(
-            supportedVersion.item1,
-            supportedVersion.item2,
-          );
-          output.add(currentOperatingSystem!);
-          currentVersion = null;
-        }
-        if (currentVersion?.version != supportedVersion.item3) {
-          currentVersion = Version(supportedVersion.item3);
-          currentOperatingSystem!.versions.add(currentVersion!);
-        }
-        currentVersion!.options.add(
-          Option(supportedVersion.item4, supportedVersion.item5),
-        );
-      });
+    if (currentOperatingSystem?.code != supportedVersion.item2) {
+      currentOperatingSystem = OperatingSystem(
+        supportedVersion.item1,
+        supportedVersion.item2,
+      );
+      output.add(currentOperatingSystem);
+      currentVersion = null;
+    }
+    if (currentVersion?.version != supportedVersion.item3) {
+      currentVersion = Version(supportedVersion.item3);
+      currentOperatingSystem!.versions.add(currentVersion);
+    }
+    currentVersion!.options.add(
+      Option(supportedVersion.item4, supportedVersion.item5),
+    );
+  }
 
   return output;
 }

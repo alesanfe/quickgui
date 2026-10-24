@@ -581,6 +581,14 @@ class _ManagerState extends State<Manager>
           children: [
             Text(currentVm),
             newVM ? const NewVmTag() : const SizedBox.shrink(),
+            if (File('$currentVm/virtio-win.iso').existsSync() ||
+                File('$currentVm/unattended.iso').existsSync())
+              Tooltip(
+                message: context.t(
+                  'VirtIO drivers / unattended install present',
+                ),
+                child: const Icon(Icons.download_done, size: 18),
+              ),
           ],
         ),
         trailing: Row(
