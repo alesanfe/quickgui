@@ -235,7 +235,6 @@ class _ManagerState extends State<Manager>
 
   void _manageSnapshot(BuildContext context, String currentVm) async {
     // Expose quickemu's --snapshot apply/create/delete/info actions.
-    final shell = Shell();
     final tagController = TextEditingController();
     await showDialog<String>(
       context: context,
@@ -284,9 +283,9 @@ class _ManagerState extends State<Manager>
         '--snapshot',
         ...parts.where((p) => p.isNotEmpty),
       ];
-      final results = await shell.run(hostWrap(command.join(' ')));
+      final results = await backend.runAction(command.sublist(1));
       if (!mounted) return;
-      _showProcessOutput(results);
+      _showProcessOutput([results]);
     });
   }
 
@@ -336,8 +335,7 @@ class _ManagerState extends State<Manager>
           '$currentVm.conf',
           '--delete-$result',
         ];
-        var shell = Shell();
-        await shell.run(hostWrap(command.join(' ')));
+        await backend.runAction(command.sublist(1));
       }
     });
   }
@@ -366,11 +364,14 @@ class _ManagerState extends State<Manager>
       ),
     );
     if (name == null || name.isEmpty || !mounted) return;
-    final r = await Shell().run(
-      hostWrap('quickemu --vm "$currentVm.conf" --clone "$name"'),
-    );
+    final r = await backend.runAction([
+      '--vm',
+      '\$currentVm.conf',
+      '--clone',
+      name,
+    ]);
     if (!mounted) return;
-    _showProcessOutput(r);
+    _showProcessOutput([r]);
     _getVms();
   }
 
@@ -400,11 +401,14 @@ class _ManagerState extends State<Manager>
       ),
     );
     if (size == null || size.isEmpty || !mounted) return;
-    final r = await Shell().run(
-      hostWrap('quickemu --vm "$currentVm.conf" --disk-resize "$size"'),
-    );
+    final r = await backend.runAction([
+      '--vm',
+      '\$currentVm.conf',
+      '--disk-resize',
+      size,
+    ]);
     if (!mounted) return;
-    _showProcessOutput(r);
+    _showProcessOutput([r]);
   }
 
   void _showProcessOutput(List<ProcessResult> results) {
@@ -695,12 +699,9 @@ class _ManagerState extends State<Manager>
                       } else if (_spicy) {
                         command.addAll(['--display', 'spice']);
                       }
-                      var shell = Shell();
-                      var results = await shell.run(
-                        hostWrap(command.join(' ')),
-                      );
+                      var results = await backend.runAction(command.sublist(1));
                       if (!mounted) return;
-                      _showProcessOutput(results);
+                      _showProcessOutput([results]);
                       VmInfo info = _parseVmInfo(currentVm);
                       activeVms[currentVm] = info;
                       setState(() {
@@ -832,19 +833,25 @@ class _ManagerState extends State<Manager>
                       'display': context.t('Display'),
                     });
                   case 'pause':
-                    await Shell().run(
-                      hostWrap('quickemu --vm "$currentVm.conf" --pause'),
-                    );
+                    await backend.runAction([
+                      '--vm',
+                      '\$currentVm.conf',
+                      '--pause',
+                    ]);
                   case 'resume':
-                    await Shell().run(
-                      hostWrap('quickemu --vm "$currentVm.conf" --resume'),
-                    );
+                    await backend.runAction([
+                      '--vm',
+                      '\$currentVm.conf',
+                      '--resume',
+                    ]);
                   case 'screenshot':
-                    final r = await Shell().run(
-                      hostWrap('quickemu --vm "$currentVm.conf" --screenshot'),
-                    );
+                    final r = await backend.runAction([
+                      '--vm',
+                      '\$currentVm.conf',
+                      '--screenshot',
+                    ]);
                     if (!context.mounted) return;
-                    _showProcessOutput(r);
+                    _showProcessOutput([r]);
                   case 'send-keys':
                     final r = await Shell().run(
                       hostWrap(
@@ -854,11 +861,13 @@ class _ManagerState extends State<Manager>
                     if (!context.mounted) return;
                     _showProcessOutput(r);
                   case 'doctor':
-                    final r = await Shell().run(
-                      hostWrap('quickemu --vm "$currentVm.conf" --doctor'),
-                    );
+                    final r = await backend.runAction([
+                      '--vm',
+                      '\$currentVm.conf',
+                      '--doctor',
+                    ]);
                     if (!context.mounted) return;
-                    _showProcessOutput(r);
+                    _showProcessOutput([r]);
                   case 'resize':
                     _resizeVmDisk(context, currentVm);
                   case 'clone':
