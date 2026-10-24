@@ -27,6 +27,14 @@ class _DownloaderMenuState extends State<DownloaderMenu> with PreferencesMixin {
           Directory.current = pref;
           _currentPath = pref;
         });
+      } else if (!isWritableDirectory(Directory.current.path)) {
+        // e.g. when launched from a read-only AppImage mount point.
+        final home = fallbackWorkingDirectory();
+        setState(() {
+          Directory.current = home;
+          _currentPath = home;
+        });
+        savePreference(prefWorkingDirectory, home);
       }
     });
   }

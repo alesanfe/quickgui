@@ -112,6 +112,45 @@ class _HomePageButtonGroupState extends State<HomePageButtonGroup>
                     tmpFile.deleteSync();
 
                     if (!context.mounted) return;
+                    // Warn when the host CPU does not meet the requirements
+                    // of the selected macOS release.
+                    if (_selectedOperatingSystem?.code == 'macos') {
+                      final missing = await missingMacosRequirements(
+                        _selectedVersion!.version,
+                      );
+                      if (missing.isNotEmpty) {
+                        if (!context.mounted) return;
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text(context.t('Error')),
+                            content: Text(
+                              context.t(
+                                'macOS {0} requires a CPU with {1} support.',
+                                args: [
+                                  _selectedVersion!.version,
+                                  missing
+                                      .map(
+                                        (f) => f
+                                            .toUpperCase()
+                                            .replaceAll('_', ' '),
+                                      )
+                                      .join(' and '),
+                                ],
+                              ),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: Text(context.t('OK')),
+                              ),
+                            ],
+                          ),
+                        );
+                        return;
+                      }
+                    }
+                    if (!context.mounted) return;
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => Downloader(
