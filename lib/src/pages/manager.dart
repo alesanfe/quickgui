@@ -39,8 +39,11 @@ class _ManagerState extends State<Manager> with PreferencesMixin {
     if (Platform.isMacOS) 'osascript',
     'alacritty',
     'cool-retro-term',
+    'foot',
     'gnome-terminal',
     'guake',
+    'kgx',
+    'kitty',
     'mate-terminal',
     'konsole',
     'lxterm',
@@ -51,6 +54,7 @@ class _ManagerState extends State<Manager> with PreferencesMixin {
     'tilix',
     'uxterm',
     'uxrvt',
+    'wezterm',
     'xfce4-terminal',
     'xrvt',
     'xterm',
@@ -67,10 +71,11 @@ class _ManagerState extends State<Manager> with PreferencesMixin {
     getPreference<String>(prefWorkingDirectory).then((pref) {
       if (!mounted) return;
       setState(() {
-        if (pref == null) {
-          return;
+        if (pref != null && Directory(pref).existsSync()) {
+          Directory.current = pref;
+        } else if (!isWritableDirectory(Directory.current.path)) {
+          Directory.current = fallbackWorkingDirectory();
         }
-        Directory.current = pref;
       });
       Future.delayed(
         Duration.zero,
@@ -126,6 +131,38 @@ class _ManagerState extends State<Manager> with PreferencesMixin {
     setState(() {
       _spicy = result.isNotEmpty;
     });
+  }
+
+  void _showProcessOutput(List<ProcessResult> results) {
+    final output = results
+        .map((r) => '${r.stdout}${r.stderr}')
+        .where((s) => s.trim().isNotEmpty)
+        .join('\n')
+        .trim();
+    if (output.isEmpty) {
+      return;
+    }
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('quickemu'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: SelectableText(
+              output,
+              style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(context.t('Dismiss')),
+          ),
+        ],
+      ),
+    );
   }
 
   VmInfo _parseVmInfo(String name) {
@@ -337,7 +374,9 @@ class _ManagerState extends State<Manager> with PreferencesMixin {
                         command.addAll(['--display', 'spice']);
                       }
                       var shell = Shell();
-                      await shell.run(command.join(' '));
+                      var results = await shell.run(command.join(' '));
+                      if (!mounted) return;
+                      _showProcessOutput(results);
                       VmInfo info = _parseVmInfo(currentVm);
                       activeVms[currentVm] = info;
                       setState(() {
@@ -563,6 +602,13 @@ class _ManagerState extends State<Manager> with PreferencesMixin {
                               case 'mate-terminal':
                                 sshArgs.insert(0, '--');
                                 break;
+                              case 'kitty':
+                              case 'foot':
+                                // Run the command directly: `kitty ssh ...`
+                                break;
+                              case 'wezterm':
+                                sshArgs.insert(0, 'start');
+                                break;
                               case 'alacritty':
                               case 'xterm':
                               case 'lxterm':
@@ -575,6 +621,7 @@ class _ManagerState extends State<Manager> with PreferencesMixin {
                               case 'pterm':
                               case 'lxterminal':
                               case 'tilix':
+                              case 'kgx':
                                 sshArgs.insert(0, '-e');
                                 break;
                               case 'terminator':
