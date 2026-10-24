@@ -12,7 +12,7 @@ analyzer:
     - build/**
     - macos/**
     - linux/**
-include: package:flutter_lints/flutter.yaml
+include: package:very_good_analysis/analysis_options.yaml
 
 linter:
   # The lint rules applied to this project can be customized in the
@@ -27,8 +27,27 @@ linter:
   # `// ignore_for_file: name_of_lint` syntax on the line or in the file
   # producing the lint.
   rules:
-    # avoid_print: false  # Uncomment to disable the `avoid_print` rule
-    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+    # Style-only rules relaxed for this codebase; correctness lints
+    # and strict-raw-types inference stay on (errors below are real).
+    always_use_package_imports: false
+    avoid_catches_without_on_clauses: false
+    avoid_types_on_closure_parameters: false
+    avoid_void_async: false
+    cascade_invocations: false
+    directives_ordering: false
+    document_ignores: false
+    lines_longer_than_80_chars: false
+    omit_local_variable_types: false
+    prefer_int_literals: false
+    prefer_single_quotes: false
+    public_member_api_docs: false
+    unnecessary_type_name_in_constructor: false
+    sort_constructors_first: false
+    sort_unnamed_constructors_first: false
+    avoid_positional_boolean_parameters: false
+    use_super_parameters: false
+    unawaited_futures: false
+    discarded_futures: false
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

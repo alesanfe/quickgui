@@ -67,8 +67,11 @@ class QuickemuBackend implements VirtualizationBackend {
     if (r.exitCode == 0) {
       try {
         final decoded = jsonDecode('${r.stdout}'.trim());
-        if (decoded is Map && decoded['vms'] is List) {
-          return [for (final v in decoded['vms']) '${v['name']}'];
+        if (decoded is Map) {
+          final vms = decoded['vms'];
+          if (vms is List) {
+            return [for (final v in vms) '${(v as Map)['name']}'];
+          }
         }
       } catch (_) {}
     }

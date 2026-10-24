@@ -33,10 +33,11 @@ Future<List<OperatingSystem>> loadOperatingSystems(bool showUbuntus) async {
             .toList()
       : rows;
   for (final chunks in lines) {
-    Tuple5 supportedVersion;
-    if (chunks.length == 4) // Legacy version of quickget
+    Tuple5<String, String, String, String, String> supportedVersion;
+    final chunksTyped = chunks.cast<String>();
+    if (chunksTyped.length == 4) // Legacy version of quickget
     {
-      supportedVersion = Tuple5.fromList([...chunks, "curl"]);
+      supportedVersion = Tuple5.fromList([...chunksTyped, "curl"]);
     } else {
       var t5 = [chunks[0], chunks[1], chunks[2], chunks[3], chunks[4]].toList();
       supportedVersion = Tuple5.fromList(t5);

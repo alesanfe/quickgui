@@ -34,12 +34,21 @@ dependencies:
       path: plugins/window_size
       ref: eb3964990cf19629c89ff8cb4a37640c7b3d5601
   desktop_drop: ^0.8.4
+  file: ^7.0.1
+  platform: ^3.2.0
+  process: ^5.0.6
 
 dev_dependencies:
+  integration_test:
+    sdk: flutter
   flutter_test:
     sdk: flutter
   fastforge: ^0.6.12
   flutter_lints: ^6.0.0
+  very_good_analysis: ^11.0.0
+  mocktail: ^1.0.5
+  fake_async: ^1.3.3
+  file_testing: ^3.1.0
 
 flutter:
   uses-material-design: true

@@ -16,7 +16,7 @@ Future<String> fetchQuickemuVersion() async {
 
   // If successful return the trimmed version
   if (result.exitCode == 0) {
-    return result.stdout.trim();
+    return (result.stdout as String).trim();
   } else {
     return '';
   }
