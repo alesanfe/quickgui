@@ -164,3 +164,21 @@ msgstr "Estás a punto de cerrar la máquina virtual {0}"
 #, fuzzy
 msgid "Language"
 msgstr "Lenguaje"
+
+msgid "Send Ctrl+Alt+Del"
+msgstr "Enviar Ctrl+Alt+Supr"
+
+msgid "Check VM"
+msgstr "Comprobar MV"
+
+msgid "Resize disk"
+msgstr "Redimensionar disco"
+
+msgid "Resize disk of {0}"
+msgstr "Redimensionar disco de {0}"
+
+msgid "New size (e.g. 64G)"
+msgstr "Nuevo tamaño (p. ej. 64G)"
+
+msgid "Resize"
+msgstr "Redimensionar"

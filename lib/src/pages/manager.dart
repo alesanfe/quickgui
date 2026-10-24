@@ -374,6 +374,39 @@ class _ManagerState extends State<Manager>
     _getVms();
   }
 
+  void _resizeVmDisk(BuildContext context, String currentVm) async {
+    final ctrl = TextEditingController(text: '64G');
+    final size = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.t('Resize disk of {0}', args: [currentVm])),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          decoration: InputDecoration(
+            labelText: context.t('New size (e.g. 64G)'),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(context.t('Cancel')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(ctrl.text.trim()),
+            child: Text(context.t('Resize')),
+          ),
+        ],
+      ),
+    );
+    if (size == null || size.isEmpty || !mounted) return;
+    final r = await Shell().run(
+      hostWrap('quickemu --vm "$currentVm.conf" --disk-resize "$size"'),
+    );
+    if (!mounted) return;
+    _showProcessOutput(r);
+  }
+
   void _showProcessOutput(List<ProcessResult> results) {
     final output = results
         .map((r) => '${r.stdout}${r.stderr}')
@@ -812,12 +845,28 @@ class _ManagerState extends State<Manager>
                     );
                     if (!context.mounted) return;
                     _showProcessOutput(r);
+                  case 'send-keys':
+                    final r = await Shell().run(
+                      hostWrap(
+                        'quickemu --vm "$currentVm.conf" --send-keys ctrl-alt-delete',
+                      ),
+                    );
+                    if (!context.mounted) return;
+                    _showProcessOutput(r);
+                  case 'doctor':
+                    final r = await Shell().run(
+                      hostWrap('quickemu --vm "$currentVm.conf" --doctor'),
+                    );
+                    if (!context.mounted) return;
+                    _showProcessOutput(r);
+                  case 'resize':
+                    _resizeVmDisk(context, currentVm);
                   case 'clone':
                     _cloneVm(context, currentVm);
                   case 'export':
                     final r = await Shell().run(
                       hostWrap(
-                        'tar -czf "$currentVm.tar.gz" "$currentVm" "$currentVm.conf"',
+                        'quickemu --vm "$currentVm.conf" --export "$currentVm.tar.gz"',
                       ),
                     );
                     if (!context.mounted) return;
@@ -980,6 +1029,34 @@ class _ManagerState extends State<Manager>
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),
+                if (active)
+                  PopupMenuItem(
+                    value: 'send-keys',
+                    child: ListTile(
+                      leading: const Icon(Icons.keyboard),
+                      title: Text(context.t('Send Ctrl+Alt+Del')),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                PopupMenuItem(
+                  value: 'doctor',
+                  child: ListTile(
+                    leading: const Icon(Icons.health_and_safety),
+                    title: Text(context.t('Check VM')),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'resize',
+                  child: ListTile(
+                    leading: const Icon(Icons.expand),
+                    title: Text(context.t('Resize disk')),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
                 PopupMenuItem(
                   value: 'clone',
                   child: ListTile(

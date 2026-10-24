@@ -381,3 +381,21 @@ msgstr ""
 
 msgid "Virtual machine name"
 msgstr ""
+
+msgid "Send Ctrl+Alt+Del"
+msgstr ""
+
+msgid "Check VM"
+msgstr ""
+
+msgid "Resize disk"
+msgstr ""
+
+msgid "Resize disk of {0}"
+msgstr ""
+
+msgid "New size (e.g. 64G)"
+msgstr ""
+
+msgid "Resize"
+msgstr ""
