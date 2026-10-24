@@ -604,10 +604,12 @@ class _ManagerState extends State<Manager>
                     BlendMode.srcIn,
                   ),
                 ),
-                tooltip: sshy
-                    ? context.t('Connect with SSH')
-                    : context.t('SSH server not detected on guest'),
-                onPressed: !sshy
+                tooltip: !sshy
+                    ? context.t('SSH server not detected on guest')
+                    : _terminalEmulator == null
+                    ? context.t('No terminal emulator found')
+                    : context.t('Connect with SSH'),
+                onPressed: !sshy || _terminalEmulator == null
                     ? null
                     : () {
                         TextEditingController usernameController =

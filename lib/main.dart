@@ -102,7 +102,10 @@ void main() async {
       }
     }
   }
-  if (foundQuickGet.exitCode == 0) {
+  // quickget and quickemu ship together; check both in case of a broken
+  // or partial installation.
+  final foundQuickemu = await Process.run('which', ['quickemu']);
+  if (foundQuickGet.exitCode == 0 && foundQuickemu.exitCode == 0) {
     gOperatingSystems = loadOperatingSystems(false);
     await getIcons();
     try {
