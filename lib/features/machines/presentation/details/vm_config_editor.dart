@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'package:quickgui/infrastructure/vm_config.dart';
+import 'package:quickgui/features/machines/providers/backend_providers.dart';
 
-class VmConfigEditorDialog extends StatefulWidget {
+class VmConfigEditorDialog extends ConsumerStatefulWidget {
   final String vmName;
   final String confPath;
 
@@ -14,26 +15,27 @@ class VmConfigEditorDialog extends StatefulWidget {
   });
 
   @override
-  State<VmConfigEditorDialog> createState() => _VmConfigEditorDialogState();
+  ConsumerState<VmConfigEditorDialog> createState() =>
+      _VmConfigEditorDialogState();
 }
 
-class _VmConfigEditorDialogState extends State<VmConfigEditorDialog> {
-  late VmConfig config;
+class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
   final TextEditingController _editorController = TextEditingController();
   bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    config = VmConfig(name: widget.vmName, confPath: widget.confPath);
-    config.load().then((_) {
-      _editorController.text = config.rawContent;
+    ref.read(vmConfigStoreProvider).loadRaw(widget.confPath).then((content) {
+      _editorController.text = content;
       setState(() => _loading = false);
     });
   }
 
   void _save() async {
-    await config.save(_editorController.text);
+    await ref
+        .read(vmConfigStoreProvider)
+        .saveRaw(widget.confPath, _editorController.text);
     if (!mounted) return;
     Navigator.of(context).pop();
   }
@@ -62,7 +64,7 @@ class _VmConfigEditorDialogState extends State<VmConfigEditorDialog> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    config.file.path,
+                    widget.confPath,
                     style: const TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                   Align(

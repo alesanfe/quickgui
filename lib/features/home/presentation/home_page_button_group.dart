@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
-import 'package:quickgui/app/dependencies/providers.dart';
+import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/features/settings/providers/settings_providers.dart';
 import 'package:quickgui/infrastructure/persistence/preferences_repository.dart';
 import 'package:quickgui/infrastructure/platform/system_host_probe.dart';

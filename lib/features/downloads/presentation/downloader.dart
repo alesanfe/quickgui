@@ -8,14 +8,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:quickgui/features/downloads/presentation/manage_machines_after_download_button.dart';
 import 'package:path/path.dart' as p;
-import 'package:quickgui/app/dependencies/providers.dart';
+import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/core/operations/operation_state.dart';
 import 'package:quickgui/core/result/result.dart';
 import 'package:quickgui/features/downloads/application/cancel_download.dart';
 import 'package:quickgui/features/downloads/application/download_image.dart';
 import 'package:quickgui/features/settings/providers/settings_providers.dart';
 import 'package:quickgui/infrastructure/persistence/preferences_repository.dart';
-import 'package:quickgui/infrastructure/vm_config.dart';
 
 import 'package:quickgui/features/catalog/domain/operating_system.dart';
 import 'package:quickgui/features/catalog/domain/option.dart';
@@ -176,8 +175,9 @@ class _DownloaderState extends ConsumerState<Downloader> {
                           b.lastModifiedSync().compareTo(a.lastModifiedSync()),
                     );
               if (confs.isNotEmpty) {
+                final store = ref.read(vmConfigStoreProvider);
                 for (final e in conf.entries) {
-                  writeConfValue(confs.first.path, e.key, e.value);
+                  store.write(confs.first.path, e.key, e.value);
                 }
               }
             }

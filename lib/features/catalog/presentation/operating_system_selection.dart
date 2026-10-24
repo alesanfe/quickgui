@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 
-import 'package:quickgui/app/dependencies/providers.dart';
+import 'package:quickgui/features/catalog/providers/catalog_providers.dart';
 import 'package:quickgui/features/catalog/domain/operating_system.dart';
 
 class OperatingSystemSelection extends ConsumerStatefulWidget {

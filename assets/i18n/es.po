@@ -248,3 +248,231 @@ msgstr "Capacidades"
 
 msgid "Missing"
 msgstr "Falta"
+
+msgid "Download history"
+msgstr "Historial de descargas"
+
+msgid "Apply"
+msgstr "Aplicar"
+
+msgid "Boot & network"
+msgstr "Arranque y red"
+
+msgid "Boot mode"
+msgstr "Modo de arranque"
+
+msgid "Check for updates"
+msgstr "Buscar actualizaciones"
+
+msgid "Clone"
+msgstr "Clonar"
+
+msgid "Connect"
+msgstr "Conectar"
+
+msgid "Connect display with SPICE"
+msgstr "Conectar pantalla con SPICE"
+
+msgid "Connect with SSH"
+msgstr "Conectar con SSH"
+
+msgid "Could not check for updates."
+msgstr "No se pudieron buscar actualizaciones."
+
+msgid "CPU cores"
+msgstr "Núcleos de CPU"
+
+msgid "Create"
+msgstr "Crear"
+
+msgid "Customise VM (optional)"
+msgstr "Personalizar VM (opcional)"
+
+msgid "Delete"
+msgstr "Eliminar"
+
+msgid "Delete disk image"
+msgstr "Eliminar imagen de disco"
+
+msgid "Delete whole VM"
+msgstr "Eliminar VM completa"
+
+msgid "Devices"
+msgstr "Dispositivos"
+
+msgid "Directory where the machines are stored"
+msgstr "Directorio donde se guardan las máquinas"
+
+msgid "Disk size"
+msgstr "Tamaño de disco"
+
+msgid "Disk size (e.g. 64G)"
+msgstr "Tamaño de disco (p. ej. 64G)"
+
+msgid "Display"
+msgstr "Pantalla"
+
+msgid "Display viewer"
+msgstr "Visor de pantalla"
+
+msgid "Download cancelled"
+msgstr "Descarga cancelada"
+
+msgid "Download failed"
+msgstr "Descarga fallida"
+
+msgid "Downloading..."
+msgstr "Descargando..."
+
+msgid "Edit configuration"
+msgstr "Editar configuración"
+
+msgid "Error"
+msgstr "Error"
+
+msgid "Export"
+msgstr "Exportar"
+
+msgid "for more information"
+msgstr "para más información"
+
+msgid "Forget host key"
+msgstr "Olvidar clave del host"
+
+msgid "GPU passthrough"
+msgstr "Passthrough de GPU"
+
+msgid "Guest OS"
+msgstr "SO invitado"
+
+msgid "Import"
+msgstr "Importar"
+
+msgid "Import a disk image"
+msgstr "Importar una imagen de disco"
+
+msgid "Info"
+msgstr "Información"
+
+msgid "Loading available downloads"
+msgstr "Cargando descargas disponibles"
+
+msgid "MAC address"
+msgstr "Dirección MAC"
+
+msgid "More actions"
+msgstr "Más acciones"
+
+msgid "Network"
+msgstr "Red"
+
+msgid "New VM name"
+msgstr "Nombre de la nueva VM"
+
+msgid "No downloads yet"
+msgstr "Aún no hay descargas"
+
+msgid "No terminal emulator found"
+msgstr "No se encontró emulador de terminal"
+
+msgid "Open release page"
+msgstr "Abrir página de la versión"
+
+msgid "Open VM folder"
+msgstr "Abrir carpeta de la VM"
+
+msgid "Pause"
+msgstr "Pausar"
+
+msgid "Please install it and try again."
+msgstr "Instálalo e inténtalo de nuevo."
+
+msgid "Port forwards"
+msgstr "Redirección de puertos"
+
+msgid "Powered by"
+msgstr "Desarrollado con"
+
+msgid "quickemu was not found in your PATH"
+msgstr "quickemu no se encontró en tu PATH"
+
+msgid "RAM"
+msgstr "RAM"
+
+msgid "RAM (e.g. 4G)"
+msgstr "RAM (p. ej. 4G)"
+
+msgid "Resources"
+msgstr "Recursos"
+
+msgid "Resume"
+msgstr "Reanudar"
+
+msgid "Running first"
+msgstr "Ejecutando primero"
+
+msgid "Screenshot"
+msgstr "Captura de pantalla"
+
+msgid "Search version"
+msgstr "Buscar versión"
+
+msgid "Search virtual machine"
+msgstr "Buscar máquina virtual"
+
+msgid "Secure boot"
+msgstr "Arranque seguro"
+
+msgid "See"
+msgstr "Ver"
+
+msgid "Select a disk image to import"
+msgstr "Selecciona una imagen de disco para importar"
+
+msgid "Settings (all)"
+msgstr "Ajustes (todo)"
+
+msgid "Shared folder"
+msgstr "Carpeta compartida"
+
+msgid "Show terminal output"
+msgstr "Mostrar salida del terminal"
+
+msgid "Snapshot tag"
+msgstr "Etiqueta de snapshot"
+
+msgid "Snapshots"
+msgstr "Snapshots"
+
+msgid "Sort"
+msgstr "Ordenar"
+
+msgid "Sort by name"
+msgstr "Ordenar por nombre"
+
+msgid "Sound"
+msgstr "Sonido"
+
+msgid "SPICE client not found"
+msgstr "Cliente SPICE no encontrado"
+
+msgid "SSH server not detected on guest"
+msgstr "Servidor SSH no detectado en el invitado"
+
+msgid "System diagnostics"
+msgstr "Diagnóstico del sistema"
+
+msgid "TPM"
+msgstr "TPM"
+
+msgid "USB devices"
+msgstr "Dispositivos USB"
+
+msgid "Verify image"
+msgstr "Verificar imagen"
+
+msgid "Virtual machine imported"
+msgstr "Máquina virtual importada"
+
+msgid "Virtual machine name"
+msgstr "Nombre de la máquina virtual"

@@ -13,13 +13,13 @@ import 'package:quickgui/features/machines/presentation/shared/new_vm_tag.dart';
 import 'package:version/version.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:quickgui/app/dependencies/providers.dart';
+import 'package:quickgui/features/catalog/providers/catalog_providers.dart';
+import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/features/settings/providers/settings_providers.dart';
 import 'package:quickgui/infrastructure/persistence/preferences_repository.dart';
 import 'package:quickgui/infrastructure/platform/host_platform.dart';
 import 'package:quickgui/infrastructure/process/host_process.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
-import 'package:quickgui/infrastructure/vm_config.dart';
 import 'package:quickgui/features/machines/application/delete_vm.dart';
 import 'package:quickgui/features/machines/application/inspect_vm.dart';
 import 'package:quickgui/features/machines/application/list_vms.dart';
@@ -721,10 +721,12 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                       ];
                       // Respect a display= setting in the .conf; fall back
                       // to the SPICE toggle.
-                      final confDisplay = confValue(
-                        _vmConfFiles[currentVm] ?? '$currentVm.conf',
-                        'display',
-                      );
+                      final confDisplay = ref
+                          .read(vmConfigStoreProvider)
+                          .read(
+                            _vmConfFiles[currentVm] ?? '$currentVm.conf',
+                            'display',
+                          );
                       if (confDisplay != null && confDisplay.isNotEmpty) {
                         if (confDisplay != 'none') {
                           command.addAll(['--display', confDisplay]);
@@ -945,10 +947,12 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                       },
                     );
                   case 'verify':
-                    final iso = confValue(
-                      _vmConfFiles[currentVm] ?? '$currentVm.conf',
-                      'iso',
-                    );
+                    final iso = ref
+                        .read(vmConfigStoreProvider)
+                        .read(
+                          _vmConfFiles[currentVm] ?? '$currentVm.conf',
+                          'iso',
+                        );
                     if (iso != null) {
                       final r = await Shell().run(
                         hostWrap('chunkcheck "$iso"'),

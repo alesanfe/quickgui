@@ -12,7 +12,7 @@ import 'package:quickgui/infrastructure/app_info/app_version.dart';
 import 'package:quickgui/features/diagnostics/presentation/diagnostics_page.dart';
 import 'package:quickgui/features/settings/providers/settings_providers.dart';
 import 'package:quickgui/infrastructure/persistence/preferences_repository.dart';
-import 'package:quickgui/app/dependencies/providers.dart';
+import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/infrastructure/process/host_process.dart';
 
 class LeftMenu extends ConsumerStatefulWidget {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:quickgui/app/dependencies/providers.dart';
+import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/features/diagnostics/presentation/diagnostics_page.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
 

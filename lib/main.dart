@@ -6,7 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'package:quickgui/app/app.dart';
-import 'package:quickgui/app/dependencies/providers.dart';
+import 'package:quickgui/features/catalog/providers/catalog_providers.dart';
+import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/infrastructure/app_info/app_version.dart';
 import 'package:quickgui/app/localization/supported_locales.dart';
 import 'package:quickgui/features/catalog/application/load_catalog.dart';

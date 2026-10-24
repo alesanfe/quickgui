@@ -196,3 +196,180 @@ msgstr "Memuat unduhan yang tersedia"
 
 msgid "Powered by"
 msgstr "Didukung oleh"
+
+msgid "Download history"
+msgstr ""
+
+msgid "Apply"
+msgstr ""
+
+msgid "Boot & network"
+msgstr ""
+
+msgid "Boot mode"
+msgstr ""
+
+msgid "Check for updates"
+msgstr ""
+
+msgid "Clone"
+msgstr ""
+
+msgid "Could not check for updates."
+msgstr ""
+
+msgid "CPU cores"
+msgstr ""
+
+msgid "Create"
+msgstr ""
+
+msgid "Customise VM (optional)"
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+msgid "Devices"
+msgstr ""
+
+msgid "Disk size"
+msgstr ""
+
+msgid "Disk size (e.g. 64G)"
+msgstr ""
+
+msgid "Display"
+msgstr ""
+
+msgid "Display viewer"
+msgstr ""
+
+msgid "Download failed"
+msgstr ""
+
+msgid "Downloading..."
+msgstr ""
+
+msgid "Edit configuration"
+msgstr ""
+
+msgid "Export"
+msgstr ""
+
+msgid "Forget host key"
+msgstr ""
+
+msgid "GPU passthrough"
+msgstr ""
+
+msgid "Guest OS"
+msgstr ""
+
+msgid "Import"
+msgstr ""
+
+msgid "Import a disk image"
+msgstr ""
+
+msgid "Info"
+msgstr ""
+
+msgid "MAC address"
+msgstr ""
+
+msgid "More actions"
+msgstr ""
+
+msgid "Network"
+msgstr ""
+
+msgid "New VM name"
+msgstr ""
+
+msgid "No downloads yet"
+msgstr ""
+
+msgid "No terminal emulator found"
+msgstr ""
+
+msgid "Open release page"
+msgstr ""
+
+msgid "Open VM folder"
+msgstr ""
+
+msgid "Pause"
+msgstr ""
+
+msgid "Port forwards"
+msgstr ""
+
+msgid "RAM"
+msgstr ""
+
+msgid "RAM (e.g. 4G)"
+msgstr ""
+
+msgid "Resources"
+msgstr ""
+
+msgid "Resume"
+msgstr ""
+
+msgid "Running first"
+msgstr ""
+
+msgid "Screenshot"
+msgstr ""
+
+msgid "Search virtual machine"
+msgstr ""
+
+msgid "Secure boot"
+msgstr ""
+
+msgid "Select a disk image to import"
+msgstr ""
+
+msgid "Settings (all)"
+msgstr ""
+
+msgid "Shared folder"
+msgstr ""
+
+msgid "Show terminal output"
+msgstr ""
+
+msgid "Snapshot tag"
+msgstr ""
+
+msgid "Snapshots"
+msgstr ""
+
+msgid "Sort"
+msgstr ""
+
+msgid "Sort by name"
+msgstr ""
+
+msgid "Sound"
+msgstr ""
+
+msgid "System diagnostics"
+msgstr ""
+
+msgid "TPM"
+msgstr ""
+
+msgid "USB devices"
+msgstr ""
+
+msgid "Verify image"
+msgstr ""
+
+msgid "Virtual machine imported"
+msgstr ""
+
+msgid "Virtual machine name"
+msgstr ""

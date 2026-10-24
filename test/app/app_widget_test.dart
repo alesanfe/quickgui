@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quickgui/app/app.dart';
-import 'package:quickgui/app/dependencies/providers.dart';
+import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/features/settings/domain/settings_state.dart';
 import 'package:quickgui/features/settings/providers/settings_providers.dart';
 

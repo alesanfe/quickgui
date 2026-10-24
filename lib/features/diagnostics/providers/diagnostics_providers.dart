@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:quickgui/app/dependencies/providers.dart';
+import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/core/result/result.dart';
 import 'package:quickgui/features/diagnostics/application/collect_diagnostics.dart';
 import 'package:quickgui/features/diagnostics/application/ports/host_probe.dart';
