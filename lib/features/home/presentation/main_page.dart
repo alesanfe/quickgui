@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
-import 'package:window_size/window_size.dart';
+import 'package:window_manager/window_manager.dart';
 
 import 'package:quickgui/features/home/presentation/logo.dart';
 import 'package:quickgui/features/home/presentation/main_menu.dart';
-import 'package:quickgui/shared/presentation/widgets/left_menu.dart';
+import 'package:quickgui/app/navigation/left_menu.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -17,7 +17,7 @@ class _MainPageState extends State<MainPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    setWindowTitle(
+    windowManager.setTitle(
       context.t('Quickgui : a Flutter frontend for Quickget and Quickemu'),
     );
   }
