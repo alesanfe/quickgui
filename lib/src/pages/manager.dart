@@ -517,6 +517,17 @@ class _ManagerState extends State<Manager> with PreferencesMixin {
                             ),
                             actions: <Widget>[
                               TextButton(
+                                onPressed: () {
+                                  // Remove the stale known_hosts entry, e.g.
+                                  // when a new guest reuses the SSH port of a
+                                  // deleted VM.
+                                  Shell().run(
+                                    'ssh-keygen -R [localhost]:${vmInfo.sshPort!}',
+                                  );
+                                },
+                                child: Text(context.t('Forget host key')),
+                              ),
+                              TextButton(
                                 onPressed: () => Navigator.pop(context, false),
                                 child: Text(context.t('Cancel')),
                               ),
