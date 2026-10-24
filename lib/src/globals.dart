@@ -38,6 +38,12 @@ String fallbackWorkingDirectory() {
       Directory.current.path;
 }
 
+/// True if [binary] is found on PATH.
+Future<bool> commandAvailable(String binary) async {
+  final result = await Process.run('which', [binary]);
+  return result.exitCode == 0;
+}
+
 /// Host CPU flags, lower-cased and normalised (e.g. "SSE4.2" -> "sse4_2").
 Future<Set<String>> hostCpuFlags() async {
   final flags = <String>{};

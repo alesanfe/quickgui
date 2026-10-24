@@ -151,6 +151,63 @@ class _ManagerState extends State<Manager>
     });
   }
 
+  void _manageSnapshot(BuildContext context, String currentVm) async {
+    // Expose quickemu's --snapshot apply/create/delete/info actions.
+    final shell = Shell();
+    final tagController = TextEditingController();
+    await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.t('Snapshots {0}', args: [currentVm])),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: tagController,
+              decoration: InputDecoration(hintText: context.t('Snapshot tag')),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop('info'),
+            child: Text(context.t('Info')),
+          ),
+          TextButton(
+            onPressed: () =>
+                Navigator.of(context)
+                    .pop('create ${tagController.text.trim()}'),
+            child: Text(context.t('Create')),
+          ),
+          TextButton(
+            onPressed: () =>
+                Navigator.of(context).pop('apply ${tagController.text.trim()}'),
+            child: Text(context.t('Apply')),
+          ),
+          TextButton(
+            onPressed: () =>
+                Navigator.of(context)
+                    .pop('delete ${tagController.text.trim()}'),
+            child: Text(context.t('Delete')),
+          ),
+        ],
+      ),
+    ).then((action) async {
+      if (action == null || action.isEmpty) return;
+      final parts = action.split(' ');
+      final command = [
+        'quickemu',
+        '--vm',
+        '$currentVm.conf',
+        '--snapshot',
+        ...parts.where((p) => p.isNotEmpty),
+      ];
+      final results = await shell.run(command.join(' '));
+      if (!mounted) return;
+      _showProcessOutput(results);
+    });
+  }
+
   void _confirmDeleteVm(BuildContext context, String currentVm) {
     showDialog<String?>(
       context: context,
@@ -533,6 +590,8 @@ class _ManagerState extends State<Manager>
                     Shell().run(
                       '${Platform.isMacOS ? 'open' : 'xdg-open'} "$currentVm"',
                     );
+                  case 'snapshot':
+                    _manageSnapshot(context, currentVm);
                   case 'delete':
                     _confirmDeleteVm(context, currentVm);
                 }
@@ -557,6 +616,15 @@ class _ManagerState extends State<Manager>
                   ),
                 ),
                 const PopupMenuDivider(),
+                PopupMenuItem(
+                  value: 'snapshot',
+                  child: ListTile(
+                    leading: const Icon(Icons.photo_camera),
+                    title: Text(context.t('Snapshots')),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
                 PopupMenuItem(
                   value: 'delete',
                   child: ListTile(

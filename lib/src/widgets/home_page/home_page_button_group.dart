@@ -151,6 +151,33 @@ class _HomePageButtonGroupState extends State<HomePageButtonGroup>
                         return;
                       }
                     }
+                    // Windows guests need a TPM emulator (swtpm) when the
+                    // generated config enables TPM/Secure Boot.
+                    if ((_selectedOperatingSystem?.code ?? '').startsWith(
+                      'windows',
+                    )) {
+                      if (!await commandAvailable('swtpm')) {
+                        if (!context.mounted) return;
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text(context.t('Error')),
+                            content: Text(
+                              context.t(
+                                'swtpm was not found in your PATH. Windows guests require a TPM 2.0 emulator. Please install swtpm and try again.',
+                              ),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: Text(context.t('OK')),
+                              ),
+                            ],
+                          ),
+                        );
+                        return;
+                      }
+                    }
                     if (!context.mounted) return;
                     Navigator.of(context).push(
                       MaterialPageRoute(
