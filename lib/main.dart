@@ -8,6 +8,7 @@ import 'package:tuple/tuple.dart';
 import 'package:window_size/window_size.dart';
 
 import 'src/app.dart';
+import 'src/globals.dart';
 import 'src/mixins/app_version.dart';
 import 'src/model/app_settings.dart';
 import 'src/model/operating_system.dart';
@@ -16,7 +17,7 @@ import 'src/model/osicons.dart';
 import 'src/model/version.dart';
 
 Future<List<OperatingSystem>> loadOperatingSystems(bool showUbuntus) async {
-  var process = await Process.run('quickget', ['--list-csv']);
+  var process = await runHost('quickget', ['--list-csv']);
   var stdout = process.stdout as String;
   var output = <OperatingSystem>[];
   OperatingSystem? currentOperatingSystem;
@@ -89,7 +90,7 @@ void main() async {
     setWindowMinSize(const Size(692, 580));
   }
 
-  var foundQuickGet = await Process.run('which', ['quickget']);
+  var foundQuickGet = await runHost('which', ['quickget']);
   // Apps launched from Finder/desktop environments have a minimal PATH that
   // usually excludes the Homebrew prefixes, so check them explicitly.
   if (foundQuickGet.exitCode != 0) {
@@ -97,14 +98,14 @@ void main() async {
       if (File('$dir/quickget').existsSync()) {
         Platform.environment['PATH'] =
             '$dir:${Platform.environment['PATH'] ?? ''}';
-        foundQuickGet = await Process.run('which', ['quickget']);
+        foundQuickGet = await runHost('which', ['quickget']);
         break;
       }
     }
   }
   // quickget and quickemu ship together; check both in case of a broken
   // or partial installation.
-  final foundQuickemu = await Process.run('which', ['quickemu']);
+  final foundQuickemu = await runHost('which', ['quickemu']);
   if (foundQuickGet.exitCode == 0 && foundQuickemu.exitCode == 0) {
     gOperatingSystems = loadOperatingSystems(false);
     await getIcons();

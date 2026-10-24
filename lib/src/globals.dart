@@ -8,7 +8,7 @@ const String prefNewlyInstalledVms = 'newlyInstalledVms';
 
 Future<String> fetchQuickemuVersion() async {
   // Get the version of quickemu
-  var result = await Process.run('quickemu', ['--version']);
+  var result = await runHost('quickemu', ['--version']);
 
   // If successful return the trimmed version
   if (result.exitCode == 0) {
@@ -38,10 +38,38 @@ String fallbackWorkingDirectory() {
       Directory.current.path;
 }
 
+/// True when running inside a Flatpak sandbox.
+bool get inFlatpak => File('/.flatpak-info').existsSync();
+
+/// Runs [exe] with [args], escaping the Flatpak sandbox when needed so
+/// commands execute on the host system.
+Future<ProcessResult> runHost(String exe, List<String> args) {
+  return inFlatpak
+      ? Process.run('flatpak-spawn', ['--host', exe, ...args])
+      : Process.run(exe, args);
+}
+
+/// Prefix a shell command so it runs on the host when sandboxed.
+String hostWrap(String command) {
+  return inFlatpak ? 'flatpak-spawn --host $command' : command;
+}
+
 /// True if [binary] is found on PATH.
 Future<bool> commandAvailable(String binary) async {
-  final result = await Process.run('which', [binary]);
+  final result = await runHost('which', [binary]);
   return result.exitCode == 0;
+}
+
+/// Reads a `key="value"` entry from a quickemu .conf file.
+String? confValue(String confPath, String key) {
+  final file = File(confPath);
+  if (!file.existsSync()) return null;
+  final re = RegExp('^$key="(.*)"');
+  for (final line in file.readAsLinesSync()) {
+    final m = re.firstMatch(line);
+    if (m != null) return m.group(1);
+  }
+  return null;
 }
 
 /// Host CPU flags, lower-cased and normalised (e.g. "SSE4.2" -> "sse4_2").

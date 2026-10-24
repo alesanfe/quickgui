@@ -178,7 +178,37 @@ class _HomePageButtonGroupState extends State<HomePageButtonGroup>
                         return;
                       }
                     }
+                    // Verify the image is still downloadable before
+                    // starting the download page.
+                    final check = await runHost('quickget', [
+                      '--check',
+                      _selectedOperatingSystem!.code,
+                      _selectedVersion!.version,
+                      if (_selectedOption != null &&
+                          _selectedOption!.option.isNotEmpty)
+                        _selectedOption!.option,
+                    ]);
                     if (!context.mounted) return;
+                    if (check.exitCode != 0) {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text(context.t('Error')),
+                          content: Text(
+                            context.t(
+                              'The selected image is currently unavailable.',
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: Text(context.t('OK')),
+                            ),
+                          ],
+                        ),
+                      );
+                      return;
+                    }
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => Downloader(

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
@@ -172,7 +170,7 @@ class _LeftMenuState extends State<LeftMenu> with PreferencesMixin {
                 title: Text(context.t('System diagnostics')),
                 dense: true,
                 onTap: () async {
-                  final proc = await Process.run('quickreport', []);
+                  final proc = await runHost('quickreport', []);
                   if (!context.mounted) return;
                   showDialog(
                     context: context,

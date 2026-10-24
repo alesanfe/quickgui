@@ -108,7 +108,10 @@ class _DownloaderState extends State<Downloader> with PreferencesMixin {
       options.add(widget.option!.option);
     }
 
-    Process.start('quickget', options).then((process) {
+    Process.start(inFlatpak ? 'flatpak-spawn' : 'quickget', [
+      if (inFlatpak) ...['--host', 'quickget'] else 'quickget',
+      ...options,
+    ]).then((process) {
       process.stdout.transform(utf8.decoder).forEach(_captureOutput);
       if (widget.option!.downloader != 'zsync') {
         process.stderr.transform(utf8.decoder).forEach((chunk) {

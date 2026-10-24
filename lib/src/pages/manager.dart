@@ -283,7 +283,7 @@ class _ManagerState extends State<Manager>
         '--snapshot',
         ...parts.where((p) => p.isNotEmpty),
       ];
-      final results = await shell.run(command.join(' '));
+      final results = await shell.run(hostWrap(command.join(' ')));
       if (!mounted) return;
       _showProcessOutput(results);
     });
@@ -336,7 +336,7 @@ class _ManagerState extends State<Manager>
           '--delete-$result',
         ];
         var shell = Shell();
-        await shell.run(command.join(' '));
+        await shell.run(hostWrap(command.join(' ')));
       }
     });
   }
@@ -601,11 +601,23 @@ class _ManagerState extends State<Manager>
                         '--vm',
                         '$currentVm.conf',
                       ];
-                      if (_spicy) {
+                      // Respect a display= setting in the .conf; fall back
+                      // to the SPICE toggle.
+                      final confDisplay = confValue(
+                        _vmConfFiles[currentVm] ?? '$currentVm.conf',
+                        'display',
+                      );
+                      if (confDisplay != null && confDisplay.isNotEmpty) {
+                        if (confDisplay != 'none') {
+                          command.addAll(['--display', confDisplay]);
+                        }
+                      } else if (_spicy) {
                         command.addAll(['--display', 'spice']);
                       }
                       var shell = Shell();
-                      var results = await shell.run(command.join(' '));
+                      var results = await shell.run(
+                        hostWrap(command.join(' ')),
+                      );
                       if (!mounted) return;
                       _showProcessOutput(results);
                       VmInfo info = _parseVmInfo(currentVm);
@@ -664,7 +676,9 @@ class _ManagerState extends State<Manager>
                               ].join(' '),
                             );
                           } else {
-                            shell.run(['killall', currentVm].join(' '));
+                            shell.run(
+                              hostWrap(['killall', currentVm].join(' ')),
+                            );
                           }
                           setState(() {
                             _activeVms.remove(currentVm);
@@ -677,7 +691,7 @@ class _ManagerState extends State<Manager>
               icon: const Icon(Icons.more_vert, semanticLabel: 'More actions'),
               tooltip: context.t('More actions'),
               enabled: !active,
-              onSelected: (choice) {
+              onSelected: (choice) async {
                 switch (choice) {
                   case 'config':
                     showDialog(
@@ -711,6 +725,43 @@ class _ManagerState extends State<Manager>
                         'viewer': ['spicy', 'remote-viewer', 'none'],
                       },
                     );
+                  case 'bootnet':
+                    _editVmConfValues(
+                      currentVm,
+                      {
+                        'boot': context.t('Boot mode'),
+                        'network': context.t('Network'),
+                        'macaddr': context.t('MAC address'),
+                        'secureboot': context.t('Secure boot'),
+                        'tpm': context.t('TPM'),
+                      },
+                      options: {
+                        'boot': ['efi', 'legacy'],
+                        'network': ['nat', 'restrict', 'bridged', 'none'],
+                        'secureboot': ['on', 'off'],
+                        'tpm': ['on', 'off'],
+                      },
+                    );
+                  case 'devices':
+                    _editVmConfValues(currentVm, {
+                      'usb_devices': context.t('USB devices'),
+                      'gpu_passthrough': context.t('GPU passthrough'),
+                      'port_forwards': context.t('Port forwards'),
+                      'sound': context.t('Sound'),
+                      'display': context.t('Display'),
+                    });
+                  case 'verify':
+                    final iso = confValue(
+                      _vmConfFiles[currentVm] ?? '$currentVm.conf',
+                      'iso',
+                    );
+                    if (iso != null) {
+                      final r = await Shell().run(
+                        hostWrap('chunkcheck "$iso"'),
+                      );
+                      if (!context.mounted) return;
+                      _showProcessOutput(r);
+                    }
                   case 'delete':
                     _confirmDeleteVm(context, currentVm);
                 }
@@ -772,6 +823,34 @@ class _ManagerState extends State<Manager>
                   ),
                 ),
                 PopupMenuItem(
+                  value: 'bootnet',
+                  child: ListTile(
+                    leading: const Icon(Icons.lan),
+                    title: Text(context.t('Boot & network')),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'devices',
+                  child: ListTile(
+                    leading: const Icon(Icons.developer_board),
+                    title: Text(context.t('Devices')),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'verify',
+                  child: ListTile(
+                    leading: const Icon(Icons.verified),
+                    title: Text(context.t('Verify image')),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
                   value: 'delete',
                   child: ListTile(
                     leading: const Icon(Icons.delete),
@@ -806,7 +885,11 @@ class _ManagerState extends State<Manager>
                     ? null
                     : () {
                         var shell = Shell();
-                        shell.run(['spicy', '-p', vmInfo.spicePort!].join(' '));
+                        shell.run(
+                          hostWrap(
+                            ['spicy', '-p', vmInfo.spicePort!].join(' '),
+                          ),
+                        );
                       },
               ),
               IconButton(

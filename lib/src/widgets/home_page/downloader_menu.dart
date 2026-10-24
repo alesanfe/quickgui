@@ -93,7 +93,7 @@ class _DownloaderMenuState extends State<DownloaderMenu> with PreferencesMixin {
       return;
     }
 
-    final proc = await Process.run('quickget', [
+    final proc = await runHost('quickget', [
       '--create-config',
       vmName,
       imagePath,
