@@ -9,6 +9,7 @@ import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:quickgui/features/downloads/presentation/manage_machines_after_download_button.dart';
 import 'package:path/path.dart' as p;
 import 'package:quickgui/app/dependencies/providers.dart';
+import 'package:quickgui/core/operations/operation_state.dart';
 import 'package:quickgui/core/result/result.dart';
 import 'package:quickgui/features/downloads/application/cancel_download.dart';
 import 'package:quickgui/features/downloads/application/download_image.dart';
@@ -51,9 +52,10 @@ class _DownloaderState extends ConsumerState<Downloader> {
       ? null
       : NotificationsClient();
   final curlPattern = RegExp("( [0-9.]+%)");
-  late final Stream<double> _progressStream;
-  bool _downloadFinished = false;
-  StreamController<double> controller = StreamController<double>();
+  late final Stream<OperationState<Object?>> _progressStream;
+  OperationState<Object?> _state = const OperationState.idle();
+  StreamController<OperationState<Object?>> controller =
+      StreamController<OperationState<Object?>>();
   Process? _process;
   final List<String> _outputChunks = [];
   int _outputLength = 0;
@@ -80,13 +82,18 @@ class _DownloaderState extends ConsumerState<Downloader> {
     super.initState();
   }
 
+  void _emit(OperationState<Object?> state) {
+    _state = state;
+    if (!controller.isClosed) controller.add(state);
+  }
+
   void parseCurlProgress(String line) {
     final matches = curlPattern.allMatches(line).toList();
     if (matches.isNotEmpty) {
       final percent = matches[0].group(1);
       if (percent != null) {
         final value = double.parse(percent.replaceAll('%', '')) / 100.0;
-        controller.add(value);
+        _emit(OperationState.running(progress: value));
       }
     }
   }
@@ -117,79 +124,106 @@ class _DownloaderState extends ConsumerState<Downloader> {
     }
   }
 
-  Stream<double> progressStream() {
+  Stream<OperationState<Object?>> progressStream() {
     DownloadImage(ref.read(backendProvider))(
-      widget.operatingSystem.code,
-      widget.version.version,
-      widget.option?.option ?? '',
-    ).then((process) {
-      process.stdout.transform(utf8.decoder).forEach(_captureOutput);
-      if (widget.option!.downloader != 'zsync') {
-        process.stderr.transform(utf8.decoder).forEach((chunk) {
-          _captureOutput(chunk);
-          parseCurlProgress(chunk);
-        });
-      } else {
-        process.stderr.transform(utf8.decoder).forEach(_captureOutput);
-        controller.add(-1);
-      }
-
-      process.exitCode.then((value) async {
-        final bool cancelled = value.isNegative;
-        controller.close();
-        addNewestVmToPrefs();
-        final prefs = ref.read(preferencesRepositoryProvider);
-        final history =
-            await prefs.getAs<List<String>>('downloadHistory') ?? <String>[];
-        history.add(
-          '${widget.operatingSystem.name} ${widget.version.version} — ${DateTime.now()}',
-        );
-        prefs.set('downloadHistory', history);
-        final conf = widget.customConf ?? {};
-        if (conf.isNotEmpty && !cancelled) {
-          // Apply wizard values to the newest generated .conf.
-          final confs =
-              Directory.current
-                  .listSync()
-                  .whereType<File>()
-                  .where((f) => f.path.endsWith('.conf'))
-                  .toList()
-                ..sort(
-                  (a, b) =>
-                      b.lastModifiedSync().compareTo(a.lastModifiedSync()),
-                );
-          if (confs.isNotEmpty) {
-            for (final e in conf.entries) {
-              writeConfValue(confs.first.path, e.key, e.value);
-            }
+          widget.operatingSystem.code,
+          widget.version.version,
+          widget.option?.option ?? '',
+        )
+        .then((process) {
+          _emit(const OperationState.running());
+          process.stdout.transform(utf8.decoder).forEach(_captureOutput);
+          if (widget.option!.downloader != 'zsync') {
+            process.stderr.transform(utf8.decoder).forEach((chunk) {
+              _captureOutput(chunk);
+              parseCurlProgress(chunk);
+            });
+          } else {
+            process.stderr.transform(utf8.decoder).forEach(_captureOutput);
           }
-        }
-        setState(() {
-          _downloadFinished = true;
 
-          notificationsClient?.notify(
-            cancelled
-                ? context.t('Download cancelled')
-                : context.t('Download complete'),
-            body: cancelled
-                ? context.t(
+          process.exitCode.then((value) async {
+            final OperationState<Object?> terminal = value.isNegative
+                ? const OperationState.cancelled()
+                : value == 0
+                ? const OperationState.succeeded(null)
+                : OperationState.failed(
+                    code: 'download.exit_$value',
+                    message: _processOutput.trim(),
+                  );
+            _emit(terminal);
+            controller.close();
+            addNewestVmToPrefs();
+            final prefs = ref.read(preferencesRepositoryProvider);
+            final history =
+                await prefs.getAs<List<String>>('downloadHistory') ??
+                <String>[];
+            history.add(
+              '${widget.operatingSystem.name} ${widget.version.version} — ${DateTime.now()}',
+            );
+            prefs.set('downloadHistory', history);
+            final conf = widget.customConf ?? {};
+            if (conf.isNotEmpty && terminal is OperationSucceeded) {
+              // Apply wizard values to the newest generated .conf.
+              final confs =
+                  Directory.current
+                      .listSync()
+                      .whereType<File>()
+                      .where((f) => f.path.endsWith('.conf'))
+                      .toList()
+                    ..sort(
+                      (a, b) =>
+                          b.lastModifiedSync().compareTo(a.lastModifiedSync()),
+                    );
+              if (confs.isNotEmpty) {
+                for (final e in conf.entries) {
+                  writeConfValue(confs.first.path, e.key, e.value);
+                }
+              }
+            }
+            setState(() {
+              final (title, body) = switch (terminal) {
+                OperationCancelled() => (
+                  context.t('Download cancelled'),
+                  context.t(
                     'Download of {0} has been canceled.',
                     args: [widget.operatingSystem.name],
-                  )
-                : context.t(
+                  ),
+                ),
+                OperationFailed() => (
+                  context.t('Download failed'),
+                  context.t(
+                    'Download of {0} has failed.',
+                    args: [widget.operatingSystem.name],
+                  ),
+                ),
+                _ => (
+                  context.t('Download complete'),
+                  context.t(
                     'Download of {0} has completed.',
                     args: [widget.operatingSystem.name],
                   ),
-            appName: 'Quickgui',
-            expireTimeoutMs: 10000 /* 10 seconds */,
-          );
-        });
-      });
+                ),
+              };
+              notificationsClient?.notify(
+                title,
+                body: body,
+                appName: 'Quickgui',
+                expireTimeoutMs: 10000 /* 10 seconds */,
+              );
+            });
+          });
 
-      setState(() {
-        _process = process;
-      });
-    });
+          setState(() {
+            _process = process;
+          });
+        })
+        .catchError((Object e) {
+          _emit(
+            OperationState.failed(code: 'download.start_failed', message: '$e'),
+          );
+          controller.close();
+        });
     return controller.stream;
   }
 
@@ -212,81 +246,76 @@ class _DownloaderState extends ConsumerState<Downloader> {
           Expanded(
             child: StreamBuilder(
               stream: _progressStream,
-              builder: (context, AsyncSnapshot<double> snapshot) {
-                final data =
-                    !snapshot.hasData || widget.option!.downloader != 'curl'
-                    ? null
-                    : snapshot.data;
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    DownloadLabel(
-                      downloadFinished: _downloadFinished,
-                      data: snapshot.hasData ? snapshot.data : null,
-                      downloader: widget.option!.downloader,
-                    ),
-                    DownloadProgressBar(
-                      downloadFinished: _downloadFinished,
-                      data: snapshot.hasData ? data : null,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 32),
-                      child: Text(
-                        context.t(
-                          'Target folder : {0}',
-                          args: [Directory.current.path],
+              builder:
+                  (context, AsyncSnapshot<OperationState<Object?>> snapshot) {
+                    final state = snapshot.data ?? _state;
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        DownloadLabel(
+                          state: state,
+                          downloader: widget.option!.downloader,
                         ),
-                      ),
-                    ),
-                    TextButton.icon(
-                      icon: Icon(
-                        _showOutput ? Icons.expand_less : Icons.expand_more,
-                      ),
-                      label: Text(context.t('Show terminal output')),
-                      onPressed: () {
-                        setState(() {
-                          _showOutput = !_showOutput;
-                        });
-                      },
-                    ),
-                    if (_showOutput)
-                      Container(
-                        height: 160,
-                        width: 560,
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: SingleChildScrollView(
-                          reverse: true,
-                          child: SelectableText(
-                            _processOutput,
-                            style: const TextStyle(
-                              fontFamily: 'monospace',
-                              fontSize: 11,
+                        DownloadProgressBar(state: state),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 32),
+                          child: Text(
+                            context.t(
+                              'Target folder : {0}',
+                              args: [Directory.current.path],
                             ),
                           ),
                         ),
-                      ),
-                  ],
-                );
-              },
+                        TextButton.icon(
+                          icon: Icon(
+                            _showOutput ? Icons.expand_less : Icons.expand_more,
+                          ),
+                          label: Text(context.t('Show terminal output')),
+                          onPressed: () {
+                            setState(() {
+                              _showOutput = !_showOutput;
+                            });
+                          },
+                        ),
+                        if (_showOutput)
+                          Container(
+                            height: 160,
+                            width: 560,
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: SingleChildScrollView(
+                              reverse: true,
+                              child: SelectableText(
+                                _processOutput,
+                                style: const TextStyle(
+                                  fontFamily: 'monospace',
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
             ),
           ),
           ManageMachinesAfterDownloadButton(
-            downloadFinished: _downloadFinished,
+            downloadFinished: _state is OperationSucceeded,
           ),
           CancelDismissButton(
             onCancel: () {
+              _emit(const OperationState.cancelling());
               CancelDownload(() async {
                 _process?.kill();
                 return const Ok(null);
               })();
             },
-            downloadFinished: _downloadFinished,
+            downloadFinished: _state.isTerminal,
           ),
         ],
       ),

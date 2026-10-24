@@ -61,7 +61,13 @@ msgstr ""
 msgid "Download complete"
 msgstr ""
 
+msgid "Download failed"
+msgstr ""
+
 msgid "Download of {0} has completed."
+msgstr ""
+
+msgid "Download of {0} has failed."
 msgstr ""
 
 msgid "Download of {0} has been cancelled."
