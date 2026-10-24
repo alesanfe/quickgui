@@ -1,5 +1,7 @@
 import '../../domain/common/result.dart';
-import '../../domain/common/app_settings.dart';
+
+import 'package:quickgui/app/app_settings.dart';
+
 import '../../infrastructure/preferences/preferences_repository.dart';
 
 /// Use case: load persisted app settings.

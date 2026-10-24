@@ -10,7 +10,7 @@ import 'package:window_size/window_size.dart';
 import 'package:quickgui/app/app.dart';
 import 'package:quickgui/app/globals.dart';
 import 'package:quickgui/application/app_version.dart';
-import 'package:quickgui/domain/common/app_settings.dart';
+import 'package:quickgui/app/app_settings.dart';
 import 'package:quickgui/domain/catalog/operating_system.dart';
 import 'package:quickgui/domain/catalog/option.dart';
 import 'package:quickgui/domain/catalog/osicons.dart';

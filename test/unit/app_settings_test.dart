@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:quickgui/domain/common/app_settings.dart';
+import 'package:quickgui/app/app_settings.dart';
 
 void main() {
   test(

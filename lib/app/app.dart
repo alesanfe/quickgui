@@ -11,7 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:quickgui/app/globals.dart';
 import 'package:quickgui/application/preferences_mixin.dart';
-import 'package:quickgui/domain/common/app_settings.dart';
+import 'package:quickgui/app/app_settings.dart';
 import 'package:quickgui/presentation/home/main_page.dart';
 
 class App extends StatefulWidget {

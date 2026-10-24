@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'package:quickgui/domain/virtual_machine/vm_config.dart';
+import 'package:quickgui/infrastructure/vm_config.dart';
 
 class VmConfigEditorDialog extends StatefulWidget {
   final String vmName;

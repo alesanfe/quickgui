@@ -4,9 +4,10 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../fakes/fake_virtualization_backend.dart';
+
 import 'package:quickgui/app/app.dart';
 import 'package:quickgui/app/globals.dart';
-import 'package:quickgui/domain/common/app_settings.dart';
+import 'package:quickgui/app/app_settings.dart';
 
 void main() {
   setUp(() {

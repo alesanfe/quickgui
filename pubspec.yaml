@@ -52,8 +52,6 @@ dependencies:
   file_selector: ^1.1.0
   watcher: ^1.2.1
   window_manager: ^0.2.3
-  screen_retriever: ^0.3.0
-  tray_manager: ^0.8.0
   flex_color_scheme: ^9.0.0
   vector_graphics: ^1.2.4
   flutter_animate: ^4.5.2

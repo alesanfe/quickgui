@@ -11,7 +11,7 @@ import 'package:quickgui/app/supported_locales.dart';
 import 'package:quickgui/app/globals.dart';
 import 'package:quickgui/application/app_version.dart';
 import 'package:quickgui/application/preferences_mixin.dart';
-import 'package:quickgui/domain/common/app_settings.dart';
+import 'package:quickgui/app/app_settings.dart';
 
 class LeftMenu extends StatefulWidget {
   const LeftMenu({super.key});
