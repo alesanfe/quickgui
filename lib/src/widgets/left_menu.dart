@@ -43,8 +43,12 @@ class _LeftMenuState extends State<LeftMenu> with PreferencesMixin {
     super.didChangeDependencies();
   }
 
-  TextSpan _linkSpan(String text, String url, BuildContext context,
-      {bool bold = false}) {
+  TextSpan _linkSpan(
+    String text,
+    String url,
+    BuildContext context, {
+    bool bold = false,
+  }) {
     return TextSpan(
       text: text,
       style: TextStyle(

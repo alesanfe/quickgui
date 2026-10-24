@@ -61,7 +61,9 @@ class _DownloaderMenuState extends State<DownloaderMenu> with PreferencesMixin {
                     const SizedBox(width: 8),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        foregroundColor: Theme.of(context).colorScheme.onSurface,
+                        foregroundColor: Theme.of(context)
+                            .colorScheme
+                            .onSurface,
                         backgroundColor: Theme.of(context).colorScheme.surface,
                       ),
                       onPressed: () async {

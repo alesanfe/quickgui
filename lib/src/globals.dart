@@ -21,9 +21,7 @@ Future<String> fetchQuickemuVersion() async {
 /// Returns true if a temporary file can be created in [path].
 bool isWritableDirectory(String path) {
   try {
-    final file = File(
-      '$path${Platform.pathSeparator}.quickgui_write_test',
-    );
+    final file = File('$path${Platform.pathSeparator}.quickgui_write_test');
     file.createSync();
     file.deleteSync();
     return true;
@@ -59,9 +57,9 @@ Future<Set<String>> hostCpuFlags() async {
       }
     } else {
       flags.addAll(
-        (await File('/proc/cpuinfo').readAsString())
-            .toLowerCase()
-            .split(RegExp(r'\s+')),
+        (await File(
+          '/proc/cpuinfo',
+        ).readAsString()).toLowerCase().split(RegExp(r'\s+')),
       );
     }
   } catch (_) {

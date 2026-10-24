@@ -84,8 +84,9 @@ class _DownloaderState extends State<Downloader> with PreferencesMixin {
         .cast<Directory>()
         .toList();
 
-    folders
-        .sort((a, b) => b.statSync().modified.compareTo(a.statSync().modified));
+    folders.sort(
+      (a, b) => b.statSync().modified.compareTo(a.statSync().modified),
+    );
 
     // Update the prefNewlyInstalledVms with the newest folder
     if (folders.isNotEmpty) {
@@ -93,7 +94,7 @@ class _DownloaderState extends State<Downloader> with PreferencesMixin {
 
       final List<String> newVmNames =
           await getPreference<List<String>>(prefNewlyInstalledVms) ??
-              <String>[];
+          <String>[];
 
       newVmNames.add(newestFolder);
 
@@ -199,13 +200,9 @@ class _DownloaderState extends State<Downloader> with PreferencesMixin {
                     ),
                     TextButton.icon(
                       icon: Icon(
-                        _showOutput
-                            ? Icons.expand_less
-                            : Icons.expand_more,
+                        _showOutput ? Icons.expand_less : Icons.expand_more,
                       ),
-                      label: Text(
-                        context.t('Show terminal output'),
-                      ),
+                      label: Text(context.t('Show terminal output')),
                       onPressed: () {
                         setState(() {
                           _showOutput = !_showOutput;
@@ -218,9 +215,9 @@ class _DownloaderState extends State<Downloader> with PreferencesMixin {
                         width: 560,
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.surfaceContainerHighest,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: SingleChildScrollView(

@@ -131,9 +131,10 @@ class _HomePageButtonGroupState extends State<HomePageButtonGroup>
                                   _selectedVersion!.version,
                                   missing
                                       .map(
-                                        (f) => f
-                                            .toUpperCase()
-                                            .replaceAll('_', ' '),
+                                        (f) => f.toUpperCase().replaceAll(
+                                          '_',
+                                          ' ',
+                                        ),
                                       )
                                       .join(' and '),
                                 ],
