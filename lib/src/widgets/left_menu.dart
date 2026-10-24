@@ -1,5 +1,7 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import 'package:quickgui/src/supported_locales.dart';
 
@@ -39,6 +41,20 @@ class _LeftMenuState extends State<LeftMenu> with PreferencesMixin {
       }
     }
     super.didChangeDependencies();
+  }
+
+  TextSpan _linkSpan(String text, String url, BuildContext context,
+      {bool bold = false}) {
+    return TextSpan(
+      text: text,
+      style: TextStyle(
+        fontWeight: bold ? FontWeight.bold : null,
+        color: Theme.of(context).colorScheme.primary,
+        decoration: TextDecoration.underline,
+      ),
+      recognizer: TapGestureRecognizer()
+        ..onTap = () => launchUrl(Uri.parse(url)),
+    );
   }
 
   @override
@@ -153,14 +169,26 @@ class _LeftMenuState extends State<LeftMenu> with PreferencesMixin {
                       textAlign: TextAlign.center,
                       text: TextSpan(
                         style: DefaultTextStyle.of(context).style,
-                        children: const <TextSpan>[
-                          TextSpan(
+                        children: <TextSpan>[
+                          const TextSpan(
                             text: 'Authors\n',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          TextSpan(text: 'Yannick Mauray\n'),
-                          TextSpan(text: 'Mark Johnson\n'),
-                          TextSpan(text: 'Martin Wimpress\n'),
+                          _linkSpan(
+                            'Yannick Mauray\n',
+                            'https://github.com/ymauray',
+                            context,
+                          ),
+                          _linkSpan(
+                            'Mark Johnson\n',
+                            'https://github.com/marxjohnson',
+                            context,
+                          ),
+                          _linkSpan(
+                            'Martin Wimpress\n',
+                            'https://wimpysworld.io',
+                            context,
+                          ),
                         ],
                       ),
                     ),
@@ -168,11 +196,13 @@ class _LeftMenuState extends State<LeftMenu> with PreferencesMixin {
                       textAlign: TextAlign.center,
                       text: TextSpan(
                         style: DefaultTextStyle.of(context).style,
-                        children: const <TextSpan>[
-                          TextSpan(text: '© 2021 - 2024\n'),
-                          TextSpan(
-                            text: 'Quickemu Project\n',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                        children: <TextSpan>[
+                          const TextSpan(text: '© 2021 - 2024\n'),
+                          _linkSpan(
+                            'Quickemu Project\n',
+                            'https://github.com/quickemu-project',
+                            context,
+                            bold: true,
                           ),
                         ],
                       ),
