@@ -131,4 +131,10 @@ class QuickemuBackend implements VirtualizationBackend {
   @override
   Future<ProcessResult> runQuickget(List<String> arguments) =>
       _runner.run('quickget', arguments);
+
+  @override
+  Future<String> version() async {
+    final result = await _runner.run('quickemu', ['--version']);
+    return result.exitCode == 0 ? '${result.stdout}'.trim() : '';
+  }
 }

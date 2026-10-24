@@ -3,27 +3,34 @@ import 'dart:io';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:path/path.dart' as p;
 
-import 'package:quickgui/app/globals.dart';
-import 'package:quickgui/infrastructure/persistence/preferences_mixin.dart';
+import 'package:quickgui/app/dependencies/providers.dart';
+import 'package:quickgui/features/settings/providers/settings_providers.dart';
+import 'package:quickgui/infrastructure/persistence/preferences_repository.dart';
+import 'package:quickgui/infrastructure/platform/host_platform.dart';
 import 'package:quickgui/features/home/presentation/home_page_button_group.dart';
+import 'package:quickgui/features/machines/domain/forms/vm_inputs.dart';
+import 'package:quickgui/features/machines/presentation/shared/validated_text_dialog.dart';
+import 'package:quickgui/features/machines/presentation/shared/vm_input_messages.dart';
 
-class DownloaderMenu extends StatefulWidget {
+class DownloaderMenu extends ConsumerStatefulWidget {
   const DownloaderMenu({super.key});
 
   @override
-  State<DownloaderMenu> createState() => _DownloaderMenuState();
+  ConsumerState<DownloaderMenu> createState() => _DownloaderMenuState();
 }
 
-class _DownloaderMenuState extends State<DownloaderMenu> with PreferencesMixin {
+class _DownloaderMenuState extends ConsumerState<DownloaderMenu> {
   String _currentPath = Directory.current.path;
 
   @override
   void initState() {
     super.initState();
-    getPreference<String>(prefWorkingDirectory).then((pref) {
+    final prefs = ref.read(preferencesRepositoryProvider);
+    prefs.getAs<String>(prefWorkingDirectory).then((pref) {
       if (pref != null && pref.isNotEmpty && Directory(pref).existsSync()) {
         setState(() {
           Directory.current = pref;
@@ -36,7 +43,7 @@ class _DownloaderMenuState extends State<DownloaderMenu> with PreferencesMixin {
           Directory.current = home;
           _currentPath = home;
         });
-        savePreference(prefWorkingDirectory, home);
+        prefs.set(prefWorkingDirectory, home);
       }
     });
   }
@@ -59,49 +66,25 @@ class _DownloaderMenuState extends State<DownloaderMenu> with PreferencesMixin {
       return;
     }
 
-    final nameController = TextEditingController(
-      text: p.basenameWithoutExtension(imagePath),
-    );
-    final vmName = await showDialog<String>(
+    final vmName = await showValidatedTextDialog<VmNameError>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.t('Import a disk image')),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              context.t(
-                'The file will be moved into a new virtual machine folder inside the working directory.',
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: nameController,
-              autofocus: true,
-              decoration: InputDecoration(
-                labelText: context.t('Virtual machine name'),
-              ),
-            ),
-          ],
+      title: context.t('Import a disk image'),
+      label: context.t('Virtual machine name'),
+      confirmLabel: context.t('Import'),
+      initialValue: p.basenameWithoutExtension(imagePath),
+      dirty: VmNameInput.dirty,
+      message: (context, e) => context.vmNameError(e),
+      description: Text(
+        context.t(
+          'The file will be moved into a new virtual machine folder inside the working directory.',
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(context.t('Cancel')),
-          ),
-          TextButton(
-            onPressed: () =>
-                Navigator.of(context).pop(nameController.text.trim()),
-            child: Text(context.t('Import')),
-          ),
-        ],
       ),
     );
     if (vmName == null || vmName.isEmpty || !mounted) {
       return;
     }
 
-    final proc = await backend.runQuickget([
+    final proc = await ref.read(backendProvider).runQuickget([
       '--create-config',
       vmName,
       imagePath,
@@ -186,10 +169,12 @@ class _DownloaderMenuState extends State<DownloaderMenu> with PreferencesMixin {
                               Directory.current = folder;
                               _currentPath = folder;
                             });
-                            savePreference(
-                              prefWorkingDirectory,
-                              Directory.current.path,
-                            );
+                            ref
+                                .read(preferencesRepositoryProvider)
+                                .set(
+                                  prefWorkingDirectory,
+                                  Directory.current.path,
+                                );
                           }
                         },
                         child: Text(_currentPath),

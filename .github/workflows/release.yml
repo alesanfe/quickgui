@@ -44,6 +44,10 @@ jobs:
     needs: [version-check]
     name: "Publish Linux (x64) 🐙"
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write      # create the GitHub release
+      id-token: write      # keyless cosign + provenance
+      attestations: write  # GitHub artifact attestations
     steps:
       - name: "Checkout 🥡"
         uses: actions/checkout@v7
@@ -78,6 +82,27 @@ jobs:
         run: fastforge package --platform=linux --targets=zip
       - name: Show artifacts 👀
         run: tree dist/
+      # Build once: the exact packages above are SBOM'd, signed, attested
+      # and published — nothing is rebuilt during publication.
+      - name: Generate SBOM (SPDX) 📋
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+        with:
+          path: .
+          format: spdx-json
+          output-file: dist/quickgui-linux.spdx.json
+          upload-artifact: false
+      - uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+      - name: Sign artifacts (keyless) ✍️
+        run: |
+          REL_VER=$(grep "^version" pubspec.yaml | cut -d' ' -f2)
+          (cd "dist/${REL_VER}" && sha256sum quickgui-* > SHA256SUMS)
+          for f in "dist/${REL_VER}"/quickgui-* "dist/${REL_VER}/SHA256SUMS" dist/quickgui-linux.spdx.json; do
+            cosign sign-blob --yes --bundle "${f}.sigstore.json" "${f}"
+          done
+      - name: Attest build provenance 🔏
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: "dist/*/quickgui-*-linux.*"
       - name: "Publish Release 📤️"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -85,8 +110,9 @@ jobs:
           REL_VER=$(grep "^version" pubspec.yaml | cut -d' ' -f2)
           gh release create "${{ github.ref }}" --draft --generate-notes
           for PKG in AppImage deb rpm zip; do
-            gh release upload "${{ github.ref }}" "dist/${REL_VER}/quickgui-${REL_VER}-linux.${PKG}" --clobber
+            gh release upload "${{ github.ref }}" "dist/${REL_VER}/quickgui-${REL_VER}-linux.${PKG}" "dist/${REL_VER}/quickgui-${REL_VER}-linux.${PKG}.sigstore.json" --clobber
           done
+          gh release upload "${{ github.ref }}" "dist/${REL_VER}/SHA256SUMS" "dist/${REL_VER}/SHA256SUMS.sigstore.json" dist/quickgui-linux.spdx.json dist/quickgui-linux.spdx.json.sigstore.json --clobber
           if [ "$(gh release view "${{ github.ref }}" --json assets --template '{{len .assets}}')" -lt 0 ]; then
             exit 1
           fi

@@ -1,9 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
-import 'package:quickgui/app/globals.dart';
-import 'package:quickgui/infrastructure/persistence/preferences_mixin.dart';
+import 'package:quickgui/app/dependencies/providers.dart';
+import 'package:quickgui/features/settings/providers/settings_providers.dart';
+import 'package:quickgui/infrastructure/persistence/preferences_repository.dart';
+import 'package:quickgui/infrastructure/platform/system_host_probe.dart';
+import 'package:quickgui/infrastructure/process/host_process.dart';
 import 'package:tuple/tuple.dart';
 
 import 'package:quickgui/features/catalog/domain/operating_system.dart';
@@ -13,16 +17,19 @@ import 'package:quickgui/features/downloads/presentation/downloader.dart';
 import 'package:quickgui/features/catalog/presentation/operating_system_selection.dart';
 import 'package:quickgui/features/catalog/presentation/version_selection.dart';
 import 'package:quickgui/features/home/presentation/downloader_page_button.dart';
+import 'package:formz/formz.dart';
+import 'package:quickgui/features/machines/domain/forms/vm_inputs.dart';
+import 'package:quickgui/features/machines/presentation/shared/vm_input_messages.dart';
 
-class HomePageButtonGroup extends StatefulWidget {
+class HomePageButtonGroup extends ConsumerStatefulWidget {
   const HomePageButtonGroup({super.key});
 
   @override
-  State<HomePageButtonGroup> createState() => _HomePageButtonGroupState();
+  ConsumerState<HomePageButtonGroup> createState() =>
+      _HomePageButtonGroupState();
 }
 
-class _HomePageButtonGroupState extends State<HomePageButtonGroup>
-    with PreferencesMixin {
+class _HomePageButtonGroupState extends ConsumerState<HomePageButtonGroup> {
   OperatingSystem? _selectedOperatingSystem;
   Version? _selectedVersion;
   Option? _selectedOption;
@@ -96,9 +103,9 @@ class _HomePageButtonGroupState extends State<HomePageButtonGroup>
           onPressed: (_selectedVersion == null)
               ? null
               : () async {
-                  final workingDirectory = await getPreference<String>(
-                    prefWorkingDirectory,
-                  );
+                  final workingDirectory = await ref
+                      .read(preferencesRepositoryProvider)
+                      .getAs<String>(prefWorkingDirectory);
                   final tmpFile = File("$workingDirectory/modecheck.tmp");
                   if (tmpFile.existsSync()) {
                     tmpFile.deleteSync();
@@ -180,7 +187,7 @@ class _HomePageButtonGroupState extends State<HomePageButtonGroup>
                     }
                     // Verify the image is still downloadable before
                     // starting the download page.
-                    final check = await backend.runQuickget([
+                    final check = await ref.read(backendProvider).runQuickget([
                       '--check',
                       _selectedOperatingSystem!.code,
                       _selectedVersion!.version,
@@ -351,44 +358,69 @@ class _HomePageButtonGroupState extends State<HomePageButtonGroup>
   }
 
   Future<Map<String, String>?> _customizeDialog(BuildContext context) {
-    final ram = TextEditingController(text: '4G');
-    final cores = TextEditingController();
-    final disk = TextEditingController(text: '64G');
+    var ram = const SizeInput.pure('4G', true);
+    var cores = const CpuCoresInput.pure();
+    var disk = const SizeInput.pure('64G', true);
     return showDialog<Map<String, String>>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.t('Customise VM (optional)')),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: ram,
-              decoration: InputDecoration(labelText: context.t('RAM')),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          final valid = Formz.validate([ram, cores, disk]);
+          return AlertDialog(
+            title: Text(context.t('Customise VM (optional)')),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  initialValue: ram.value,
+                  onChanged: (v) =>
+                      setState(() => ram = SizeInput.dirty(v, true)),
+                  decoration: InputDecoration(
+                    labelText: context.t('RAM'),
+                    errorText: context.sizeError(ram.displayError),
+                  ),
+                ),
+                TextFormField(
+                  initialValue: cores.value,
+                  onChanged: (v) =>
+                      setState(() => cores = CpuCoresInput.dirty(v)),
+                  decoration: InputDecoration(
+                    labelText: context.t('CPU cores'),
+                    errorText: context.cpuCoresError(cores.displayError),
+                  ),
+                ),
+                TextFormField(
+                  initialValue: disk.value,
+                  onChanged: (v) =>
+                      setState(() => disk = SizeInput.dirty(v, true)),
+                  decoration: InputDecoration(
+                    labelText: context.t('Disk size'),
+                    errorText: context.sizeError(disk.displayError),
+                  ),
+                ),
+              ],
             ),
-            TextField(
-              controller: cores,
-              decoration: InputDecoration(labelText: context.t('CPU cores')),
-            ),
-            TextField(
-              controller: disk,
-              decoration: InputDecoration(labelText: context.t('Disk size')),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(context.t('Cancel')),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop({
-              if (ram.text.trim().isNotEmpty) 'ram': ram.text.trim(),
-              if (cores.text.trim().isNotEmpty) 'cpu_cores': cores.text.trim(),
-              if (disk.text.trim().isNotEmpty) 'disk_size': disk.text.trim(),
-            }),
-            child: Text(context.t('Download')),
-          ),
-        ],
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(context.t('Cancel')),
+              ),
+              TextButton(
+                onPressed: valid
+                    ? () => Navigator.of(context).pop({
+                        if (ram.value.trim().isNotEmpty)
+                          'ram': ram.value.trim().toUpperCase(),
+                        if (cores.value.trim().isNotEmpty)
+                          'cpu_cores': cores.value.trim(),
+                        if (disk.value.trim().isNotEmpty)
+                          'disk_size': disk.value.trim().toUpperCase(),
+                      })
+                    : null,
+                child: Text(context.t('Download')),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

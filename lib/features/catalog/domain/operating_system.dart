@@ -7,5 +7,3 @@ class OperatingSystem {
   final String code;
   List<Version> versions;
 }
-
-Future<List<OperatingSystem>>? gOperatingSystems;

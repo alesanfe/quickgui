@@ -182,3 +182,69 @@ msgstr "Nuevo tamaño (p. ej. 64G)"
 
 msgid "Resize"
 msgstr "Redimensionar"
+
+msgid "A name is required"
+msgstr "El nombre es obligatorio"
+
+msgid "The name is too long"
+msgstr "El nombre es demasiado largo"
+
+msgid "Use letters, digits, dot, dash or underscore"
+msgstr "Usa letras, dígitos, punto, guion o guion bajo"
+
+msgid "A size is required"
+msgstr "El tamaño es obligatorio"
+
+msgid "Use a size like 4G or 4096M"
+msgstr "Usa un tamaño como 4G o 4096M"
+
+msgid "Enter a whole number"
+msgstr "Introduce un número entero"
+
+msgid "Enter a value between 1 and 256"
+msgstr "Introduce un valor entre 1 y 256"
+
+msgid "Diagnostics"
+msgstr "Diagnóstico"
+
+msgid "Refresh"
+msgstr "Actualizar"
+
+msgid "Copy sanitised report"
+msgstr "Copiar informe saneado"
+
+msgid "Report copied"
+msgstr "Informe copiado"
+
+msgid "Versions"
+msgstr "Versiones"
+
+msgid "Unknown"
+msgstr "Desconocido"
+
+msgid "Contract version"
+msgstr "Versión de contrato"
+
+msgid "None"
+msgstr "Ninguna"
+
+msgid "Host"
+msgstr "Equipo"
+
+msgid "Backend found"
+msgstr "Backend encontrado"
+
+msgid "Working directory"
+msgstr "Directorio de trabajo"
+
+msgid "Free space"
+msgstr "Espacio libre"
+
+msgid "Tools"
+msgstr "Herramientas"
+
+msgid "Capabilities"
+msgstr "Capacidades"
+
+msgid "Missing"
+msgstr "Falta"

@@ -399,3 +399,69 @@ msgstr ""
 
 msgid "Resize"
 msgstr ""
+
+msgid "A name is required"
+msgstr ""
+
+msgid "The name is too long"
+msgstr ""
+
+msgid "Use letters, digits, dot, dash or underscore"
+msgstr ""
+
+msgid "A size is required"
+msgstr ""
+
+msgid "Use a size like 4G or 4096M"
+msgstr ""
+
+msgid "Enter a whole number"
+msgstr ""
+
+msgid "Enter a value between 1 and 256"
+msgstr ""
+
+msgid "Diagnostics"
+msgstr ""
+
+msgid "Refresh"
+msgstr ""
+
+msgid "Copy sanitised report"
+msgstr ""
+
+msgid "Report copied"
+msgstr ""
+
+msgid "Versions"
+msgstr ""
+
+msgid "Unknown"
+msgstr ""
+
+msgid "Contract version"
+msgstr ""
+
+msgid "None"
+msgstr ""
+
+msgid "Host"
+msgstr ""
+
+msgid "Backend found"
+msgstr ""
+
+msgid "Working directory"
+msgstr ""
+
+msgid "Free space"
+msgstr ""
+
+msgid "Tools"
+msgstr ""
+
+msgid "Capabilities"
+msgstr ""
+
+msgid "Missing"
+msgstr ""

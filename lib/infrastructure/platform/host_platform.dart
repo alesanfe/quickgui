@@ -8,3 +8,23 @@ class HostPlatform {
       File('/.flatpak-info').existsSync() ||
       Platform.environment.containsKey('FLATPAK_ID');
 }
+
+/// Returns true if a temporary file can be created in [path].
+bool isWritableDirectory(String path) {
+  try {
+    final file = File('$path${Platform.pathSeparator}.quickgui_write_test');
+    file.createSync();
+    file.deleteSync();
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+/// A sensible writable fallback for the working directory. The app can be
+/// started from a read-only location (e.g. an AppImage mount point).
+String fallbackWorkingDirectory() {
+  return Platform.environment['HOME'] ??
+      Platform.environment['USERPROFILE'] ??
+      Directory.current.path;
+}

@@ -17,6 +17,9 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
   Future<bool> checkAvailability() async => available;
 
   @override
+  Future<String> version() async => '0.0.0-fake';
+
+  @override
   Future<Map<String, dynamic>?> getCapabilities() async => capabilities;
 
   @override

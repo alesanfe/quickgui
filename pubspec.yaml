@@ -22,7 +22,6 @@ dependencies:
   package_info_plus: ^10.2.1
   path: ^1.9.1
   process_run: ^1.1.0
-  provider: ^6.1.5
   quiver: ^3.2.2
   url_launcher: ^6.3.0
   shared_preferences: ^2.3.2
@@ -52,7 +51,7 @@ dependencies:
   file_selector: ^1.1.0
   watcher: ^1.2.1
   window_manager: ^0.2.3
-  flex_color_scheme: ^9.0.0
+  flex_color_scheme: ^8.4.0
   vector_graphics: ^1.2.4
   flutter_animate: ^4.5.2
   formz: ^0.8.1

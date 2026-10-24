@@ -14,5 +14,6 @@ class SharedPreferencesRepository implements PreferencesRepository {
     if (value is int) await p.setInt(key, value);
     if (value is bool) await p.setBool(key, value);
     if (value is double) await p.setDouble(key, value);
+    if (value is List<String>) await p.setStringList(key, value);
   }
 }

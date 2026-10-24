@@ -9,6 +9,9 @@ abstract class VirtualizationBackend {
   /// True when the backend executables are available on this host.
   Future<bool> checkAvailability();
 
+  /// Installed backend version string, or empty when unavailable.
+  Future<String> version();
+
   /// Machine-readable capability descriptor (`quickemu --capabilities`)
   /// or null when the backend does not publish one.
   Future<Map<String, dynamic>?> getCapabilities();

@@ -12,28 +12,38 @@ import 'package:process_run/shell.dart';
 import 'package:quickgui/features/machines/presentation/shared/new_vm_tag.dart';
 import 'package:version/version.dart';
 
-import 'package:quickgui/app/globals.dart';
-import 'package:quickgui/infrastructure/persistence/preferences_mixin.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:quickgui/app/dependencies/providers.dart';
+import 'package:quickgui/features/settings/providers/settings_providers.dart';
+import 'package:quickgui/infrastructure/persistence/preferences_repository.dart';
+import 'package:quickgui/infrastructure/platform/host_platform.dart';
+import 'package:quickgui/infrastructure/process/host_process.dart';
+import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
+import 'package:quickgui/infrastructure/vm_config.dart';
 import 'package:quickgui/features/machines/application/delete_vm.dart';
 import 'package:quickgui/features/machines/application/start_vm.dart';
 import 'package:quickgui/features/machines/application/stop_vm.dart';
 import 'package:quickgui/core/result/result.dart';
-import 'package:quickgui/shared/presentation/os_assets/osicons.dart';
 import 'package:quickgui/features/machines/domain/vminfo.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_config_editor.dart';
+import 'package:quickgui/features/machines/domain/forms/vm_inputs.dart';
+import 'package:quickgui/features/machines/presentation/shared/validated_text_dialog.dart';
+import 'package:quickgui/features/machines/presentation/shared/vm_input_messages.dart';
 
 /// VM manager page.
 /// Displays a list of available VMs, running state and connection info,
 /// with buttons to start and stop VMs.
-class Manager extends StatefulWidget {
+class Manager extends ConsumerStatefulWidget {
   const Manager({super.key});
 
   @override
-  State<Manager> createState() => _ManagerState();
+  ConsumerState<Manager> createState() => _ManagerState();
 }
 
-class _ManagerState extends State<Manager>
-    with PreferencesMixin, WidgetsBindingObserver {
+class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
+  VirtualizationBackend get _backend => ref.read(backendProvider);
+  PreferencesRepository get _prefs => ref.read(preferencesRepositoryProvider);
+
   List<String> _currentVms = [];
   String _vmFilter = '';
   String _vmSort = 'name';
@@ -77,7 +87,7 @@ class _ManagerState extends State<Manager>
     _getTerminalEmulator();
     _detectSpice();
     _setNewVmName();
-    getPreference<String>(prefWorkingDirectory).then((pref) {
+    _prefs.getAs<String>(prefWorkingDirectory).then((pref) {
       if (!mounted) return;
       setState(() {
         if (pref != null && Directory(pref).existsSync()) {
@@ -120,9 +130,9 @@ class _ManagerState extends State<Manager>
 
   Future<void> _setNewVmName() async {
     _newVmNames =
-        await getPreference<List<String>>(prefNewlyInstalledVms) ?? <String>[];
+        await _prefs.getAs<List<String>>(prefNewlyInstalledVms) ?? <String>[];
     // Delete prefNewlyInstalledVms to only display once
-    savePreference(prefNewlyInstalledVms, <String>[]);
+    _prefs.set(prefNewlyInstalledVms, <String>[]);
   }
 
   void _getTerminalEmulator() async {
@@ -288,7 +298,7 @@ class _ManagerState extends State<Manager>
         '--snapshot',
         ...parts.where((p) => p.isNotEmpty),
       ];
-      final results = await backend.runAction(command.sublist(1));
+      final results = await _backend.runAction(command.sublist(1));
       if (!mounted) return;
       _showProcessOutput([results]);
     });
@@ -296,7 +306,7 @@ class _ManagerState extends State<Manager>
 
   void _confirmDeleteVm(BuildContext context, String currentVm) async {
     // Preview what will be deleted via the backend's safe delete plan.
-    final planResult = await DeleteVm(backend).plan(currentVm);
+    final planResult = await DeleteVm(_backend).plan(currentVm);
     final planText = switch (planResult) {
       Ok<List<String>>(value: final v) when v.isNotEmpty => v.join('\n'),
       _ => '',
@@ -353,38 +363,25 @@ class _ManagerState extends State<Manager>
           '$currentVm.conf',
           '--delete-$result',
         ];
-        await backend.runAction(command.sublist(1));
+        await _backend.runAction(command.sublist(1));
       }
     });
   }
 
   void _cloneVm(BuildContext context, String currentVm) async {
-    final ctrl = TextEditingController(text: '$currentVm-copy');
-    final name = await showDialog<String>(
+    final name = await showValidatedTextDialog<VmNameError>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.t('Clone {0}', args: [currentVm])),
-        content: TextField(
-          controller: ctrl,
-          autofocus: true,
-          decoration: InputDecoration(labelText: context.t('New VM name')),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(context.t('Cancel')),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(ctrl.text.trim()),
-            child: Text(context.t('Clone')),
-          ),
-        ],
-      ),
+      title: context.t('Clone {0}', args: [currentVm]),
+      label: context.t('New VM name'),
+      confirmLabel: context.t('Clone'),
+      initialValue: '$currentVm-copy',
+      dirty: VmNameInput.dirty,
+      message: (context, e) => context.vmNameError(e),
     );
     if (name == null || name.isEmpty || !mounted) return;
-    final r = await backend.runAction([
+    final r = await _backend.runAction([
       '--vm',
-      r'$currentVm.conf',
+      _vmConfFiles[currentVm] ?? '$currentVm.conf',
       '--clone',
       name,
     ]);
@@ -394,34 +391,19 @@ class _ManagerState extends State<Manager>
   }
 
   void _resizeVmDisk(BuildContext context, String currentVm) async {
-    final ctrl = TextEditingController(text: '64G');
-    final size = await showDialog<String>(
+    final size = await showValidatedTextDialog<SizeError>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.t('Resize disk of {0}', args: [currentVm])),
-        content: TextField(
-          controller: ctrl,
-          autofocus: true,
-          decoration: InputDecoration(
-            labelText: context.t('New size (e.g. 64G)'),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(context.t('Cancel')),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(ctrl.text.trim()),
-            child: Text(context.t('Resize')),
-          ),
-        ],
-      ),
+      title: context.t('Resize disk of {0}', args: [currentVm]),
+      label: context.t('New size (e.g. 64G)'),
+      confirmLabel: context.t('Resize'),
+      initialValue: '64G',
+      dirty: SizeInput.dirty,
+      message: (context, e) => context.sizeError(e),
     );
     if (size == null || size.isEmpty || !mounted) return;
-    final r = await backend.runAction([
+    final r = await _backend.runAction([
       '--vm',
-      r'$currentVm.conf',
+      _vmConfFiles[currentVm] ?? '$currentVm.conf',
       '--disk-resize',
       size,
     ]);
@@ -499,12 +481,12 @@ class _ManagerState extends State<Manager>
 
     // Prefer the structured backend contract when the installed
     // quickemu advertises it; fall back to the pid-file scan otherwise.
-    _backendCaps ??= await backend.getCapabilities();
+    _backendCaps ??= await _backend.getCapabilities();
     final Map<String, String> backendStates = {};
     final caps = _backendCaps?['capabilities'];
     if (caps is Map && caps['structuredStatus'] == true) {
-      for (final name in await backend.listVirtualMachines()) {
-        final status = await backend.inspectVirtualMachine(name);
+      for (final name in await _backend.listVirtualMachines()) {
+        final status = await _backend.inspectVirtualMachine(name);
         backendStates[name] = '${status['state']}';
       }
     }
@@ -607,7 +589,7 @@ class _ManagerState extends State<Manager>
                   setState(() {
                     Directory.current = folder;
                   });
-                  savePreference(prefWorkingDirectory, Directory.current.path);
+                  _prefs.set(prefWorkingDirectory, Directory.current.path);
                 }
               },
               child: Text(Directory.current.path),
@@ -686,8 +668,12 @@ class _ManagerState extends State<Manager>
     SvgPicture? osIcon;
     while (vmStem.contains('-')) {
       vmStem = vmStem.substring(0, vmStem.lastIndexOf('-'));
-      if (osIcons.containsKey(vmStem)) {
-        osIcon = SvgPicture.asset(osIcons[vmStem]!, width: 32, height: 32);
+      if (ref.read(osIconsProvider).containsKey(vmStem)) {
+        osIcon = SvgPicture.asset(
+          ref.read(osIconsProvider)[vmStem]!,
+          width: 32,
+          height: 32,
+        );
         break;
       }
     }
@@ -739,7 +725,7 @@ class _ManagerState extends State<Manager>
                       } else if (_spicy) {
                         command.addAll(['--display', 'spice']);
                       }
-                      final startResult = await StartVm(backend)(
+                      final startResult = await StartVm(_backend)(
                         currentVm,
                         display: command.contains('--display')
                             ? command[command.indexOf('--display') + 1]
@@ -795,10 +781,10 @@ class _ManagerState extends State<Manager>
                           // If Quickemu is newer than 4.9.6, use the new --kill option
                           // which is macOS compatible.
                           final quickemuVersion = Version.parse(
-                            await fetchQuickemuVersion(),
+                            await _backend.version(),
                           );
                           if (quickemuVersion >= Version(4, 9, 6)) {
-                            StopVm(backend)(currentVm);
+                            StopVm(_backend)(currentVm);
                           } else {
                             shell.run(
                               hostWrap(['killall', currentVm].join(' ')),
@@ -874,37 +860,38 @@ class _ManagerState extends State<Manager>
                       'display': context.t('Display'),
                     });
                   case 'pause':
-                    await backend.runAction([
+                    await _backend.runAction([
                       '--vm',
-                      r'$currentVm.conf',
+                      _vmConfFiles[currentVm] ?? '$currentVm.conf',
                       '--pause',
                     ]);
                   case 'resume':
-                    await backend.runAction([
+                    await _backend.runAction([
                       '--vm',
-                      r'$currentVm.conf',
+                      _vmConfFiles[currentVm] ?? '$currentVm.conf',
                       '--resume',
                     ]);
                   case 'screenshot':
-                    final r = await backend.runAction([
+                    final r = await _backend.runAction([
                       '--vm',
-                      r'$currentVm.conf',
+                      _vmConfFiles[currentVm] ?? '$currentVm.conf',
                       '--screenshot',
                     ]);
                     if (!context.mounted) return;
                     _showProcessOutput([r]);
                   case 'send-keys':
-                    final r = await Shell().run(
-                      hostWrap(
-                        'quickemu --vm "$currentVm.conf" --send-keys ctrl-alt-delete',
-                      ),
-                    );
-                    if (!context.mounted) return;
-                    _showProcessOutput(r);
-                  case 'doctor':
-                    final r = await backend.runAction([
+                    final r = await _backend.runAction([
                       '--vm',
-                      r'$currentVm.conf',
+                      _vmConfFiles[currentVm] ?? '$currentVm.conf',
+                      '--send-keys',
+                      'ctrl-alt-delete',
+                    ]);
+                    if (!context.mounted) return;
+                    _showProcessOutput([r]);
+                  case 'doctor':
+                    final r = await _backend.runAction([
+                      '--vm',
+                      _vmConfFiles[currentVm] ?? '$currentVm.conf',
                       '--doctor',
                     ]);
                     if (!context.mounted) return;
@@ -1194,7 +1181,7 @@ class _ManagerState extends State<Manager>
                 onPressed: !sshy || _terminalEmulator == null
                     ? null
                     : () async {
-                        final savedUser = await getPreference<String>(
+                        final savedUser = await _prefs.getAs<String>(
                           'sshUser_$currentVm',
                         );
                         if (!mounted) return;
@@ -1243,7 +1230,7 @@ class _ManagerState extends State<Manager>
                         ).then((result) {
                           result = result ?? false;
                           if (result) {
-                            savePreference(
+                            _prefs.set(
                               'sshUser_$currentVm',
                               usernameController.text,
                             );

@@ -1,7 +1,7 @@
 import 'package:quickgui/core/operations/operation_state.dart'
-    show OperationState;
+    show OperationRunning;
 
-/// Progress info for an [OperationState.running] operation.
+/// Progress info for an [OperationRunning] operation.
 class OperationProgress {
   const OperationProgress({this.percent, this.line});
   final double? percent;

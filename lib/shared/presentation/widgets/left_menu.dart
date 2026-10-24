@@ -5,45 +5,33 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quickgui/app/localization/supported_locales.dart';
 
-import 'package:quickgui/app/globals.dart';
 import 'package:quickgui/infrastructure/app_info/app_version.dart';
-import 'package:quickgui/infrastructure/persistence/preferences_mixin.dart';
-import 'package:quickgui/app/settings/app_settings.dart';
+import 'package:quickgui/features/diagnostics/presentation/diagnostics_page.dart';
+import 'package:quickgui/features/settings/providers/settings_providers.dart';
+import 'package:quickgui/infrastructure/persistence/preferences_repository.dart';
+import 'package:quickgui/app/dependencies/providers.dart';
+import 'package:quickgui/infrastructure/process/host_process.dart';
 
-class LeftMenu extends StatefulWidget {
+class LeftMenu extends ConsumerStatefulWidget {
   const LeftMenu({super.key});
 
   @override
-  State<LeftMenu> createState() => _LeftMenuState();
+  ConsumerState<LeftMenu> createState() => _LeftMenuState();
 }
 
-class _LeftMenuState extends State<LeftMenu> with PreferencesMixin {
+class _LeftMenuState extends ConsumerState<LeftMenu> {
   List<DropdownMenuItem<String>> _dropdownMenuItems = [];
-  late String currentLocale;
 
   @override
   void initState() {
     super.initState();
-    fetchQuickemuVersion();
+    ref.read(backendProvider).version();
     _dropdownMenuItems = supportedLocales
         .map((e) => DropdownMenuItem(value: e, child: Text(e)))
         .toList();
-  }
-
-  @override
-  void didChangeDependencies() {
-    final appSettings = context.read<AppSettings>();
-    currentLocale = appSettings.activeLocale;
-    if (!supportedLocales.contains(currentLocale)) {
-      currentLocale = currentLocale.split("_")[0];
-      if (!supportedLocales.contains(currentLocale)) {
-        currentLocale = "en";
-      }
-    }
-    super.didChangeDependencies();
   }
 
   TextSpan _linkSpan(
@@ -67,8 +55,10 @@ class _LeftMenuState extends State<LeftMenu> with PreferencesMixin {
   @override
   Widget build(BuildContext context) {
     final version = AppVersion.packageInfo!.version;
-    return Consumer<AppSettings>(
-      builder: (context, appSettings, _) {
+    final settings = ref.watch(settingsProvider);
+    final controller = ref.read(settingsProvider.notifier);
+    return Builder(
+      builder: (context) {
         return Drawer(
           child: ListView(
             children: [
@@ -89,7 +79,7 @@ class _LeftMenuState extends State<LeftMenu> with PreferencesMixin {
                 ),
               ),
               FutureBuilder<String>(
-                future: fetchQuickemuVersion(),
+                future: ref.read(backendProvider).version(),
                 builder:
                     (BuildContext context, AsyncSnapshot<String> snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
@@ -127,17 +117,14 @@ class _LeftMenuState extends State<LeftMenu> with PreferencesMixin {
                     ),
                     Expanded(child: Container()),
                     Switch(
-                      value:
-                          Theme.of(context).colorScheme.brightness ==
-                          Brightness.dark,
+                      value: settings.darkMode,
                       activeThumbColor: Colors.black26,
                       activeTrackColor: Theme.of(context).colorScheme.primary,
                       inactiveThumbColor: Colors.grey[500],
                       inactiveTrackColor: Colors.grey[300],
 
                       onChanged: (value) {
-                        appSettings.useDarkMode = value;
-                        savePreference(prefThemeMode, value);
+                        controller.setDarkMode(enabled: value);
                       },
                       // activeColor: Colors.white,
                       // activeTrackColor: Colors.black26,
@@ -156,14 +143,10 @@ class _LeftMenuState extends State<LeftMenu> with PreferencesMixin {
                     Text(context.t('Language')),
                     Expanded(child: Container()),
                     DropdownButton<String>(
-                      value: currentLocale,
+                      value: settings.locale,
                       items: _dropdownMenuItems,
                       onChanged: (value) {
-                        setState(() {
-                          currentLocale = value!;
-                          appSettings.activeLocale = currentLocale;
-                          savePreference(prefCurrentLocale, currentLocale);
-                        });
+                        if (value != null) controller.setLocale(value);
                       },
                     ),
                   ],
@@ -172,64 +155,22 @@ class _LeftMenuState extends State<LeftMenu> with PreferencesMixin {
               Container(height: 32.0),
               ListTile(
                 leading: const Icon(Icons.health_and_safety),
-                title: Text(context.t('Dependency check')),
+                title: Text(context.t('Diagnostics')),
                 dense: true,
-                onTap: () async {
-                  final checks = <String, bool>{};
-                  for (final bin in [
-                    'quickemu',
-                    'quickget',
-                    'swtpm',
-                    'spicy',
-                    'qemu-img',
-                    'zsync',
-                    'socat',
-                  ]) {
-                    checks[bin] = await commandAvailable(bin);
-                  }
-                  checks['/dev/kvm'] =
-                      Platform.isMacOS || File('/dev/kvm').existsSync();
-                  if (!context.mounted) return;
-                  showDialog<void>(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text(context.t('Dependency check')),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: checks.entries
-                            .map(
-                              (e) => Row(
-                                children: [
-                                  Icon(
-                                    e.value ? Icons.check : Icons.close,
-                                    color: e.value ? Colors.green : Colors.red,
-                                    size: 18,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(e.key),
-                                ],
-                              ),
-                            )
-                            .toList(),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Text(context.t('Dismiss')),
-                        ),
-                      ],
-                    ),
-                  );
-                },
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const DiagnosticsPage(),
+                  ),
+                ),
               ),
               ListTile(
                 leading: const Icon(Icons.history),
                 title: Text(context.t('Download history')),
                 dense: true,
                 onTap: () async {
-                  final history = await getPreference<List<String>>(
-                    'downloadHistory',
-                  );
+                  final history = await ref
+                      .read(preferencesRepositoryProvider)
+                      .getAs<List<String>>('downloadHistory');
                   if (!context.mounted) return;
                   showDialog<void>(
                     context: context,

@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 
+import 'package:quickgui/app/dependencies/providers.dart';
 import 'package:quickgui/features/catalog/domain/operating_system.dart';
-import 'package:quickgui/shared/presentation/os_assets/osicons.dart';
 
-class OperatingSystemSelection extends StatefulWidget {
+class OperatingSystemSelection extends ConsumerStatefulWidget {
   const OperatingSystemSelection({super.key});
 
   @override
-  State<OperatingSystemSelection> createState() =>
+  ConsumerState<OperatingSystemSelection> createState() =>
       _OperatingSystemSelectionState();
 }
 
-class _OperatingSystemSelectionState extends State<OperatingSystemSelection> {
+class _OperatingSystemSelectionState
+    extends ConsumerState<OperatingSystemSelection> {
   String term = "";
   final focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
@@ -72,7 +74,7 @@ class _OperatingSystemSelectionState extends State<OperatingSystemSelection> {
       body: Scrollbar(
         controller: _scrollController,
         child: FutureBuilder(
-          future: gOperatingSystems,
+          future: ref.watch(osCatalogueProvider),
           builder:
               (
                 BuildContext context,
@@ -92,9 +94,9 @@ class _OperatingSystemSelectionState extends State<OperatingSystemSelection> {
                       final item = list[index];
                       Widget icon;
 
-                      if (osIcons.containsKey(item.code)) {
+                      if (ref.watch(osIconsProvider).containsKey(item.code)) {
                         icon = SvgPicture.asset(
-                          osIcons[item.code]!,
+                          ref.watch(osIconsProvider)[item.code]!,
                           width: 32,
                           height: 32,
                         );

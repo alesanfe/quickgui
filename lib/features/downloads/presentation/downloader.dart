@@ -4,11 +4,14 @@ import 'dart:io';
 
 import 'package:desktop_notifications/desktop_notifications.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
-import 'package:quickgui/app/globals.dart';
 import 'package:quickgui/features/downloads/presentation/manage_machines_after_download_button.dart';
 import 'package:path/path.dart' as p;
-import 'package:quickgui/infrastructure/persistence/preferences_mixin.dart';
+import 'package:quickgui/features/settings/providers/settings_providers.dart';
+import 'package:quickgui/infrastructure/persistence/preferences_repository.dart';
+import 'package:quickgui/infrastructure/platform/host_platform.dart';
+import 'package:quickgui/infrastructure/vm_config.dart';
 
 import 'package:quickgui/features/catalog/domain/operating_system.dart';
 import 'package:quickgui/features/catalog/domain/option.dart';
@@ -17,7 +20,7 @@ import 'package:quickgui/features/downloads/presentation/cancel_dismiss_button.d
 import 'package:quickgui/features/downloads/presentation/download_label.dart';
 import 'package:quickgui/features/downloads/presentation/download_progress_bar.dart';
 
-class Downloader extends StatefulWidget {
+class Downloader extends ConsumerStatefulWidget {
   const Downloader({
     required this.operatingSystem,
     required this.version,
@@ -37,10 +40,10 @@ class Downloader extends StatefulWidget {
   final Map<String, String>? customConf;
 
   @override
-  State<Downloader> createState() => _DownloaderState();
+  ConsumerState<Downloader> createState() => _DownloaderState();
 }
 
-class _DownloaderState extends State<Downloader> with PreferencesMixin {
+class _DownloaderState extends ConsumerState<Downloader> {
   final NotificationsClient? notificationsClient = Platform.isMacOS
       ? null
       : NotificationsClient();
@@ -101,13 +104,13 @@ class _DownloaderState extends State<Downloader> with PreferencesMixin {
     if (folders.isNotEmpty) {
       final String newestFolder = p.basename(folders.first.path);
 
+      final prefs = ref.read(preferencesRepositoryProvider);
       final List<String> newVmNames =
-          await getPreference<List<String>>(prefNewlyInstalledVms) ??
-          <String>[];
+          await prefs.getAs<List<String>>(prefNewlyInstalledVms) ?? <String>[];
 
       newVmNames.add(newestFolder);
 
-      savePreference(prefNewlyInstalledVms, newVmNames);
+      prefs.set(prefNewlyInstalledVms, newVmNames);
     }
   }
 
@@ -117,8 +120,8 @@ class _DownloaderState extends State<Downloader> with PreferencesMixin {
       options.add(widget.option!.option);
     }
 
-    Process.start(inFlatpak ? 'flatpak-spawn' : 'quickget', [
-      if (inFlatpak) ...['--host', 'quickget'] else 'quickget',
+    Process.start(HostPlatform.isFlatpak ? 'flatpak-spawn' : 'quickget', [
+      if (HostPlatform.isFlatpak) ...['--host', 'quickget'] else 'quickget',
       ...options,
     ]).then((process) {
       process.stdout.transform(utf8.decoder).forEach(_captureOutput);
@@ -136,12 +139,13 @@ class _DownloaderState extends State<Downloader> with PreferencesMixin {
         final bool cancelled = value.isNegative;
         controller.close();
         addNewestVmToPrefs();
+        final prefs = ref.read(preferencesRepositoryProvider);
         final history =
-            await getPreference<List<String>>('downloadHistory') ?? <String>[];
+            await prefs.getAs<List<String>>('downloadHistory') ?? <String>[];
         history.add(
           '${widget.operatingSystem.name} ${widget.version.version} — ${DateTime.now()}',
         );
-        savePreference('downloadHistory', history);
+        prefs.set('downloadHistory', history);
         final conf = widget.customConf ?? {};
         if (conf.isNotEmpty && !cancelled) {
           // Apply wizard values to the newest generated .conf.
