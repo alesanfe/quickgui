@@ -32,6 +32,7 @@ class _ManagerState extends State<Manager>
     with PreferencesMixin, WidgetsBindingObserver {
   List<String> _currentVms = [];
   String _vmFilter = '';
+  String _vmSort = 'name';
   Map<String, String> _vmConfFiles = {};
   Map<String, VmInfo> _activeVms = {};
   bool _spicy = false;
@@ -341,6 +342,38 @@ class _ManagerState extends State<Manager>
     });
   }
 
+  void _cloneVm(BuildContext context, String currentVm) async {
+    final ctrl = TextEditingController(text: '$currentVm-copy');
+    final name = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.t('Clone {0}', args: [currentVm])),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          decoration: InputDecoration(labelText: context.t('New VM name')),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(context.t('Cancel')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(ctrl.text.trim()),
+            child: Text(context.t('Clone')),
+          ),
+        ],
+      ),
+    );
+    if (name == null || name.isEmpty || !mounted) return;
+    final r = await Shell().run(
+      hostWrap('quickemu --vm "$currentVm.conf" --clone "$name"'),
+    );
+    if (!mounted) return;
+    _showProcessOutput(r);
+    _getVms();
+  }
+
   void _showProcessOutput(List<ProcessResult> results) {
     final output = results
         .map((r) => '${r.stdout}${r.stderr}')
@@ -525,6 +558,13 @@ class _ManagerState extends State<Manager>
     final filteredVms = _currentVms
         .where((vm) => vm.toLowerCase().contains(_vmFilter.toLowerCase()))
         .toList();
+    if (_vmSort == 'running') {
+      filteredVms.sort(
+        (a, b) => (_activeVms.containsKey(b) ? 1 : 0).compareTo(
+          _activeVms.containsKey(a) ? 1 : 0,
+        ),
+      );
+    }
     List<List<Widget>> rows = filteredVms.map((vm) {
       return _buildRow(vm, buttonColor);
     }).toList();
@@ -698,7 +738,7 @@ class _ManagerState extends State<Manager>
             PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert, semanticLabel: 'More actions'),
               tooltip: context.t('More actions'),
-              enabled: !active,
+              enabled: true,
               onSelected: (choice) async {
                 switch (choice) {
                   case 'config':
@@ -758,6 +798,53 @@ class _ManagerState extends State<Manager>
                       'sound': context.t('Sound'),
                       'display': context.t('Display'),
                     });
+                  case 'pause':
+                    await Shell().run(
+                      hostWrap('quickemu --vm "$currentVm.conf" --pause'),
+                    );
+                  case 'resume':
+                    await Shell().run(
+                      hostWrap('quickemu --vm "$currentVm.conf" --resume'),
+                    );
+                  case 'clone':
+                    _cloneVm(context, currentVm);
+                  case 'export':
+                    final r = await Shell().run(
+                      hostWrap(
+                        'tar -czf "$currentVm.tar.gz" "$currentVm" "$currentVm.conf"',
+                      ),
+                    );
+                    if (!context.mounted) return;
+                    _showProcessOutput(r);
+                  case 'settings':
+                    _editVmConfValues(
+                      currentVm,
+                      {
+                        'guest_os': context.t('Guest OS'),
+                        'ram': context.t('RAM'),
+                        'cpu_cores': context.t('CPU cores'),
+                        'disk_size': context.t('Disk size'),
+                        'boot': context.t('Boot mode'),
+                        'network': context.t('Network'),
+                        'macaddr': context.t('MAC address'),
+                        'secureboot': context.t('Secure boot'),
+                        'tpm': context.t('TPM'),
+                        'usb_devices': context.t('USB devices'),
+                        'gpu_passthrough': context.t('GPU passthrough'),
+                        'port_forwards': context.t('Port forwards'),
+                        'public_dir': context.t('Shared folder'),
+                        'viewer': context.t('Display viewer'),
+                        'display': context.t('Display'),
+                        'sound': context.t('Sound'),
+                      },
+                      options: {
+                        'boot': ['efi', 'legacy'],
+                        'network': ['nat', 'restrict', 'bridged', 'none'],
+                        'secureboot': ['on', 'off'],
+                        'tpm': ['on', 'off'],
+                        'viewer': ['spicy', 'remote-viewer', 'none'],
+                      },
+                    );
                   case 'verify':
                     final iso = confValue(
                       _vmConfFiles[currentVm] ?? '$currentVm.conf',
@@ -857,6 +944,53 @@ class _ManagerState extends State<Manager>
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
+                if (active)
+                  PopupMenuItem(
+                    value: 'pause',
+                    child: ListTile(
+                      leading: const Icon(Icons.pause),
+                      title: Text(context.t('Pause')),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  )
+                else
+                  PopupMenuItem(
+                    value: 'resume',
+                    child: ListTile(
+                      leading: const Icon(Icons.play_circle),
+                      title: Text(context.t('Resume')),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                PopupMenuItem(
+                  value: 'clone',
+                  child: ListTile(
+                    leading: const Icon(Icons.content_copy),
+                    title: Text(context.t('Clone')),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'export',
+                  child: ListTile(
+                    leading: const Icon(Icons.archive),
+                    title: Text(context.t('Export')),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'settings',
+                  child: ListTile(
+                    leading: const Icon(Icons.tune),
+                    title: Text(context.t('Settings (all)')),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
                 const PopupMenuDivider(),
                 PopupMenuItem(
                   value: 'delete',
@@ -916,11 +1050,15 @@ class _ManagerState extends State<Manager>
                     : context.t('Connect with SSH'),
                 onPressed: !sshy || _terminalEmulator == null
                     ? null
-                    : () {
-                        TextEditingController usernameController =
-                            TextEditingController(
-                              text: Platform.environment['USER'] ?? '',
-                            );
+                    : () async {
+                        final savedUser = await getPreference<String>(
+                          'sshUser_$currentVm',
+                        );
+                        if (!mounted) return;
+                        TextEditingController
+                        usernameController = TextEditingController(
+                          text: savedUser ?? Platform.environment['USER'] ?? '',
+                        );
                         showDialog<bool>(
                           context: context,
                           builder: (BuildContext context) => AlertDialog(
@@ -962,6 +1100,10 @@ class _ManagerState extends State<Manager>
                         ).then((result) {
                           result = result ?? false;
                           if (result) {
+                            savePreference(
+                              'sshUser_$currentVm',
+                              usernameController.text,
+                            );
                             List<String> sshArgs = [
                               'ssh',
                               '-p',
@@ -1032,7 +1174,26 @@ class _ManagerState extends State<Manager>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(context.t('Manager'))),
+      appBar: AppBar(
+        title: Text(context.t('Manager')),
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.sort),
+            tooltip: context.t('Sort'),
+            onSelected: (v) => setState(() => _vmSort = v),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'name',
+                child: Text(context.t('Sort by name')),
+              ),
+              PopupMenuItem(
+                value: 'running',
+                child: Text(context.t('Running first')),
+              ),
+            ],
+          ),
+        ],
+      ),
       body: _buildVmList(),
     );
   }

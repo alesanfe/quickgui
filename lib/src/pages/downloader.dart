@@ -123,10 +123,16 @@ class _DownloaderState extends State<Downloader> with PreferencesMixin {
         controller.add(-1);
       }
 
-      process.exitCode.then((value) {
+      process.exitCode.then((value) async {
         bool cancelled = value.isNegative;
         controller.close();
         addNewestVmToPrefs();
+        final history =
+            await getPreference<List<String>>('downloadHistory') ?? <String>[];
+        history.add(
+          '${widget.operatingSystem.name} ${widget.version.version} — ${DateTime.now()}',
+        );
+        savePreference('downloadHistory', history);
         setState(() {
           _downloadFinished = true;
 

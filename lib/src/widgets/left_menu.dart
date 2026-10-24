@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
@@ -165,6 +168,149 @@ class _LeftMenuState extends State<LeftMenu> with PreferencesMixin {
                 ),
               ),
               Container(height: 32.0),
+              ListTile(
+                leading: const Icon(Icons.health_and_safety),
+                title: Text(context.t('Dependency check')),
+                dense: true,
+                onTap: () async {
+                  final checks = <String, bool>{};
+                  for (final bin in [
+                    'quickemu',
+                    'quickget',
+                    'swtpm',
+                    'spicy',
+                    'qemu-img',
+                    'zsync',
+                    'socat',
+                  ]) {
+                    checks[bin] = await commandAvailable(bin);
+                  }
+                  checks['/dev/kvm'] =
+                      Platform.isMacOS || File('/dev/kvm').existsSync();
+                  if (!context.mounted) return;
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text(context.t('Dependency check')),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: checks.entries
+                            .map(
+                              (e) => Row(
+                                children: [
+                                  Icon(
+                                    e.value ? Icons.check : Icons.close,
+                                    color: e.value ? Colors.green : Colors.red,
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(e.key),
+                                ],
+                              ),
+                            )
+                            .toList(),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text(context.t('Dismiss')),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.history),
+                title: Text(context.t('Download history')),
+                dense: true,
+                onTap: () async {
+                  final history = await getPreference<List<String>>(
+                    'downloadHistory',
+                  );
+                  if (!context.mounted) return;
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text(context.t('Download history')),
+                      content: SizedBox(
+                        width: double.maxFinite,
+                        child: history == null || history.isEmpty
+                            ? Text(context.t('No downloads yet'))
+                            : SingleChildScrollView(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: history.reversed
+                                      .map((e) => Text(e))
+                                      .toList(),
+                                ),
+                              ),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text(context.t('Dismiss')),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.system_update),
+                title: Text(context.t('Check for updates')),
+                dense: true,
+                onTap: () async {
+                  String latest = '';
+                  try {
+                    final client = HttpClient();
+                    final req = await client.getUrl(
+                      Uri.parse(
+                        'https://api.github.com/repos/quickemu-project/quickgui/releases/latest',
+                      ),
+                    );
+                    req.headers.add('User-Agent', 'quickgui');
+                    final res = await req.close();
+                    final body = await res.transform(utf8.decoder).join();
+                    latest =
+                        (RegExp('"tag_name":s*"([^"]+)"')
+                            .firstMatch(body)
+                            ?.group(1)) ??
+                        '';
+                  } catch (_) {}
+                  if (!context.mounted) return;
+                  final current = AppVersion.packageInfo?.version ?? '?';
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text(context.t('Check for updates')),
+                      content: Text(
+                        latest.isEmpty
+                            ? context.t('Could not check for updates.')
+                            : context.t(
+                                'Installed: {0}nLatest: {1}',
+                                args: [current, latest],
+                              ),
+                      ),
+                      actions: [
+                        if (latest.isNotEmpty && latest != current)
+                          TextButton(
+                            onPressed: () => launchUrl(
+                              Uri.parse(
+                                'https://github.com/quickemu-project/quickgui/releases/latest',
+                              ),
+                            ),
+                            child: Text(context.t('Open release page')),
+                          ),
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text(context.t('Dismiss')),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
               ListTile(
                 leading: const Icon(Icons.monitor_heart),
                 title: Text(context.t('System diagnostics')),
