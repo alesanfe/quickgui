@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
@@ -165,6 +167,39 @@ class _LeftMenuState extends State<LeftMenu> with PreferencesMixin {
                 ),
               ),
               Container(height: 32.0),
+              ListTile(
+                leading: const Icon(Icons.monitor_heart),
+                title: Text(context.t('System diagnostics')),
+                dense: true,
+                onTap: () async {
+                  final proc = await Process.run('quickreport', []);
+                  if (!context.mounted) return;
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text(context.t('System diagnostics')),
+                      content: SizedBox(
+                        width: double.maxFinite,
+                        child: SingleChildScrollView(
+                          child: SelectableText(
+                            '${proc.stdout}${proc.stderr}'.trim(),
+                            style: const TextStyle(
+                              fontFamily: 'monospace',
+                              fontSize: 11,
+                            ),
+                          ),
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text(context.t('Dismiss')),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(

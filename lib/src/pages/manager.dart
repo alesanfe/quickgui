@@ -35,6 +35,7 @@ class _ManagerState extends State<Manager>
   Map<String, String> _vmConfFiles = {};
   Map<String, VmInfo> _activeVms = {};
   bool _spicy = false;
+  bool _hasKvm = true;
   final List<String> _sshVms = [];
   String? _terminalEmulator;
   final List<String> _supportedTerminalEmulators = [
@@ -148,7 +149,87 @@ class _ManagerState extends State<Manager>
     var result = whichSync('spicy') ?? '';
     setState(() {
       _spicy = result.isNotEmpty;
+      _hasKvm = Platform.isMacOS || File('/dev/kvm').existsSync();
     });
+  }
+
+  /// Edits one or more `key="value"` entries of a VM .conf file.
+  Future<void> _editVmConfValues(
+    String currentVm,
+    Map<String, String> keys, {
+    Map<String, List<String>>? options,
+  }) async {
+    final confPath = _vmConfFiles[currentVm] ?? '$currentVm.conf';
+    final file = File(confPath);
+    final lines = file.existsSync() ? await file.readAsLines() : <String>[];
+    final controllers = <String, TextEditingController>{};
+    for (final key in keys.keys) {
+      final re = RegExp('^$key="(.*)"');
+      var current = '';
+      for (final l in lines) {
+        final m = re.firstMatch(l);
+        if (m != null) current = m.group(1)!;
+      }
+      controllers[key] = TextEditingController(text: current);
+    }
+    if (!mounted) return;
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('$currentVm.conf'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: keys.entries.map((e) {
+            final opts = options?[e.key];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: opts == null
+                  ? TextField(
+                      controller: controllers[e.key],
+                      decoration: InputDecoration(labelText: e.value),
+                    )
+                  : DropdownButtonFormField<String>(
+                      initialValue: opts.contains(controllers[e.key]!.text)
+                          ? controllers[e.key]!.text
+                          : opts.first,
+                      decoration: InputDecoration(labelText: e.value),
+                      items: opts
+                          .map(
+                            (o) => DropdownMenuItem(value: o, child: Text(o)),
+                          )
+                          .toList(),
+                      onChanged: (v) => controllers[e.key]!.text = v ?? '',
+                    ),
+            );
+          }).toList(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(context.t('Cancel')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(context.t('OK')),
+          ),
+        ],
+      ),
+    );
+    if (result != true) return;
+    for (final key in keys.keys) {
+      final value = controllers[key]!.text;
+      final re = RegExp('^$key="');
+      var replaced = false;
+      for (var i = 0; i < lines.length; i++) {
+        if (re.hasMatch(lines[i])) {
+          lines[i] = '$key="$value"';
+          replaced = true;
+          break;
+        }
+      }
+      if (!replaced) lines.add('$key="$value"');
+    }
+    await file.writeAsString('${lines.join('\n')}\n');
   }
 
   void _manageSnapshot(BuildContext context, String currentVm) async {
@@ -306,6 +387,8 @@ class _ManagerState extends State<Manager>
           case 'spice':
             info.spicePort = parts[1];
             break;
+          default:
+            info.other.add(parts.sublist(1).join(','));
         }
       }
     }
@@ -375,6 +458,21 @@ class _ManagerState extends State<Manager>
   Widget _buildVmList() {
     List<Widget> widgetList = [];
     final Color buttonColor = Theme.of(context).colorScheme.primary;
+    if (!_hasKvm) {
+      widgetList.add(
+        Card(
+          color: Theme.of(context).colorScheme.errorContainer,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Text(
+              context.t(
+                'Hardware virtualisation (/dev/kvm) is not available; VMs will run slowly.',
+              ),
+            ),
+          ),
+        ),
+      );
+    }
     widgetList.addAll([
       Padding(
         padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -462,6 +560,9 @@ class _ManagerState extends State<Manager>
             });
           }
         });
+      }
+      for (final extra in vmInfo.other) {
+        connectInfo += '$extra ';
       }
     }
     String vmStem = currentVm;
@@ -592,6 +693,24 @@ class _ManagerState extends State<Manager>
                     );
                   case 'snapshot':
                     _manageSnapshot(context, currentVm);
+                  case 'shared':
+                    _editVmConfValues(currentVm, {
+                      'public_dir': context.t('Shared folder'),
+                    });
+                  case 'resources':
+                    _editVmConfValues(currentVm, {
+                      'ram': context.t('RAM (e.g. 4G)'),
+                      'cpu_cores': context.t('CPU cores'),
+                      'disk_size': context.t('Disk size (e.g. 64G)'),
+                    });
+                  case 'display':
+                    _editVmConfValues(
+                      currentVm,
+                      {'viewer': context.t('Display viewer')},
+                      options: {
+                        'viewer': ['spicy', 'remote-viewer', 'none'],
+                      },
+                    );
                   case 'delete':
                     _confirmDeleteVm(context, currentVm);
                 }
@@ -621,6 +740,33 @@ class _ManagerState extends State<Manager>
                   child: ListTile(
                     leading: const Icon(Icons.photo_camera),
                     title: Text(context.t('Snapshots')),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'shared',
+                  child: ListTile(
+                    leading: const Icon(Icons.folder_shared),
+                    title: Text(context.t('Shared folder')),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'resources',
+                  child: ListTile(
+                    leading: const Icon(Icons.memory),
+                    title: Text(context.t('Resources')),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'display',
+                  child: ListTile(
+                    leading: const Icon(Icons.display_settings),
+                    title: Text(context.t('Display viewer')),
                     dense: true,
                     contentPadding: EdgeInsets.zero,
                   ),

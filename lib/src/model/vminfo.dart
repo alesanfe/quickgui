@@ -2,4 +2,5 @@
 class VmInfo {
   String? sshPort;
   String? spicePort;
+  final List<String> other = [];
 }
