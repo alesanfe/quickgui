@@ -110,7 +110,7 @@ class _DownloaderMenuState extends State<DownloaderMenu> with PreferencesMixin {
       return;
     }
     final output = '${proc.stdout}${proc.stderr}'.trim();
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(
@@ -149,7 +149,7 @@ class _DownloaderMenuState extends State<DownloaderMenu> with PreferencesMixin {
             }
           }
         },
-        child: Container(
+        child: ColoredBox(
           color: Theme.of(context).colorScheme.primaryContainer,
           child: SingleChildScrollView(
             child: Column(
@@ -178,7 +178,7 @@ class _DownloaderMenuState extends State<DownloaderMenu> with PreferencesMixin {
                               .surface,
                         ),
                         onPressed: () async {
-                          var folder = await FilePicker.getDirectoryPath(
+                          final folder = await FilePicker.getDirectoryPath(
                             dialogTitle: "Pick a folder",
                           );
                           if (folder != null && folder.isNotEmpty) {
@@ -202,7 +202,6 @@ class _DownloaderMenuState extends State<DownloaderMenu> with PreferencesMixin {
                   children: [
                     Expanded(
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Padding(
                             padding: EdgeInsets.symmetric(horizontal: 12),

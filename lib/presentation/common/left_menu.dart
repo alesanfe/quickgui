@@ -35,7 +35,7 @@ class _LeftMenuState extends State<LeftMenu> with PreferencesMixin {
 
   @override
   void didChangeDependencies() {
-    var appSettings = context.read<AppSettings>();
+    final appSettings = context.read<AppSettings>();
     currentLocale = appSettings.activeLocale;
     if (!supportedLocales.contains(currentLocale)) {
       currentLocale = currentLocale.split("_")[0];
@@ -66,7 +66,7 @@ class _LeftMenuState extends State<LeftMenu> with PreferencesMixin {
 
   @override
   Widget build(BuildContext context) {
-    var version = AppVersion.packageInfo!.version;
+    final version = AppVersion.packageInfo!.version;
     return Consumer<AppSettings>(
       builder: (context, appSettings, _) {
         return Drawer(
@@ -74,8 +74,9 @@ class _LeftMenuState extends State<LeftMenu> with PreferencesMixin {
             children: [
               Padding(
                 // Minimal bottom padding
-                padding: const EdgeInsets.only(bottom: 0)
-                    .add(const EdgeInsets.symmetric(horizontal: 16)),
+                padding: const EdgeInsets.only().add(
+                  const EdgeInsets.symmetric(horizontal: 16),
+                ),
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 4.0),
                   child: Text(
@@ -101,8 +102,9 @@ class _LeftMenuState extends State<LeftMenu> with PreferencesMixin {
                         }
                         return Padding(
                           // Minimal top padding
-                          padding: const EdgeInsets.only(top: 0)
-                              .add(const EdgeInsets.symmetric(horizontal: 16)),
+                          padding: const EdgeInsets.only().add(
+                            const EdgeInsets.symmetric(horizontal: 16),
+                          ),
                           child: Text(
                             poweredByText,
                             style: const TextStyle(
@@ -188,7 +190,7 @@ class _LeftMenuState extends State<LeftMenu> with PreferencesMixin {
                   checks['/dev/kvm'] =
                       Platform.isMacOS || File('/dev/kvm').existsSync();
                   if (!context.mounted) return;
-                  showDialog(
+                  showDialog<void>(
                     context: context,
                     builder: (context) => AlertDialog(
                       title: Text(context.t('Dependency check')),
@@ -229,7 +231,7 @@ class _LeftMenuState extends State<LeftMenu> with PreferencesMixin {
                     'downloadHistory',
                   );
                   if (!context.mounted) return;
-                  showDialog(
+                  showDialog<void>(
                     context: context,
                     builder: (context) => AlertDialog(
                       title: Text(context.t('Download history')),
@@ -241,7 +243,7 @@ class _LeftMenuState extends State<LeftMenu> with PreferencesMixin {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: history.reversed
-                                      .map((e) => Text(e))
+                                      .map(Text.new)
                                       .toList(),
                                 ),
                               ),
@@ -273,14 +275,14 @@ class _LeftMenuState extends State<LeftMenu> with PreferencesMixin {
                     final res = await req.close();
                     final body = await res.transform(utf8.decoder).join();
                     latest =
-                        (RegExp('"tag_name":s*"([^"]+)"')
+                        RegExp('"tag_name":s*"([^"]+)"')
                             .firstMatch(body)
-                            ?.group(1)) ??
+                            ?.group(1) ??
                         '';
                   } catch (_) {}
                   if (!context.mounted) return;
                   final current = AppVersion.packageInfo?.version ?? '?';
-                  showDialog(
+                  showDialog<void>(
                     context: context,
                     builder: (context) => AlertDialog(
                       title: Text(context.t('Check for updates')),
@@ -318,7 +320,7 @@ class _LeftMenuState extends State<LeftMenu> with PreferencesMixin {
                 onTap: () async {
                   final proc = await runHost('quickreport', []);
                   if (!context.mounted) return;
-                  showDialog(
+                  showDialog<void>(
                     context: context,
                     builder: (context) => AlertDialog(
                       title: Text(context.t('System diagnostics')),

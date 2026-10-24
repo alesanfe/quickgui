@@ -4,7 +4,7 @@ import 'package:quickgui/infrastructure/process/process_runner.dart';
 import 'package:quickgui/infrastructure/virtualization/quickemu_backend.dart';
 import 'package:quickgui/infrastructure/virtualization/virtualization_backend.dart';
 
-var gIsSnap = Platform.environment['SNAP']?.isNotEmpty ?? false;
+bool gIsSnap = Platform.environment['SNAP']?.isNotEmpty ?? false;
 const String prefWorkingDirectory = 'workingDirectory';
 const String prefThemeMode = 'themeMode';
 const String prefCurrentLocale = 'currentLocale';
@@ -12,7 +12,7 @@ const String prefNewlyInstalledVms = 'newlyInstalledVms';
 
 Future<String> fetchQuickemuVersion() async {
   // Get the version of quickemu
-  var result = await runHost('quickemu', ['--version']);
+  final result = await runHost('quickemu', ['--version']);
 
   // If successful return the trimmed version
   if (result.exitCode == 0) {

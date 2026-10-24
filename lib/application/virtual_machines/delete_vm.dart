@@ -36,7 +36,7 @@ class DeleteVm {
     final r = await _backend.runAction([
       '--vm',
       '$vm.conf',
-      diskOnly ? '--delete-disk' : '--delete-vm',
+      if (diskOnly) '--delete-disk' else '--delete-vm',
     ]);
     if (r.exitCode != 0) {
       return Err(Failure('vm.delete_failed', '${r.stderr}${r.stdout}'.trim()));

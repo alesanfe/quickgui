@@ -14,7 +14,7 @@ class OperatingSystemSelection extends StatefulWidget {
 }
 
 class _OperatingSystemSelectionState extends State<OperatingSystemSelection> {
-  var term = "";
+  String term = "";
   final focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
 
@@ -79,7 +79,7 @@ class _OperatingSystemSelectionState extends State<OperatingSystemSelection> {
                 AsyncSnapshot<List<OperatingSystem>> snapshot,
               ) {
                 if (snapshot.hasData) {
-                  List<OperatingSystem> list = snapshot.data!
+                  final List<OperatingSystem> list = snapshot.data!
                       .where(
                         (os) =>
                             os.name.toLowerCase().contains(term.toLowerCase()),
@@ -89,7 +89,7 @@ class _OperatingSystemSelectionState extends State<OperatingSystemSelection> {
                     controller: _scrollController,
                     itemCount: list.length,
                     itemBuilder: (context, index) {
-                      var item = list[index];
+                      final item = list[index];
                       Widget icon;
 
                       if (osIcons.containsKey(item.code)) {

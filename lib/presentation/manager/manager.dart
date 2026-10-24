@@ -88,7 +88,7 @@ class _ManagerState extends State<Manager>
       });
       Future.delayed(
         Duration.zero,
-        () => _getVms(),
+        _getVms,
       ); // Reload VM list when we enter the page.
     });
     refreshTimer = Timer.periodic(const Duration(seconds: 5), (Timer t) {
@@ -127,7 +127,7 @@ class _ManagerState extends State<Manager>
 
   void _getTerminalEmulator() async {
     // Find out which terminal emulator we have set as the default.
-    String result = whichSync('x-terminal-emulator') ?? '';
+    final String result = whichSync('x-terminal-emulator') ?? '';
     if (result.isNotEmpty) {
       String terminalEmulator = await File(result).resolveSymbolicLinks();
       terminalEmulator = path.basenameWithoutExtension(terminalEmulator);
@@ -139,8 +139,8 @@ class _ManagerState extends State<Manager>
     } else {
       // If x-terminal-emulator doesn't exist or returns empty, look for
       // supported terminals in the PATH
-      for (String terminal in _supportedTerminalEmulators) {
-        String? terminalPath = whichSync(terminal);
+      for (final String terminal in _supportedTerminalEmulators) {
+        final String? terminalPath = whichSync(terminal);
         if (terminalPath != null) {
           setState(() {
             _terminalEmulator = terminal;
@@ -152,7 +152,7 @@ class _ManagerState extends State<Manager>
   }
 
   void _detectSpice() async {
-    var result = whichSync('spicy') ?? '';
+    final result = whichSync('spicy') ?? '';
     setState(() {
       _spicy = result.isNotEmpty;
       _hasKvm = Platform.isMacOS || File('/dev/kvm').existsSync();
@@ -347,7 +347,7 @@ class _ManagerState extends State<Manager>
     ).then((result) async {
       result = result ?? 'cancel';
       if (result != 'cancel') {
-        List<String> command = [
+        final List<String> command = [
           'quickemu',
           '--vm',
           '$currentVm.conf',
@@ -384,7 +384,7 @@ class _ManagerState extends State<Manager>
     if (name == null || name.isEmpty || !mounted) return;
     final r = await backend.runAction([
       '--vm',
-      '\$currentVm.conf',
+      r'$currentVm.conf',
       '--clone',
       name,
     ]);
@@ -421,7 +421,7 @@ class _ManagerState extends State<Manager>
     if (size == null || size.isEmpty || !mounted) return;
     final r = await backend.runAction([
       '--vm',
-      '\$currentVm.conf',
+      r'$currentVm.conf',
       '--disk-resize',
       size,
     ]);
@@ -438,7 +438,7 @@ class _ManagerState extends State<Manager>
     if (output.isEmpty) {
       return;
     }
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('quickemu'),
@@ -462,19 +462,17 @@ class _ManagerState extends State<Manager>
   }
 
   VmInfo _parseVmInfo(String name) {
-    VmInfo info = VmInfo();
-    File portsFile = File('$name/$name.ports');
+    final VmInfo info = VmInfo();
+    final File portsFile = File('$name/$name.ports');
     if (portsFile.existsSync()) {
-      List<String> lines = portsFile.readAsLinesSync();
-      for (var line in lines) {
-        List<String> parts = line.split(',');
+      final List<String> lines = portsFile.readAsLinesSync();
+      for (final line in lines) {
+        final List<String> parts = line.split(',');
         switch (parts[0]) {
           case 'ssh':
             info.sshPort = parts[1];
-            break;
           case 'spice':
             info.spicePort = parts[1];
-            break;
           default:
             info.other.add(parts.sublist(1).join(','));
         }
@@ -484,9 +482,9 @@ class _ManagerState extends State<Manager>
   }
 
   bool _isValidConf(String conf) {
-    List<String> lines = File(conf).readAsLinesSync();
-    for (var line in lines) {
-      List<String> parts = line.split('=');
+    final List<String> lines = File(conf).readAsLinesSync();
+    for (final line in lines) {
+      final List<String> parts = line.split('=');
       if (parts[0] == 'guest_os') {
         return true;
       }
@@ -495,9 +493,9 @@ class _ManagerState extends State<Manager>
   }
 
   void _getVms() async {
-    List<String> currentVms = [];
-    Map<String, String> vmConfFiles = {};
-    Map<String, VmInfo> activeVms = {};
+    final List<String> currentVms = [];
+    final Map<String, String> vmConfFiles = {};
+    final Map<String, VmInfo> activeVms = {};
 
     // Prefer the structured backend contract when the installed
     // quickemu advertises it; fall back to the pid-file scan otherwise.
@@ -511,22 +509,19 @@ class _ManagerState extends State<Manager>
       }
     }
 
-    await for (var entity in Directory.current.list(
-      recursive: false,
-      followLinks: true,
-    )) {
+    await for (final entity in Directory.current.list()) {
       if ((entity.path.endsWith('.conf')) && (_isValidConf(entity.path))) {
-        String name = path.basenameWithoutExtension(entity.path);
+        final String name = path.basenameWithoutExtension(entity.path);
         currentVms.add(name);
         vmConfFiles[name] = entity.path;
         var running = backendStates[name] == 'running';
         if (backendStates.isEmpty) {
-          File pidFile = File('$name/$name.pid');
+          final File pidFile = File('$name/$name.pid');
           if (pidFile.existsSync()) {
-            String pid = pidFile.readAsStringSync().trim();
+            final String pid = pidFile.readAsStringSync().trim();
             // Check if the process is still running using kill -0, which is
             // a portable way to check if a process is running on macOS and Linux.
-            ProcessResult result = Process.runSync('kill', ['-0', pid]);
+            final ProcessResult result = Process.runSync('kill', ['-0', pid]);
             running = result.exitCode == 0;
           }
         }
@@ -561,7 +556,7 @@ class _ManagerState extends State<Manager>
   Future<bool> _detectSsh(int port) async {
     bool isSSH = false;
     try {
-      Socket socket = await Socket.connect('localhost', port);
+      final Socket socket = await Socket.connect('localhost', port);
       isSSH = await socket.any((event) => utf8.decode(event).contains('SSH'));
       socket.close();
       return isSSH;
@@ -571,7 +566,7 @@ class _ManagerState extends State<Manager>
   }
 
   Widget _buildVmList() {
-    List<Widget> widgetList = [];
+    final List<Widget> widgetList = [];
     final Color buttonColor = Theme.of(context).colorScheme.primary;
     if (!_hasKvm) {
       widgetList.add(
@@ -605,7 +600,7 @@ class _ManagerState extends State<Manager>
                 backgroundColor: Theme.of(context).colorScheme.surface,
               ),
               onPressed: () async {
-                var folder = await FilePicker.getDirectoryPath(
+                final folder = await FilePicker.getDirectoryPath(
                   dialogTitle: "Pick a folder",
                 );
                 if (folder != null) {
@@ -647,10 +642,10 @@ class _ManagerState extends State<Manager>
         ),
       );
     }
-    List<List<Widget>> rows = filteredVms.map((vm) {
+    final List<List<Widget>> rows = filteredVms.map((vm) {
       return _buildRow(vm, buttonColor);
     }).toList();
-    for (var row in rows) {
+    for (final row in rows) {
       widgetList.addAll(row);
     }
 
@@ -702,7 +697,7 @@ class _ManagerState extends State<Manager>
         title: Row(
           children: [
             Text(currentVm),
-            newVM ? const NewVmTag() : const SizedBox.shrink(),
+            if (newVM) const NewVmTag() else const SizedBox.shrink(),
             if (File('$currentVm/virtio-win.iso').existsSync() ||
                 File('$currentVm/unattended.iso').existsSync())
               Tooltip(
@@ -725,8 +720,8 @@ class _ManagerState extends State<Manager>
               onPressed: active
                   ? null
                   : () async {
-                      Map<String, VmInfo> activeVms = _activeVms;
-                      List<String> command = [
+                      final Map<String, VmInfo> activeVms = _activeVms;
+                      final List<String> command = [
                         'quickemu',
                         '--vm',
                         '$currentVm.conf',
@@ -756,7 +751,7 @@ class _ManagerState extends State<Manager>
                           ProcessResult(0, 1, '', startResult.failure.message),
                         ]);
                       }
-                      VmInfo info = _parseVmInfo(currentVm);
+                      final VmInfo info = _parseVmInfo(currentVm);
                       activeVms[currentVm] = info;
                       setState(() {
                         _activeVms = activeVms;
@@ -796,10 +791,10 @@ class _ManagerState extends State<Manager>
                       ).then((result) async {
                         result = result ?? false;
                         if (result) {
-                          var shell = Shell();
+                          final shell = Shell();
                           // If Quickemu is newer than 4.9.6, use the new --kill option
                           // which is macOS compatible.
-                          var quickemuVersion = Version.parse(
+                          final quickemuVersion = Version.parse(
                             await fetchQuickemuVersion(),
                           );
                           if (quickemuVersion >= Version(4, 9, 6)) {
@@ -819,11 +814,10 @@ class _ManagerState extends State<Manager>
             PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert, semanticLabel: 'More actions'),
               tooltip: context.t('More actions'),
-              enabled: true,
               onSelected: (choice) async {
                 switch (choice) {
                   case 'config':
-                    showDialog(
+                    showDialog<void>(
                       context: context,
                       builder: (context) => VmConfigEditorDialog(
                         vmName: currentVm,
@@ -882,19 +876,19 @@ class _ManagerState extends State<Manager>
                   case 'pause':
                     await backend.runAction([
                       '--vm',
-                      '\$currentVm.conf',
+                      r'$currentVm.conf',
                       '--pause',
                     ]);
                   case 'resume':
                     await backend.runAction([
                       '--vm',
-                      '\$currentVm.conf',
+                      r'$currentVm.conf',
                       '--resume',
                     ]);
                   case 'screenshot':
                     final r = await backend.runAction([
                       '--vm',
-                      '\$currentVm.conf',
+                      r'$currentVm.conf',
                       '--screenshot',
                     ]);
                     if (!context.mounted) return;
@@ -910,7 +904,7 @@ class _ManagerState extends State<Manager>
                   case 'doctor':
                     final r = await backend.runAction([
                       '--vm',
-                      '\$currentVm.conf',
+                      r'$currentVm.conf',
                       '--doctor',
                     ]);
                     if (!context.mounted) return;
@@ -1175,7 +1169,7 @@ class _ManagerState extends State<Manager>
                 onPressed: !_spicy || vmInfo.spicePort == null
                     ? null
                     : () {
-                        var shell = Shell();
+                        final shell = Shell();
                         shell.run(
                           hostWrap(
                             ['spicy', '-p', vmInfo.spicePort!].join(' '),
@@ -1204,7 +1198,7 @@ class _ManagerState extends State<Manager>
                           'sshUser_$currentVm',
                         );
                         if (!mounted) return;
-                        TextEditingController
+                        final TextEditingController
                         usernameController = TextEditingController(
                           text: savedUser ?? Platform.environment['USER'] ?? '',
                         );
@@ -1257,9 +1251,10 @@ class _ManagerState extends State<Manager>
                               'ssh',
                               '-p',
                               vmInfo.sshPort!,
-                              usernameController.text.isEmpty
-                                  ? 'localhost'
-                                  : '${usernameController.text}@localhost',
+                              if (usernameController.text.isEmpty)
+                                'localhost'
+                              else
+                                '${usernameController.text}@localhost',
                             ];
                             // Set the arguments to execute the ssh command in the default terminal.
                             // Strip the extension as x-terminal-emulator may point to a .wrapper
@@ -1270,18 +1265,15 @@ class _ManagerState extends State<Manager>
                                 sshArgs = [
                                   '-e \'tell app "Terminal" to do script "${sshArgs.join(' ')}"\'',
                                 ];
-                                break;
                               case 'gnome-terminal':
                               case 'mate-terminal':
                                 sshArgs.insert(0, '--');
-                                break;
                               case 'kitty':
                               case 'foot':
                                 // Run the command directly: `kitty ssh ...`
                                 break;
                               case 'wezterm':
                                 sshArgs.insert(0, 'start');
-                                break;
                               case 'alacritty':
                               case 'xterm':
                               case 'lxterm':
@@ -1296,18 +1288,15 @@ class _ManagerState extends State<Manager>
                               case 'tilix':
                               case 'kgx':
                                 sshArgs.insert(0, '-e');
-                                break;
                               case 'terminator':
                               case 'xfce4-terminal':
                                 sshArgs.insert(0, '-x');
-                                break;
                               case 'guake':
-                                String command = sshArgs.join(' ');
+                                final String command = sshArgs.join(' ');
                                 sshArgs = ['-e', command];
-                                break;
                             }
                             sshArgs.insert(0, _terminalEmulator!);
-                            var shell = Shell();
+                            final shell = Shell();
                             shell.run(sshArgs.join(' '));
                           }
                         });

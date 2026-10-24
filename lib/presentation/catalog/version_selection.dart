@@ -17,7 +17,7 @@ class VersionSelection extends StatefulWidget {
 }
 
 class _VersionSelectionState extends State<VersionSelection> {
-  var term = "";
+  String term = "";
   final focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
 
@@ -35,7 +35,7 @@ class _VersionSelectionState extends State<VersionSelection> {
 
   @override
   Widget build(BuildContext context) {
-    var list = widget.operatingSystem.versions
+    final list = widget.operatingSystem.versions
         .where(
           (version) =>
               version.version.toLowerCase().contains(term.toLowerCase()),
@@ -91,7 +91,7 @@ class _VersionSelectionState extends State<VersionSelection> {
           padding: const EdgeInsets.only(top: 4),
           itemCount: list.length,
           itemBuilder: (context, index) {
-            var item = list[index];
+            final item = list[index];
             return Card(
               child: ListTile(
                 title: Text(item.version),

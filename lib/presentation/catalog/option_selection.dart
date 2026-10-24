@@ -13,7 +13,7 @@ class OptionSelection extends StatefulWidget {
 }
 
 class _OptionSelectionState extends State<OptionSelection> {
-  var term = "";
+  String term = "";
   final focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
 
@@ -31,7 +31,7 @@ class _OptionSelectionState extends State<OptionSelection> {
 
   @override
   Widget build(BuildContext context) {
-    var list = widget.version.options
+    final list = widget.version.options
         .where((e) => e.option.toLowerCase().contains(term.toLowerCase()))
         .toList();
 
@@ -82,7 +82,7 @@ class _OptionSelectionState extends State<OptionSelection> {
           controller: _scrollController,
           itemCount: list.length,
           itemBuilder: (context, index) {
-            var item = list[index];
+            final item = list[index];
             return Card(
               child: ListTile(
                 title: Text(item.option),

@@ -11,7 +11,7 @@ class MainMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Container(
+      child: ColoredBox(
         color: Theme.of(context).colorScheme.primaryContainer,
         child: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -21,7 +21,7 @@ class MainMenu extends StatelessWidget {
               HomePageButton(
                 onPressed: () {
                   Navigator.of(context).push(
-                    PageRouteBuilder(
+                    PageRouteBuilder<void>(
                       fullscreenDialog: true,
                       pageBuilder: (context, animation1, animation2) =>
                           const Manager(),
@@ -40,7 +40,7 @@ class MainMenu extends StatelessWidget {
               HomePageButton(
                 onPressed: () {
                   Navigator.of(context).push(
-                    PageRouteBuilder(
+                    PageRouteBuilder<void>(
                       fullscreenDialog: true,
                       pageBuilder: (context, animation1, animation2) =>
                           const DownloaderPage(),

@@ -48,6 +48,15 @@ linter:
     use_super_parameters: false
     unawaited_futures: false
     discarded_futures: false
+    # TODO(phase-2): re-enable these once the flagged sites are refactored
+    avoid_double_and_int_checks: false
+    avoid_dynamic_calls: false
+    avoid_setters_without_getters: false
+    parameter_assignments: false
+    prefer_foreach: false
+    sort_pub_dependencies: false
+    use_named_constants: false
+    use_string_buffers: false
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

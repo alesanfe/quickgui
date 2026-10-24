@@ -18,8 +18,8 @@ import 'package:quickgui/domain/catalog/version.dart';
 
 Future<List<OperatingSystem>> loadOperatingSystems(bool showUbuntus) async {
   final rows = await backend.listOperatingSystems();
-  var stdout = '';
-  var output = <OperatingSystem>[];
+  const stdout = '';
+  final output = <OperatingSystem>[];
   OperatingSystem? currentOperatingSystem;
   Version? currentVersion;
 
@@ -39,7 +39,13 @@ Future<List<OperatingSystem>> loadOperatingSystems(bool showUbuntus) async {
     {
       supportedVersion = Tuple5.fromList([...chunksTyped, "curl"]);
     } else {
-      var t5 = [chunks[0], chunks[1], chunks[2], chunks[3], chunks[4]].toList();
+      final t5 = [
+        chunks[0],
+        chunks[1],
+        chunks[2],
+        chunks[3],
+        chunks[4],
+      ].toList();
       supportedVersion = Tuple5.fromList(t5);
     }
 
@@ -71,8 +77,8 @@ Future<void> getIcons() async {
       .where((String key) => key.contains('.svg'))
       .toList();
   for (final imagePath in imagePaths) {
-    String filename = imagePath.split('/').last;
-    String id = filename.substring(0, filename.lastIndexOf('.'));
+    final String filename = imagePath.split('/').last;
+    final String id = filename.substring(0, filename.lastIndexOf('.'));
     osIcons[id] = imagePath;
   }
 }

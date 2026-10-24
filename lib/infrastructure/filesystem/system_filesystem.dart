@@ -4,6 +4,5 @@ import 'dart:io';
 class SystemFilesystem {
   bool fileExists(String p) => File(p).existsSync();
   bool dirExists(String p) => Directory(p).existsSync();
-  Stream<FileSystemEntity> list(String p) =>
-      Directory(p).list(followLinks: true);
+  Stream<FileSystemEntity> list(String p) => Directory(p).list();
 }

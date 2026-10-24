@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 class HomePageButton extends StatelessWidget {
   const HomePageButton({
-    this.label,
     required this.text,
+    this.label,
     this.onPressed,
     super.key,
   });
@@ -15,7 +15,6 @@ class HomePageButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      flex: 1,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(12, 24, 12, 24),
         child: Column(

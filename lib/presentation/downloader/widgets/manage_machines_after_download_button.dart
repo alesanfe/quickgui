@@ -17,22 +17,23 @@ class ManageMachinesAfterDownloadButton extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          downloadFinished
-              ? ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.surface,
-                    foregroundColor: Theme.of(context).colorScheme.onSurface,
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const Manager()),
-                    );
-                  },
-                  child: Text(context.t('Manage existing machines')),
-                )
-              : const SizedBox.shrink(),
+          if (downloadFinished)
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.surface,
+                foregroundColor: Theme.of(context).colorScheme.onSurface,
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(builder: (context) => const Manager()),
+                );
+              },
+              child: Text(context.t('Manage existing machines')),
+            )
+          else
+            const SizedBox.shrink(),
         ],
       ),
     );

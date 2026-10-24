@@ -120,7 +120,7 @@ class _HomePageButtonGroupState extends State<HomePageButtonGroup>
                       );
                       if (missing.isNotEmpty) {
                         if (!context.mounted) return;
-                        showDialog(
+                        showDialog<void>(
                           context: context,
                           builder: (context) => AlertDialog(
                             title: Text(context.t('Error')),
@@ -158,7 +158,7 @@ class _HomePageButtonGroupState extends State<HomePageButtonGroup>
                     )) {
                       if (!await commandAvailable('swtpm')) {
                         if (!context.mounted) return;
-                        showDialog(
+                        showDialog<void>(
                           context: context,
                           builder: (context) => AlertDialog(
                             title: Text(context.t('Error')),
@@ -190,7 +190,7 @@ class _HomePageButtonGroupState extends State<HomePageButtonGroup>
                     ]);
                     if (!context.mounted) return;
                     if (check.exitCode != 0) {
-                      showDialog(
+                      showDialog<void>(
                         context: context,
                         builder: (context) => AlertDialog(
                           title: Text(context.t('Error')),
@@ -212,7 +212,7 @@ class _HomePageButtonGroupState extends State<HomePageButtonGroup>
                     final custom = await _customizeDialog(context);
                     if (!context.mounted || custom == null) return;
                     Navigator.of(context).push(
-                      MaterialPageRoute(
+                      MaterialPageRoute<void>(
                         builder: (context) => Downloader(
                           operatingSystem: _selectedOperatingSystem!,
                           version: _selectedVersion!,
@@ -223,7 +223,7 @@ class _HomePageButtonGroupState extends State<HomePageButtonGroup>
                     );
                   } else {
                     if (!context.mounted) return;
-                    showDialog(
+                    showDialog<void>(
                       context: context,
                       builder: (context) => AlertDialog(
                         title: Text(context.t('Error')),
@@ -250,7 +250,7 @@ class _HomePageButtonGroupState extends State<HomePageButtonGroup>
   }
 
   void showLoadingIndicator({String text = ''}) {
-    showDialog(
+    showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (context) => PopScope(
@@ -298,7 +298,7 @@ class _HomePageButtonGroupState extends State<HomePageButtonGroup>
     required String operatingSystem,
     required String version,
   }) {
-    showDialog(
+    showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (context) => PopScope(

@@ -49,11 +49,11 @@ class _AppState extends State<App> with PreferencesMixin {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done &&
             snapshot.data != null) {
-          var appSettings = context.read<AppSettings>();
+          final appSettings = context.read<AppSettings>();
           appSettings.setActiveLocaleSilently(
             snapshot.data?.getString(prefCurrentLocale) ?? Platform.localeName,
           );
-          var pref = snapshot.data!.getBool(prefThemeMode);
+          final pref = snapshot.data!.getBool(prefThemeMode);
           if (pref != null) {
             appSettings.useDarkModeSilently = pref;
           }
@@ -94,7 +94,7 @@ class _AppState extends State<App> with PreferencesMixin {
               ),
               localeListResolutionCallback: (locales, supportedLocales) {
                 if (locales != null) {
-                  for (var locale in locales) {
+                  for (final locale in locales) {
                     var supportedLocale = supportedLocales.where(
                       (element) =>
                           element.languageCode == locale.languageCode &&

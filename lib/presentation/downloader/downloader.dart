@@ -41,11 +41,13 @@ class Downloader extends StatefulWidget {
 }
 
 class _DownloaderState extends State<Downloader> with PreferencesMixin {
-  final notificationsClient = Platform.isMacOS ? null : NotificationsClient();
+  final NotificationsClient? notificationsClient = Platform.isMacOS
+      ? null
+      : NotificationsClient();
   final curlPattern = RegExp("( [0-9.]+%)");
   late final Stream<double> _progressStream;
   bool _downloadFinished = false;
-  var controller = StreamController<double>();
+  StreamController<double> controller = StreamController<double>();
   Process? _process;
   final List<String> _outputChunks = [];
   int _outputLength = 0;
@@ -73,11 +75,11 @@ class _DownloaderState extends State<Downloader> with PreferencesMixin {
   }
 
   void parseCurlProgress(String line) {
-    var matches = curlPattern.allMatches(line).toList();
+    final matches = curlPattern.allMatches(line).toList();
     if (matches.isNotEmpty) {
-      var percent = matches[0].group(1);
+      final percent = matches[0].group(1);
       if (percent != null) {
-        var value = double.parse(percent.replaceAll('%', '')) / 100.0;
+        final value = double.parse(percent.replaceAll('%', '')) / 100.0;
         controller.add(value);
       }
     }
@@ -97,7 +99,7 @@ class _DownloaderState extends State<Downloader> with PreferencesMixin {
 
     // Update the prefNewlyInstalledVms with the newest folder
     if (folders.isNotEmpty) {
-      String newestFolder = p.basename(folders.first.path);
+      final String newestFolder = p.basename(folders.first.path);
 
       final List<String> newVmNames =
           await getPreference<List<String>>(prefNewlyInstalledVms) ??
@@ -110,7 +112,7 @@ class _DownloaderState extends State<Downloader> with PreferencesMixin {
   }
 
   Stream<double> progressStream() {
-    var options = [widget.operatingSystem.code, widget.version.version];
+    final options = [widget.operatingSystem.code, widget.version.version];
     if (widget.option != null) {
       options.add(widget.option!.option);
     }
@@ -131,7 +133,7 @@ class _DownloaderState extends State<Downloader> with PreferencesMixin {
       }
 
       process.exitCode.then((value) async {
-        bool cancelled = value.isNegative;
+        final bool cancelled = value.isNegative;
         controller.close();
         addNewestVmToPrefs();
         final history =
@@ -208,7 +210,7 @@ class _DownloaderState extends State<Downloader> with PreferencesMixin {
             child: StreamBuilder(
               stream: _progressStream,
               builder: (context, AsyncSnapshot<double> snapshot) {
-                var data =
+                final data =
                     !snapshot.hasData || widget.option!.downloader != 'curl'
                     ? null
                     : snapshot.data;

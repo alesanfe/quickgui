@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 class DownloaderPageButton extends StatelessWidget {
   const DownloaderPageButton({
-    this.label,
     required this.text,
+    this.label,
     this.onPressed,
     super.key,
   });
@@ -15,7 +15,6 @@ class DownloaderPageButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      flex: 1,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
         child: Column(

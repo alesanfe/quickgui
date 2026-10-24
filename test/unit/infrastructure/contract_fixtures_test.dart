@@ -9,7 +9,7 @@ void main() {
   test('capabilities fixture is schema v1 with capability map', () {
     final j = jsonDecode(File('$dir/capabilities.json').readAsStringSync());
     expect(j['schemaVersion'], 1);
-    expect(j['capabilities'], isA<Map>());
+    expect(j['capabilities'], isA<Map<String, dynamic>>());
     expect(j['capabilities']['structuredStatus'], isTrue);
   });
 

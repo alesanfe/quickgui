@@ -8,9 +8,9 @@ class VmConfigEditorDialog extends StatefulWidget {
   final String confPath;
 
   const VmConfigEditorDialog({
-    super.key,
     required this.vmName,
     required this.confPath,
+    super.key,
   });
 
   @override
