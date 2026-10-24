@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
-import 'package:quickgui/app/localization/supported_locales.dart';
+import 'package:quickgui/features/settings/domain/supported_locales.dart';
 import 'package:quickgui/app/theme/app_theme.dart';
 import 'package:quickgui/features/diagnostics/presentation/debget_not_found_page.dart';
 import 'package:quickgui/features/home/presentation/main_page.dart';

@@ -1,6 +1,6 @@
 import 'package:quickgui/core/result/result.dart';
 import 'package:quickgui/features/settings/domain/settings_state.dart';
-import 'package:quickgui/infrastructure/persistence/preferences_repository.dart';
+import 'package:quickgui/core/persistence/preferences_repository.dart';
 
 /// Use case: load persisted app settings, normalising the locale against
 /// the locales quickgui ships translations for.

@@ -14,7 +14,7 @@ import 'package:quickgui/core/result/result.dart';
 import 'package:quickgui/features/downloads/application/cancel_download.dart';
 import 'package:quickgui/features/downloads/application/download_image.dart';
 import 'package:quickgui/features/settings/providers/settings_providers.dart';
-import 'package:quickgui/infrastructure/persistence/preferences_repository.dart';
+import 'package:quickgui/core/persistence/preferences_repository.dart';
 
 import 'package:quickgui/features/catalog/domain/operating_system.dart';
 import 'package:quickgui/features/catalog/domain/option.dart';

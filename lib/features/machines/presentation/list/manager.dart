@@ -8,7 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:path/path.dart' as path;
-import 'package:process_run/shell.dart';
+import 'package:quickgui/features/diagnostics/application/ports/host_probe.dart';
+import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
 import 'package:quickgui/features/machines/presentation/shared/new_vm_tag.dart';
 import 'package:version/version.dart';
 
@@ -16,9 +17,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quickgui/features/catalog/providers/catalog_providers.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/features/settings/providers/settings_providers.dart';
-import 'package:quickgui/infrastructure/persistence/preferences_repository.dart';
-import 'package:quickgui/infrastructure/platform/host_platform.dart';
-import 'package:quickgui/infrastructure/process/host_process.dart';
+import 'package:quickgui/core/persistence/preferences_repository.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
 import 'package:quickgui/features/machines/application/delete_vm.dart';
 import 'package:quickgui/features/machines/application/inspect_vm.dart';
@@ -44,6 +43,7 @@ class Manager extends ConsumerStatefulWidget {
 
 class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
   VirtualizationBackend get _backend => ref.read(backendProvider);
+  HostProbe get _probe => ref.read(hostProbeProvider);
   PreferencesRepository get _prefs => ref.read(preferencesRepositoryProvider);
 
   List<String> _currentVms = [];
@@ -56,30 +56,6 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
   Map<String, dynamic>? _backendCaps;
   final List<String> _sshVms = [];
   String? _terminalEmulator;
-  final List<String> _supportedTerminalEmulators = [
-    if (Platform.isMacOS) 'osascript',
-    'alacritty',
-    'cool-retro-term',
-    'foot',
-    'gnome-terminal',
-    'guake',
-    'kgx',
-    'kitty',
-    'mate-terminal',
-    'konsole',
-    'lxterm',
-    'lxterminal',
-    'pterm',
-    'sakura',
-    'terminator',
-    'tilix',
-    'uxterm',
-    'uxrvt',
-    'wezterm',
-    'xfce4-terminal',
-    'xrvt',
-    'xterm',
-  ];
   Timer? refreshTimer;
   List<String> _newVmNames = <String>[];
 
@@ -89,13 +65,15 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
     _getTerminalEmulator();
     _detectSpice();
     _setNewVmName();
-    _prefs.getAs<String>(prefWorkingDirectory).then((pref) {
+    _prefs.getAs<String>(prefWorkingDirectory).then((pref) async {
+      if (!mounted) return;
+      final writable = await _probe.canWriteToDirectory(Directory.current.path);
       if (!mounted) return;
       setState(() {
         if (pref != null && Directory(pref).existsSync()) {
           Directory.current = pref;
-        } else if (!isWritableDirectory(Directory.current.path)) {
-          Directory.current = fallbackWorkingDirectory();
+        } else if (!writable) {
+          Directory.current = _probe.fallbackWorkingDirectory;
         }
       });
       Future.delayed(
@@ -138,36 +116,21 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
   }
 
   void _getTerminalEmulator() async {
-    // Find out which terminal emulator we have set as the default.
-    final String result = whichSync('x-terminal-emulator') ?? '';
-    if (result.isNotEmpty) {
-      String terminalEmulator = await File(result).resolveSymbolicLinks();
-      terminalEmulator = path.basenameWithoutExtension(terminalEmulator);
-      if (_supportedTerminalEmulators.contains(terminalEmulator)) {
-        setState(() {
-          _terminalEmulator = path.basename(terminalEmulator);
-        });
-      }
-    } else {
-      // If x-terminal-emulator doesn't exist or returns empty, look for
-      // supported terminals in the PATH
-      for (final String terminal in _supportedTerminalEmulators) {
-        final String? terminalPath = whichSync(terminal);
-        if (terminalPath != null) {
-          setState(() {
-            _terminalEmulator = terminal;
-          });
-          break;
-        }
-      }
+    final terminal = await _probe.terminalEmulator();
+    if (terminal != null && mounted) {
+      setState(() {
+        _terminalEmulator = terminal;
+      });
     }
   }
 
   void _detectSpice() async {
-    final result = whichSync('spicy') ?? '';
+    final spicy = await _probe.hasTool('spicy');
+    final kvm = await _probe.hasKvm();
+    if (!mounted) return;
     setState(() {
-      _spicy = result.isNotEmpty;
-      _hasKvm = Platform.isMacOS || File('/dev/kvm').existsSync();
+      _spicy = spicy;
+      _hasKvm = kvm;
     });
   }
 
@@ -535,6 +498,7 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
       }
     }
     currentVms.sort();
+    if (!mounted) return;
     setState(() {
       _currentVms = currentVms;
       _vmConfFiles = vmConfFiles;
@@ -786,7 +750,6 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                       ).then((result) async {
                         result = result ?? false;
                         if (result) {
-                          final shell = Shell();
                           // If Quickemu is newer than 4.9.6, use the new --kill option
                           // which is macOS compatible.
                           final quickemuVersion = Version.parse(
@@ -795,9 +758,7 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                           if (quickemuVersion >= Version(4, 9, 6)) {
                             StopVm(_backend)(currentVm);
                           } else {
-                            shell.run(
-                              hostWrap(['killall', currentVm].join(' ')),
-                            );
+                            unawaited(_backend.killVmProcess(currentVm));
                           }
                           setState(() {
                             _activeVms.remove(currentVm);
@@ -820,9 +781,7 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                       ),
                     );
                   case 'folder':
-                    Shell().run(
-                      '${Platform.isMacOS ? 'open' : 'xdg-open'} "$currentVm"',
-                    );
+                    unawaited(_backend.openVmFolder(currentVm));
                   case 'snapshot':
                     _manageSnapshot(context, currentVm);
                   case 'shared':
@@ -910,13 +869,9 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                   case 'clone':
                     _cloneVm(context, currentVm);
                   case 'export':
-                    final r = await Shell().run(
-                      hostWrap(
-                        'quickemu --vm "$currentVm.conf" --export "$currentVm.tar.gz"',
-                      ),
-                    );
+                    final r = await _backend.exportVm(currentVm);
                     if (!context.mounted) return;
-                    _showProcessOutput(r);
+                    _showProcessOutput([r]);
                   case 'settings':
                     _editVmConfValues(
                       currentVm,
@@ -954,11 +909,9 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                           'iso',
                         );
                     if (iso != null) {
-                      final r = await Shell().run(
-                        hostWrap('chunkcheck "$iso"'),
-                      );
+                      final r = await _backend.verifyImage(iso);
                       if (!context.mounted) return;
-                      _showProcessOutput(r);
+                      _showProcessOutput([r]);
                     }
                   case 'delete':
                     _confirmDeleteVm(context, currentVm);
@@ -1167,11 +1120,8 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                 onPressed: !_spicy || vmInfo.spicePort == null
                     ? null
                     : () {
-                        final shell = Shell();
-                        shell.run(
-                          hostWrap(
-                            ['spicy', '-p', vmInfo.spicePort!].join(' '),
-                          ),
+                        unawaited(
+                          _backend.launchSpiceViewer(vmInfo.spicePort!),
                         );
                       },
               ),
@@ -1221,8 +1171,8 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                                   // Remove the stale known_hosts entry, e.g.
                                   // when a new guest reuses the SSH port of a
                                   // deleted VM.
-                                  Shell().run(
-                                    'ssh-keygen -R [localhost]:${vmInfo.sshPort!}',
+                                  unawaited(
+                                    _backend.forgetSshHostKey(vmInfo.sshPort!),
                                   );
                                 },
                                 child: Text(context.t('Forget host key')),
@@ -1245,57 +1195,13 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                               'sshUser_$currentVm',
                               usernameController.text,
                             );
-                            List<String> sshArgs = [
-                              'ssh',
-                              '-p',
-                              vmInfo.sshPort!,
-                              if (usernameController.text.isEmpty)
-                                'localhost'
-                              else
-                                '${usernameController.text}@localhost',
-                            ];
-                            // Set the arguments to execute the ssh command in the default terminal.
-                            // Strip the extension as x-terminal-emulator may point to a .wrapper
-                            switch (path.basenameWithoutExtension(
-                              _terminalEmulator!,
-                            )) {
-                              case 'osascript':
-                                sshArgs = [
-                                  '-e \'tell app "Terminal" to do script "${sshArgs.join(' ')}"\'',
-                                ];
-                              case 'gnome-terminal':
-                              case 'mate-terminal':
-                                sshArgs.insert(0, '--');
-                              case 'kitty':
-                              case 'foot':
-                                // Run the command directly: `kitty ssh ...`
-                                break;
-                              case 'wezterm':
-                                sshArgs.insert(0, 'start');
-                              case 'alacritty':
-                              case 'xterm':
-                              case 'lxterm':
-                              case 'uxterm':
-                              case 'konsole':
-                              case 'uxrvt':
-                              case 'xrvt':
-                              case 'sakura':
-                              case 'cool-retro-term':
-                              case 'pterm':
-                              case 'lxterminal':
-                              case 'tilix':
-                              case 'kgx':
-                                sshArgs.insert(0, '-e');
-                              case 'terminator':
-                              case 'xfce4-terminal':
-                                sshArgs.insert(0, '-x');
-                              case 'guake':
-                                final String command = sshArgs.join(' ');
-                                sshArgs = ['-e', command];
-                            }
-                            sshArgs.insert(0, _terminalEmulator!);
-                            final shell = Shell();
-                            shell.run(sshArgs.join(' '));
+                            unawaited(
+                              _backend.connectSsh(
+                                terminalEmulator: _terminalEmulator!,
+                                user: usernameController.text,
+                                sshPort: vmInfo.sshPort!,
+                              ),
+                            );
                           }
                         });
                       },

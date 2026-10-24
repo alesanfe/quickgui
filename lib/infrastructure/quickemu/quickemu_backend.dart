@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
 import 'package:quickgui/infrastructure/process/process_runner.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
 
@@ -126,6 +127,92 @@ class QuickemuBackend implements VirtualizationBackend {
   @override
   Future<ProcessResult> runQuickget(List<String> arguments) =>
       _runner.run('quickget', arguments);
+
+  @override
+  Future<ProcessResult> exportVm(String vmName) => _runner.run('quickemu', [
+    '--vm',
+    '$vmName.conf',
+    '--export',
+    '$vmName.tar.gz',
+  ]);
+
+  @override
+  Future<ProcessResult> verifyImage(String isoPath) =>
+      _runner.run('chunkcheck', [isoPath]);
+
+  @override
+  Future<ProcessResult> killVmProcess(String vmName) =>
+      _runner.run('killall', [vmName]);
+
+  @override
+  Future<ProcessResult> openVmFolder(String vmName) =>
+      _runner.run(Platform.isMacOS ? 'open' : 'xdg-open', [vmName]);
+
+  @override
+  Future<ProcessResult> launchSpiceViewer(String spicePort) =>
+      _runner.run('spicy', ['-p', spicePort]);
+
+  @override
+  Future<ProcessResult> forgetSshHostKey(String sshPort) =>
+      _runner.run('ssh-keygen', ['-R', '[localhost]:$sshPort']);
+
+  @override
+  Future<ProcessResult> connectSsh({
+    required String terminalEmulator,
+    required String user,
+    required String sshPort,
+  }) {
+    var sshArgs = <String>[
+      'ssh',
+      '-p',
+      sshPort,
+      if (user.isEmpty) 'localhost' else '$user@localhost',
+    ];
+    // Set the arguments to execute the ssh command in the default terminal.
+    // Strip the extension as x-terminal-emulator may point to a .wrapper
+    switch (p.basenameWithoutExtension(terminalEmulator)) {
+      case 'osascript':
+        sshArgs = [
+          '-e \'tell app "Terminal" to do script "${sshArgs.join(' ')}"\'',
+        ];
+      case 'gnome-terminal':
+      case 'mate-terminal':
+        sshArgs.insert(0, '--');
+      case 'kitty':
+      case 'foot':
+        // Run the command directly: `kitty ssh ...`
+        break;
+      case 'wezterm':
+        sshArgs.insert(0, 'start');
+      case 'alacritty':
+      case 'xterm':
+      case 'lxterm':
+      case 'uxterm':
+      case 'konsole':
+      case 'uxrvt':
+      case 'xrvt':
+      case 'sakura':
+      case 'cool-retro-term':
+      case 'pterm':
+      case 'lxterminal':
+      case 'tilix':
+      case 'kgx':
+        sshArgs.insert(0, '-e');
+      case 'terminator':
+      case 'xfce4-terminal':
+        sshArgs.insert(0, '-x');
+      case 'guake':
+        final String command = sshArgs.join(' ');
+        sshArgs = ['-e', command];
+    }
+    sshArgs.insert(0, terminalEmulator);
+    // The argument styles above embed shell quoting on purpose, so the
+    // assembled command goes through `sh -c` exactly like before.
+    return _runner.run('sh', ['-c', sshArgs.join(' ')]);
+  }
+
+  @override
+  Future<ProcessResult> diagnosticsReport() => _runner.run('quickreport', []);
 
   @override
   Future<String> version() async {

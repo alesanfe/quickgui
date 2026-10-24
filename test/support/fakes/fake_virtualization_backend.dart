@@ -46,4 +46,39 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
   @override
   Future<ProcessResult> runQuickget(List<String> arguments) async =>
       lastActionResult ?? ProcessResult(0, 0, '', '');
+
+  @override
+  Future<ProcessResult> exportVm(String vmName) async =>
+      lastActionResult ?? ProcessResult(0, 0, '', '');
+
+  @override
+  Future<ProcessResult> verifyImage(String isoPath) async =>
+      lastActionResult ?? ProcessResult(0, 0, '', '');
+
+  @override
+  Future<ProcessResult> killVmProcess(String vmName) async =>
+      lastActionResult ?? ProcessResult(0, 0, '', '');
+
+  @override
+  Future<ProcessResult> openVmFolder(String vmName) async =>
+      lastActionResult ?? ProcessResult(0, 0, '', '');
+
+  @override
+  Future<ProcessResult> launchSpiceViewer(String spicePort) async =>
+      lastActionResult ?? ProcessResult(0, 0, '', '');
+
+  @override
+  Future<ProcessResult> forgetSshHostKey(String sshPort) async =>
+      lastActionResult ?? ProcessResult(0, 0, '', '');
+
+  @override
+  Future<ProcessResult> connectSsh({
+    required String terminalEmulator,
+    required String user,
+    required String sshPort,
+  }) async => lastActionResult ?? ProcessResult(0, 0, '', '');
+
+  @override
+  Future<ProcessResult> diagnosticsReport() async =>
+      lastActionResult ?? ProcessResult(0, 0, '', '');
 }

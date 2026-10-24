@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quickgui/features/settings/application/update_settings.dart';
 import 'package:quickgui/features/settings/domain/settings_state.dart';
-import 'package:quickgui/infrastructure/persistence/preferences_repository.dart';
+import 'package:quickgui/core/persistence/preferences_repository.dart';
 import 'package:quickgui/infrastructure/persistence/shared_preferences_repository.dart';
 
 /// Preference store; overridden with a fake in tests.

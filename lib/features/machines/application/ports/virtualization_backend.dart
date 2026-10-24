@@ -38,4 +38,35 @@ abstract class VirtualizationBackend {
 
   /// Runs a quickget action (e.g. ['--create-config','name','/path.iso']).
   Future<ProcessResult> runQuickget(List<String> arguments);
+
+  /// Exports the VM disk and config as `vmName.tar.gz`.
+  Future<ProcessResult> exportVm(String vmName);
+
+  /// Verifies the downloaded image at [isoPath] with `chunkcheck`.
+  Future<ProcessResult> verifyImage(String isoPath);
+
+  /// Force-stops the VM via `killall`, the legacy fallback for backends
+  /// too old for `--kill`.
+  Future<ProcessResult> killVmProcess(String vmName);
+
+  /// Opens the VM directory in the host file manager.
+  Future<ProcessResult> openVmFolder(String vmName);
+
+  /// Launches the SPICE viewer attached to [spicePort].
+  Future<ProcessResult> launchSpiceViewer(String spicePort);
+
+  /// Removes the stale known_hosts entry for the VM's SSH port, e.g.
+  /// when a new guest reuses the port of a deleted VM.
+  Future<ProcessResult> forgetSshHostKey(String sshPort);
+
+  /// Opens [terminalEmulator] running an ssh session into the VM as
+  /// [user] on [sshPort].
+  Future<ProcessResult> connectSsh({
+    required String terminalEmulator,
+    required String user,
+    required String sshPort,
+  });
+
+  /// Runs the backend's diagnostics report (`quickreport`).
+  Future<ProcessResult> diagnosticsReport();
 }

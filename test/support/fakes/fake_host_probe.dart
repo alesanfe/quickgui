@@ -18,4 +18,18 @@ class FakeHostProbe implements HostProbe {
   String get homeDirectory => '/home/tester';
   @override
   String get appVersion => '1.2.3';
+
+  bool writable = true;
+  String? terminal;
+  List<String> missingMacos = const [];
+
+  @override
+  Future<bool> canWriteToDirectory(String path) async => writable;
+  @override
+  String get fallbackWorkingDirectory => '/home/tester';
+  @override
+  Future<String?> terminalEmulator() async => terminal;
+  @override
+  Future<List<String>> missingMacosRequirements(String release) async =>
+      missingMacos;
 }

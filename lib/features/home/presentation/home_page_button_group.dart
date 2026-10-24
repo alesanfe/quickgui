@@ -3,11 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
+import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/features/settings/providers/settings_providers.dart';
-import 'package:quickgui/infrastructure/persistence/preferences_repository.dart';
-import 'package:quickgui/infrastructure/platform/system_host_probe.dart';
-import 'package:quickgui/infrastructure/process/host_process.dart';
+import 'package:quickgui/core/persistence/preferences_repository.dart';
 import 'package:tuple/tuple.dart';
 
 import 'package:quickgui/features/catalog/domain/operating_system.dart';
@@ -106,25 +105,19 @@ class _HomePageButtonGroupState extends ConsumerState<HomePageButtonGroup> {
                   final workingDirectory = await ref
                       .read(preferencesRepositoryProvider)
                       .getAs<String>(prefWorkingDirectory);
-                  final tmpFile = File("$workingDirectory/modecheck.tmp");
-                  if (tmpFile.existsSync()) {
-                    tmpFile.deleteSync();
-                  }
-                  try {
-                    tmpFile.createSync();
-                  } catch (e) {
-                    // Do nothing
-                  }
-                  if (tmpFile.existsSync()) {
-                    tmpFile.deleteSync();
-
-                    if (!context.mounted) return;
+                  final writable = await ref
+                      .read(hostProbeProvider)
+                      .canWriteToDirectory(
+                        workingDirectory ?? Directory.current.path,
+                      );
+                  if (!context.mounted) return;
+                  if (writable) {
                     // Warn when the host CPU does not meet the requirements
                     // of the selected macOS release.
                     if (_selectedOperatingSystem?.code == 'macos') {
-                      final missing = await missingMacosRequirements(
-                        _selectedVersion!.version,
-                      );
+                      final missing = await ref
+                          .read(hostProbeProvider)
+                          .missingMacosRequirements(_selectedVersion!.version);
                       if (missing.isNotEmpty) {
                         if (!context.mounted) return;
                         showDialog<void>(
@@ -163,7 +156,7 @@ class _HomePageButtonGroupState extends ConsumerState<HomePageButtonGroup> {
                     if ((_selectedOperatingSystem?.code ?? '').startsWith(
                       'windows',
                     )) {
-                      if (!await commandAvailable('swtpm')) {
+                      if (!await ref.read(hostProbeProvider).hasTool('swtpm')) {
                         if (!context.mounted) return;
                         showDialog<void>(
                           context: context,

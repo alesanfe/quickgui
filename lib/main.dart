@@ -9,7 +9,7 @@ import 'package:quickgui/app/app.dart';
 import 'package:quickgui/features/catalog/providers/catalog_providers.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/infrastructure/app_info/app_version.dart';
-import 'package:quickgui/app/localization/supported_locales.dart';
+import 'package:quickgui/features/settings/domain/supported_locales.dart';
 import 'package:quickgui/features/catalog/application/load_catalog.dart';
 import 'package:quickgui/features/catalog/domain/operating_system.dart';
 import 'package:quickgui/features/settings/application/load_settings.dart';

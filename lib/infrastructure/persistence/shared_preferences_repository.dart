@@ -1,6 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:quickgui/infrastructure/persistence/preferences_repository.dart';
+import 'package:quickgui/core/persistence/preferences_repository.dart';
 
 class SharedPreferencesRepository implements PreferencesRepository {
   @override

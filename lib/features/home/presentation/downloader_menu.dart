@@ -9,8 +9,8 @@ import 'package:path/path.dart' as p;
 
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/features/settings/providers/settings_providers.dart';
-import 'package:quickgui/infrastructure/persistence/preferences_repository.dart';
-import 'package:quickgui/infrastructure/platform/host_platform.dart';
+import 'package:quickgui/core/persistence/preferences_repository.dart';
+import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
 import 'package:quickgui/features/home/presentation/home_page_button_group.dart';
 import 'package:quickgui/features/machines/domain/forms/vm_inputs.dart';
 import 'package:quickgui/features/machines/presentation/shared/validated_text_dialog.dart';
@@ -30,15 +30,19 @@ class _DownloaderMenuState extends ConsumerState<DownloaderMenu> {
   void initState() {
     super.initState();
     final prefs = ref.read(preferencesRepositoryProvider);
-    prefs.getAs<String>(prefWorkingDirectory).then((pref) {
+    prefs.getAs<String>(prefWorkingDirectory).then((pref) async {
+      final writable = await ref
+          .read(hostProbeProvider)
+          .canWriteToDirectory(Directory.current.path);
+      if (!mounted) return;
       if (pref != null && pref.isNotEmpty && Directory(pref).existsSync()) {
         setState(() {
           Directory.current = pref;
           _currentPath = pref;
         });
-      } else if (!isWritableDirectory(Directory.current.path)) {
+      } else if (!writable) {
         // e.g. when launched from a read-only AppImage mount point.
-        final home = fallbackWorkingDirectory();
+        final home = ref.read(hostProbeProvider).fallbackWorkingDirectory;
         setState(() {
           Directory.current = home;
           _currentPath = home;

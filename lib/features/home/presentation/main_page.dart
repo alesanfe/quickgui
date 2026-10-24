@@ -4,7 +4,7 @@ import 'package:window_manager/window_manager.dart';
 
 import 'package:quickgui/features/home/presentation/logo.dart';
 import 'package:quickgui/features/home/presentation/main_menu.dart';
-import 'package:quickgui/app/navigation/left_menu.dart';
+import 'package:quickgui/features/home/presentation/left_menu.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});

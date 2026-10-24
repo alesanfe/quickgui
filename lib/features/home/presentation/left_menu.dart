@@ -6,14 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:quickgui/app/localization/supported_locales.dart';
+import 'package:quickgui/features/settings/domain/supported_locales.dart';
 
-import 'package:quickgui/infrastructure/app_info/app_version.dart';
 import 'package:quickgui/features/diagnostics/presentation/diagnostics_page.dart';
+import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
 import 'package:quickgui/features/settings/providers/settings_providers.dart';
-import 'package:quickgui/infrastructure/persistence/preferences_repository.dart';
+import 'package:quickgui/core/persistence/preferences_repository.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
-import 'package:quickgui/infrastructure/process/host_process.dart';
 
 class LeftMenu extends ConsumerStatefulWidget {
   const LeftMenu({super.key});
@@ -54,7 +53,7 @@ class _LeftMenuState extends ConsumerState<LeftMenu> {
 
   @override
   Widget build(BuildContext context) {
-    final version = AppVersion.packageInfo!.version;
+    final version = ref.read(hostProbeProvider).appVersion;
     final settings = ref.watch(settingsProvider);
     final controller = ref.read(settingsProvider.notifier);
     return Builder(
@@ -222,7 +221,7 @@ class _LeftMenuState extends ConsumerState<LeftMenu> {
                         '';
                   } catch (_) {}
                   if (!context.mounted) return;
-                  final current = AppVersion.packageInfo?.version ?? '?';
+                  final current = ref.read(hostProbeProvider).appVersion;
                   showDialog<void>(
                     context: context,
                     builder: (context) => AlertDialog(
@@ -259,7 +258,9 @@ class _LeftMenuState extends ConsumerState<LeftMenu> {
                 title: Text(context.t('System diagnostics')),
                 dense: true,
                 onTap: () async {
-                  final proc = await runHost('quickreport', []);
+                  final proc = await ref
+                      .read(backendProvider)
+                      .diagnosticsReport();
                   if (!context.mounted) return;
                   showDialog<void>(
                     context: context,
