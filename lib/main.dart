@@ -89,7 +89,19 @@ void main() async {
     setWindowMaxSize(const Size(800, 720));
   }
 
-  final foundQuickGet = await Process.run('which', ['quickget']);
+  var foundQuickGet = await Process.run('which', ['quickget']);
+  // Apps launched from Finder/desktop environments have a minimal PATH that
+  // usually excludes the Homebrew prefixes, so check them explicitly.
+  if (foundQuickGet.exitCode != 0) {
+    for (final dir in ['/opt/homebrew/bin', '/usr/local/bin']) {
+      if (File('$dir/quickget').existsSync()) {
+        Platform.environment['PATH'] =
+            '$dir:${Platform.environment['PATH'] ?? ''}';
+        foundQuickGet = await Process.run('which', ['quickget']);
+        break;
+      }
+    }
+  }
   if (foundQuickGet.exitCode == 0) {
     gOperatingSystems = loadOperatingSystems(false);
     await getIcons();
