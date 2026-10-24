@@ -56,14 +56,18 @@ class _DownloaderMenuState extends State<DownloaderMenu> with PreferencesMixin {
                       backgroundColor: Theme.of(context).colorScheme.surface,
                     ),
                     onPressed: () async {
-                      var folder = await FilePicker.platform
-                          .getDirectoryPath(dialogTitle: "Pick a folder");
+                      var folder = await FilePicker.getDirectoryPath(
+                        dialogTitle: "Pick a folder",
+                      );
                       if (folder != null && folder.isNotEmpty) {
                         setState(() {
                           Directory.current = folder;
                           _currentPath = folder;
                         });
-                        savePreference(prefWorkingDirectory, folder);
+                        savePreference(
+                          prefWorkingDirectory,
+                          Directory.current.path,
+                        );
                       }
                     },
                     child: Text(_currentPath),
@@ -81,7 +85,7 @@ class _DownloaderMenuState extends State<DownloaderMenu> with PreferencesMixin {
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 12),
                         child: HomePageButtonGroup(),
-                      )
+                      ),
                     ],
                   ),
                 ),
