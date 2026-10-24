@@ -7,14 +7,14 @@ import 'package:provider/provider.dart';
 import 'package:tuple/tuple.dart';
 import 'package:window_size/window_size.dart';
 
-import 'src/app.dart';
-import 'src/globals.dart';
-import 'src/mixins/app_version.dart';
-import 'src/model/app_settings.dart';
-import 'src/model/operating_system.dart';
-import 'src/model/option.dart';
-import 'src/model/osicons.dart';
-import 'src/model/version.dart';
+import 'package:quickgui/app/app.dart';
+import 'package:quickgui/app/globals.dart';
+import 'package:quickgui/application/app_version.dart';
+import 'package:quickgui/domain/common/app_settings.dart';
+import 'package:quickgui/domain/catalog/operating_system.dart';
+import 'package:quickgui/domain/catalog/option.dart';
+import 'package:quickgui/domain/catalog/osicons.dart';
+import 'package:quickgui/domain/catalog/version.dart';
 
 Future<List<OperatingSystem>> loadOperatingSystems(bool showUbuntus) async {
   final rows = await backend.listOperatingSystems();

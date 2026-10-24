@@ -1,0 +1,1 @@
+{"schemaVersion":1,"applicationVersion":"4.9.9","capabilities":{"structuredCatalog":true,"structuredStatus":true,"listVms":true,"snapshots":true,"monitorCommands":true,"sendKeys":true,"screenshot":true,"clone":true,"rename":true,"exportImport":true,"diskOps":true,"downloadProgress":false,"safeDeletePlan":false}}

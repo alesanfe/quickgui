@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:quickgui/src/infrastructure/virtualization/virtualization_backend.dart';
+import 'package:quickgui/infrastructure/virtualization/virtualization_backend.dart';
 
 /// Test double for VirtualizationBackend. Tests configure the fields
 /// they need; unused members throw UnimplementedError.

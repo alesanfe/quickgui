@@ -6,20 +6,27 @@ and manage the resulting VMs (run, stop, SSH, SPICE, snapshots, config).
 
 ## Project structure
 
+Layered architecture — presentation widgets only talk to the
+`VirtualizationBackend` interface, never to processes directly.
+
 ```
 lib/
   main.dart                 # Entry point, OS catalogue loading, PATH checks
-  src/app.dart              # MaterialApp, theme, locale wiring
-  src/globals.dart          # Shared helpers (runHost/hostWrap, conf I/O, prefs)
-  src/mixins/               # app_version, preferences_mixin
-  src/model/                # operating_system, version, option, vminfo, app_settings
-  src/pages/                # manager, downloader, *_selection dialogs
-  src/widgets/              # home_page/, left_menu, app_bar_title, new_vm_tag
-  src/supported_locales.dart
+  app/                      # app.dart, globals.dart, supported_locales.dart
+  domain/                   # catalog/, common/, virtual_machine/ (models)
+  application/              # app_version, preferences_mixin
+  infrastructure/
+    process/                # ProcessRunner + SystemProcessRunner
+    virtualization/         # VirtualizationBackend + QuickemuBackend
+  presentation/
+    home/ catalog/ downloader/ manager/ vm_details/ diagnostics/ common/
 assets/                     # images, i18n (.po files + quickgui.pot)
-test/                       # Dart tests
+test/
+  unit/                     # domain, application, infrastructure tests
+  widget/ fixtures/ fakes/ helpers/
+integration_test/           # backend-absence checks
 flatpak/                    # Flatpak manifest + metainfo + build docs
-docs/                       # man-page sources
+docs/                       # architecture/, backend-integration/
 ```
 
 ## Development commands
