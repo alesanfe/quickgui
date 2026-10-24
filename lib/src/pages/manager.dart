@@ -466,13 +466,15 @@ class _ManagerState extends State<Manager> with PreferencesMixin {
               IconButton(
                 icon: Icon(
                   Icons.monitor,
-                  color: _spicy ? buttonColor : null,
+                  color: (_spicy && vmInfo.spicePort != null)
+                      ? buttonColor
+                      : null,
                   semanticLabel: 'Connect display with SPICE',
                 ),
                 tooltip: _spicy
                     ? context.t('Connect display with SPICE')
                     : context.t('SPICE client not found'),
-                onPressed: !_spicy
+                onPressed: !_spicy || vmInfo.spicePort == null
                     ? null
                     : () {
                         var shell = Shell();
@@ -495,7 +497,9 @@ class _ManagerState extends State<Manager> with PreferencesMixin {
                     ? null
                     : () {
                         TextEditingController usernameController =
-                            TextEditingController();
+                            TextEditingController(
+                              text: Platform.environment['USER'] ?? '',
+                            );
                         showDialog<bool>(
                           context: context,
                           builder: (BuildContext context) => AlertDialog(
@@ -517,10 +521,8 @@ class _ManagerState extends State<Manager> with PreferencesMixin {
                                 child: Text(context.t('Cancel')),
                               ),
                               TextButton(
-                                onPressed: () {
-                                  if (usernameController.text.isEmpty) return;
-                                  Navigator.of(context).pop(true);
-                                },
+                                onPressed: () =>
+                                    Navigator.of(context).pop(true),
                                 child: Text(context.t('Connect')),
                               ),
                             ],
@@ -532,7 +534,9 @@ class _ManagerState extends State<Manager> with PreferencesMixin {
                               'ssh',
                               '-p',
                               vmInfo.sshPort!,
-                              '${usernameController.text}@localhost',
+                              usernameController.text.isEmpty
+                                  ? 'localhost'
+                                  : '${usernameController.text}@localhost',
                             ];
                             // Set the arguments to execute the ssh command in the default terminal.
                             // Strip the extension as x-terminal-emulator may point to a .wrapper
