@@ -4,15 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:provider/provider.dart';
-import 'package:quickgui/application/app_version.dart';
-import 'package:quickgui/presentation/diagnostics/debget_not_found_page.dart';
-import 'package:quickgui/app/supported_locales.dart';
+import 'package:quickgui/infrastructure/app_info/app_version.dart';
+import 'package:quickgui/features/diagnostics/presentation/debget_not_found_page.dart';
+import 'package:quickgui/app/localization/supported_locales.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:quickgui/app/globals.dart';
-import 'package:quickgui/application/preferences_mixin.dart';
-import 'package:quickgui/app/app_settings.dart';
-import 'package:quickgui/presentation/home/main_page.dart';
+import 'package:quickgui/infrastructure/persistence/preferences_mixin.dart';
+import 'package:quickgui/app/settings/app_settings.dart';
+import 'package:quickgui/features/home/presentation/main_page.dart';
 
 class App extends StatefulWidget {
   const App({super.key});

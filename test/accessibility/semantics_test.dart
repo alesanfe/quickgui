@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import '../fakes/fake_virtualization_backend.dart';
+import '../support/fakes/fake_virtualization_backend.dart';
 
 import 'package:quickgui/app/globals.dart';
 

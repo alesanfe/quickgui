@@ -57,6 +57,10 @@ dependencies:
   flutter_animate: ^4.5.2
   formz: ^0.8.1
   local_notifier: ^0.1.6
+  data_table_2: ^3.0.0
+  skeletonizer: ^3.0.0
+  percent_indicator: ^4.2.5
+  window_to_front: ^1.0.0
 
 dev_dependencies:
   integration_test:
@@ -78,6 +82,7 @@ dev_dependencies:
   dependency_validator: ^5.1.0
   alchemist: ^0.14.1
   dart_arch_test: ^0.2.0
+  test: ^1.31.1
 
 flutter:
   uses-material-design: true

@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:quickgui/infrastructure/process/process_runner.dart';
-import 'package:quickgui/infrastructure/virtualization/quickemu_backend.dart';
-import 'package:quickgui/infrastructure/virtualization/virtualization_backend.dart';
+import 'package:quickgui/infrastructure/quickemu/quickemu_backend.dart';
+import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
 
 bool gIsSnap = Platform.environment['SNAP']?.isNotEmpty ?? false;
 const String prefWorkingDirectory = 'workingDirectory';
