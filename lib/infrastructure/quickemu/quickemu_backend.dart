@@ -111,17 +111,12 @@ class QuickemuBackend implements VirtualizationBackend {
   }
 
   @override
-  Stream<String> downloadImage(String os, String release, String option) {
-    final args = <String>[os, release];
-    if (option.isNotEmpty) args.add(option);
-    final controller = StreamController<String>();
-    _runner.start('quickget', args).then((process) {
-      process.stdout
-          .transform(utf8.decoder)
-          .listen(controller.add, onDone: controller.close);
-      process.stderr.transform(utf8.decoder).listen(controller.add);
-    });
-    return controller.stream;
+  Future<Process> startDownloadImage(String os, String release, String option) {
+    return _runner.start('quickget', [
+      os,
+      release,
+      if (option.isNotEmpty) option,
+    ]);
   }
 
   @override

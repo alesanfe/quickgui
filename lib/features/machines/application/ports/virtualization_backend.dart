@@ -26,9 +26,10 @@ abstract class VirtualizationBackend {
   /// Structured VM state: {name, state, pid}.
   Future<Map<String, dynamic>> inspectVirtualMachine(String vm);
 
-  /// Streams quickget's stdout/stderr while downloading [os] [release]
-  /// ([option] may be empty). Yields raw output lines.
-  Stream<String> downloadImage(String os, String release, String option);
+  /// Starts a `quickget` download process for [os] [release] ([option]
+  /// may be empty). The caller owns the process: its streams drive
+  /// progress, exitCode reports completion, and kill() cancels it.
+  Future<Process> startDownloadImage(String os, String release, String option);
 
   /// Runs an arbitrary action: start/stop/pause/resume/snapshot/etc.
   /// Arguments are the full quickemu CLI tail (e.g. ['--vm','x.conf',

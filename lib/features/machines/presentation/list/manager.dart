@@ -21,6 +21,8 @@ import 'package:quickgui/infrastructure/process/host_process.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
 import 'package:quickgui/infrastructure/vm_config.dart';
 import 'package:quickgui/features/machines/application/delete_vm.dart';
+import 'package:quickgui/features/machines/application/inspect_vm.dart';
+import 'package:quickgui/features/machines/application/list_vms.dart';
 import 'package:quickgui/features/machines/application/start_vm.dart';
 import 'package:quickgui/features/machines/application/stop_vm.dart';
 import 'package:quickgui/core/result/result.dart';
@@ -485,9 +487,14 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
     final Map<String, String> backendStates = {};
     final caps = _backendCaps?['capabilities'];
     if (caps is Map && caps['structuredStatus'] == true) {
-      for (final name in await _backend.listVirtualMachines()) {
-        final status = await _backend.inspectVirtualMachine(name);
-        backendStates[name] = '${status['state']}';
+      for (final name in switch (await ListVms(_backend)()) {
+        Ok(:final value) => value,
+        Err() => const <String>[],
+      }) {
+        final inspected = await InspectVm(_backend)(name);
+        if (inspected case Ok(:final value)) {
+          backendStates[name] = '${value['state']}';
+        }
       }
     }
 

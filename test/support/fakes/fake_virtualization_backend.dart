@@ -33,8 +33,11 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
       states[vm] ?? {'name': vm, 'state': 'stopped', 'pid': null};
 
   @override
-  Stream<String> downloadImage(String os, String release, String option) =>
-      Stream.fromIterable(downloadOutput);
+  Future<Process> startDownloadImage(
+    String os,
+    String release,
+    String option,
+  ) => throw UnimplementedError();
 
   @override
   Future<ProcessResult> runAction(List<String> arguments) async =>

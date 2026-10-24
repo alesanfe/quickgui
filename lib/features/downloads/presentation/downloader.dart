@@ -8,9 +8,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:quickgui/features/downloads/presentation/manage_machines_after_download_button.dart';
 import 'package:path/path.dart' as p;
+import 'package:quickgui/app/dependencies/providers.dart';
+import 'package:quickgui/core/result/result.dart';
+import 'package:quickgui/features/downloads/application/cancel_download.dart';
+import 'package:quickgui/features/downloads/application/download_image.dart';
 import 'package:quickgui/features/settings/providers/settings_providers.dart';
 import 'package:quickgui/infrastructure/persistence/preferences_repository.dart';
-import 'package:quickgui/infrastructure/platform/host_platform.dart';
 import 'package:quickgui/infrastructure/vm_config.dart';
 
 import 'package:quickgui/features/catalog/domain/operating_system.dart';
@@ -115,15 +118,11 @@ class _DownloaderState extends ConsumerState<Downloader> {
   }
 
   Stream<double> progressStream() {
-    final options = [widget.operatingSystem.code, widget.version.version];
-    if (widget.option != null) {
-      options.add(widget.option!.option);
-    }
-
-    Process.start(HostPlatform.isFlatpak ? 'flatpak-spawn' : 'quickget', [
-      if (HostPlatform.isFlatpak) ...['--host', 'quickget'] else 'quickget',
-      ...options,
-    ]).then((process) {
+    DownloadImage(ref.read(backendProvider))(
+      widget.operatingSystem.code,
+      widget.version.version,
+      widget.option?.option ?? '',
+    ).then((process) {
       process.stdout.transform(utf8.decoder).forEach(_captureOutput);
       if (widget.option!.downloader != 'zsync') {
         process.stderr.transform(utf8.decoder).forEach((chunk) {
@@ -282,7 +281,10 @@ class _DownloaderState extends ConsumerState<Downloader> {
           ),
           CancelDismissButton(
             onCancel: () {
-              _process?.kill();
+              CancelDownload(() async {
+                _process?.kill();
+                return const Ok(null);
+              })();
             },
             downloadFinished: _downloadFinished,
           ),
