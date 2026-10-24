@@ -28,8 +28,10 @@ class Manager extends StatefulWidget {
   State<Manager> createState() => _ManagerState();
 }
 
-class _ManagerState extends State<Manager> with PreferencesMixin {
+class _ManagerState extends State<Manager>
+    with PreferencesMixin, WidgetsBindingObserver {
   List<String> _currentVms = [];
+  String _vmFilter = '';
   Map<String, String> _vmConfFiles = {};
   Map<String, VmInfo> _activeVms = {};
   bool _spicy = false;
@@ -85,12 +87,28 @@ class _ManagerState extends State<Manager> with PreferencesMixin {
     refreshTimer = Timer.periodic(const Duration(seconds: 5), (Timer t) {
       _getVms();
     }); // Reload VM list every 5 seconds.
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     refreshTimer?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Pause the periodic VM scan while the window is not visible.
+    if (state == AppLifecycleState.resumed) {
+      _getVms();
+      refreshTimer ??= Timer.periodic(const Duration(seconds: 5), (Timer t) {
+        _getVms();
+      });
+    } else {
+      refreshTimer?.cancel();
+      refreshTimer = null;
+    }
   }
 
   Future<void> _setNewVmName() async {
@@ -281,8 +299,26 @@ class _ManagerState extends State<Manager> with PreferencesMixin {
         ),
       ),
       const Divider(thickness: 2),
+      Padding(
+        padding: const EdgeInsets.only(bottom: 8.0),
+        child: TextField(
+          decoration: InputDecoration(
+            hintText: context.t('Search virtual machine'),
+            prefixIcon: const Icon(Icons.search),
+            isDense: true,
+          ),
+          onChanged: (value) {
+            setState(() {
+              _vmFilter = value;
+            });
+          },
+        ),
+      ),
     ]);
-    List<List<Widget>> rows = _currentVms.map((vm) {
+    final filteredVms = _currentVms
+        .where((vm) => vm.toLowerCase().contains(_vmFilter.toLowerCase()))
+        .toList();
+    List<List<Widget>> rows = filteredVms.map((vm) {
       return _buildRow(vm, buttonColor);
     }).toList();
     for (var row in rows) {
@@ -457,11 +493,25 @@ class _ManagerState extends State<Manager> with PreferencesMixin {
                           title: Text(
                             context.t('Delete {0}', args: [currentVm]),
                           ),
-                          content: Text(
-                            context.t(
-                              'You are about to delete {0}. This cannot be undone. Would you like to delete the disk image but keep the configuration, or delete the whole VM?',
-                              args: [currentVm],
-                            ),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                context.t(
+                                  'You are about to delete {0}. This cannot be undone. Would you like to delete the disk image but keep the configuration, or delete the whole VM?',
+                                  args: [currentVm],
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                _vmConfFiles[currentVm] ?? '$currentVm.conf',
+                                style: const TextStyle(
+                                  fontFamily: 'monospace',
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
                           ),
                           actions: [
                             TextButton(

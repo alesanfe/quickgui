@@ -81,12 +81,12 @@ Future<void> getIcons() async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Only a minimum size is enforced; the window stays resizable so lists,
+  // dialogs and the config editor can use larger screens.
   if (Platform.isMacOS) {
     setWindowMinSize(const Size(692 + 2, 580 + 30));
-    setWindowMaxSize(const Size(692 + 2, 580 + 30));
   } else {
     setWindowMinSize(const Size(692, 580));
-    setWindowMaxSize(const Size(800, 720));
   }
 
   var foundQuickGet = await Process.run('which', ['quickget']);
