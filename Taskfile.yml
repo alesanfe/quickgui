@@ -1,0 +1,8 @@
+version: '3'
+tasks:
+  analyze:
+    cmds: [flutter analyze]
+  test:
+    cmds: [flutter test]
+  format:
+    cmds: [dart format lib test]
