@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.quickemu_project.Quickgui</id>
+  <name>Quickgui</name>
+  <summary>An elegant virtual machine manager for the desktop</summary>
+  <metadata_license>MIT</metadata_license>
+  <project_license>MIT</project_license>
+  <description>
+    <p>Quickgui is a graphical user interface for the Quickemu virtual machine
+    manager. It enables you to create and manage virtual machines from a
+    simple and elegant interface.</p>
+    <p>Nearly 1000 operating systems supported including Windows, macOS, BSDs,
+    and 100s of Linux distros, all with automated downloads and
+    configuration.</p>
+  </description>
+  <launchable type="desktop-id">io.github.quickemu_project.Quickgui.desktop</launchable>
+  <url type="homepage">https://github.com/quickemu-project/quickgui</url>
+  <url type="bugtracker">https://github.com/quickemu-project/quickgui/issues</url>
+  <provides>
+    <binary>quickgui</binary>
+  </provides>
+  <releases>
+    <release version="1.2.10" date="2025-05-01"/>
+  </releases>
+  <content_rating type="oars-1.1"/>
+</component>

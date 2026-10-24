@@ -1,0 +1,46 @@
+app-id: io.github.quickemu_project.Quickgui
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+command: quickgui
+
+finish-args:
+  # Downloads via quickget and display/notification sockets
+  - --share=network
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+  # VMs live in the user-selected working directory
+  - --filesystem=home
+  # Desktop notifications for finished downloads
+  - --talk-name=org.freedesktop.Notifications
+  # quickget/quickemu are invoked as external commands on the host
+  - --talk-name=org.freedesktop.Flatpak
+
+modules:
+  - name: quickgui
+    buildsystem: simple
+    build-commands:
+      - export PATH="${PWD}/flutter/bin:${PATH}"
+      - git config --global --add safe.directory "${PWD}/flutter"
+      - flutter config --no-analytics --enable-linux-desktop
+      - flutter pub get
+      - flutter build linux --release
+      - install -Dm755 build/linux/x64/release/bundle/quickgui /app/bin/quickgui
+      - cp -r build/linux/x64/release/bundle/lib /app/bin/lib
+      - cp -r build/linux/x64/release/bundle/data /app/bin/data
+      - install -Dm644 assets/resources/quickgui.desktop
+        /app/share/applications/${FLATPAK_ID}.desktop
+      - install -Dm644 assets/resources/quickgui_512.png
+        /app/share/icons/hicolor/512x512/apps/${FLATPAK_ID}.png
+      - install -Dm644
+        flatpak/io.github.quickemu_project.Quickgui.metainfo.xml
+        /app/share/metainfo/${FLATPAK_ID}.metainfo.xml
+    sources:
+      - type: dir
+        path: ..
+      - type: archive
+        url: https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.47.8-stable.tar.xz
+        sha256: baf7dcc5a3dbba60fe863bf493a6cf203195621f7786eaa5a1bba02cd0d87dd2
+        dest: flutter
