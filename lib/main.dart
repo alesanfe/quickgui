@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -18,30 +17,8 @@ import 'src/model/osicons.dart';
 import 'src/model/version.dart';
 
 Future<List<OperatingSystem>> loadOperatingSystems(bool showUbuntus) async {
-  var process = await runHost('quickget', ['--list-json']);
+  final rows = await backend.listOperatingSystems();
   var stdout = '';
-  var rows = <List<String>>[];
-  if (process.exitCode == 0 && (process.stdout as String).trim().isNotEmpty) {
-    try {
-      for (final e in jsonDecode(process.stdout as String) as List) {
-        final m = e as Map<String, dynamic>;
-        rows.add([
-          '${m['Display Name']}',
-          '${m['OS']}',
-          '${m['Release']}',
-          '${m['Option']}',
-          '${m['Downloader']}',
-        ]);
-      }
-    } catch (_) {
-      rows.clear();
-    }
-  }
-  if (rows.isEmpty) {
-    // Fall back to the CSV output when --list-json is unavailable.
-    process = await runHost('quickget', ['--list-csv']);
-    stdout = process.stdout as String;
-  }
   var output = <OperatingSystem>[];
   OperatingSystem? currentOperatingSystem;
   Version? currentVersion;

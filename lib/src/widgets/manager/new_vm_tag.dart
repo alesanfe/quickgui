@@ -9,10 +9,7 @@ class NewVmTag extends StatelessWidget {
       padding: const EdgeInsets.only(left: 8.0),
       child: Row(
         children: [
-          Icon(
-            Icons.fiber_new,
-            color: Theme.of(context).colorScheme.primary,
-          ),
+          Icon(Icons.fiber_new, color: Theme.of(context).colorScheme.primary),
         ],
       ),
     );

@@ -27,9 +27,7 @@ class ManageMachinesAfterDownloadButton extends StatelessWidget {
                     Navigator.of(context).pop();
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => const Manager(),
-                      ),
+                      MaterialPageRoute(builder: (context) => const Manager()),
                     );
                   },
                   child: Text(context.t('Manage existing machines')),

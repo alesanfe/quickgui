@@ -1,5 +1,9 @@
 import 'dart:io';
 
+import 'infrastructure/process/process_runner.dart';
+import 'infrastructure/virtualization/quickemu_backend.dart';
+import 'infrastructure/virtualization/virtualization_backend.dart';
+
 var gIsSnap = Platform.environment['SNAP']?.isNotEmpty ?? false;
 const String prefWorkingDirectory = 'workingDirectory';
 const String prefThemeMode = 'themeMode';
@@ -141,3 +145,8 @@ Future<List<String>> missingMacosRequirements(String release) async {
       .where((flag) => !flags.contains(flag))
       .toList();
 }
+
+/// The app's virtualization backend. Presentation code uses this
+/// instead of invoking quickemu/quickget directly; tests can
+/// substitute a FakeVirtualizationBackend.
+VirtualizationBackend backend = QuickemuBackend(SystemProcessRunner());

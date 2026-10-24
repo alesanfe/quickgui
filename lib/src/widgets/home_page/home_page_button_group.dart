@@ -180,7 +180,7 @@ class _HomePageButtonGroupState extends State<HomePageButtonGroup>
                     }
                     // Verify the image is still downloadable before
                     // starting the download page.
-                    final check = await runHost('quickget', [
+                    final check = await backend.runQuickget([
                       '--check',
                       _selectedOperatingSystem!.code,
                       _selectedVersion!.version,
@@ -367,15 +367,11 @@ class _HomePageButtonGroupState extends State<HomePageButtonGroup>
             ),
             TextField(
               controller: cores,
-              decoration: InputDecoration(
-                labelText: context.t('CPU cores'),
-              ),
+              decoration: InputDecoration(labelText: context.t('CPU cores')),
             ),
             TextField(
               controller: disk,
-              decoration: InputDecoration(
-                labelText: context.t('Disk size'),
-              ),
+              decoration: InputDecoration(labelText: context.t('Disk size')),
             ),
           ],
         ),
@@ -387,10 +383,8 @@ class _HomePageButtonGroupState extends State<HomePageButtonGroup>
           TextButton(
             onPressed: () => Navigator.of(context).pop({
               if (ram.text.trim().isNotEmpty) 'ram': ram.text.trim(),
-              if (cores.text.trim().isNotEmpty)
-                'cpu_cores': cores.text.trim(),
-              if (disk.text.trim().isNotEmpty)
-                'disk_size': disk.text.trim(),
+              if (cores.text.trim().isNotEmpty) 'cpu_cores': cores.text.trim(),
+              if (disk.text.trim().isNotEmpty) 'disk_size': disk.text.trim(),
             }),
             child: Text(context.t('Download')),
           ),
@@ -399,4 +393,3 @@ class _HomePageButtonGroupState extends State<HomePageButtonGroup>
     );
   }
 }
-
