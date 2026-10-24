@@ -37,6 +37,7 @@ class _ManagerState extends State<Manager>
   Map<String, VmInfo> _activeVms = {};
   bool _spicy = false;
   bool _hasKvm = true;
+  Map<String, dynamic>? _backendCaps;
   final List<String> _sshVms = [];
   String? _terminalEmulator;
   final List<String> _supportedTerminalEmulators = [
@@ -481,6 +482,18 @@ class _ManagerState extends State<Manager>
     Map<String, String> vmConfFiles = {};
     Map<String, VmInfo> activeVms = {};
 
+    // Prefer the structured backend contract when the installed
+    // quickemu advertises it; fall back to the pid-file scan otherwise.
+    _backendCaps ??= await backend.getCapabilities();
+    final Map<String, String> backendStates = {};
+    final caps = _backendCaps?['capabilities'];
+    if (caps is Map && caps['structuredStatus'] == true) {
+      for (final name in await backend.listVirtualMachines()) {
+        final status = await backend.inspectVirtualMachine(name);
+        backendStates[name] = '${status['state']}';
+      }
+    }
+
     await for (var entity in Directory.current.list(
       recursive: false,
       followLinks: true,
@@ -489,20 +502,35 @@ class _ManagerState extends State<Manager>
         String name = path.basenameWithoutExtension(entity.path);
         currentVms.add(name);
         vmConfFiles[name] = entity.path;
-        File pidFile = File('$name/$name.pid');
-        if (pidFile.existsSync()) {
-          String pid = pidFile.readAsStringSync().trim();
-          // Check if the process is still running using kill -0, which is
-          // a portable way to check if a process is running on macOS and Linux.
-          ProcessResult result = Process.runSync('kill', ['-0', pid]);
-          if (result.exitCode == 0) {
-            if (_activeVms.containsKey(name)) {
-              activeVms[name] = _activeVms[name]!;
-            } else {
-              activeVms[name] = _parseVmInfo(name);
-            }
+        var running = backendStates[name] == 'running';
+        if (backendStates.isEmpty) {
+          File pidFile = File('$name/$name.pid');
+          if (pidFile.existsSync()) {
+            String pid = pidFile.readAsStringSync().trim();
+            // Check if the process is still running using kill -0, which is
+            // a portable way to check if a process is running on macOS and Linux.
+            ProcessResult result = Process.runSync('kill', ['-0', pid]);
+            running = result.exitCode == 0;
           }
         }
+        if (running) {
+          if (_activeVms.containsKey(name)) {
+            activeVms[name] = _activeVms[name]!;
+          } else {
+            activeVms[name] = _parseVmInfo(name);
+          }
+        }
+      }
+    }
+    // Surface VMs the backend knows about that our scan missed
+    // (e.g. conf outside CWD or naming edge cases).
+    for (final name in backendStates.keys) {
+      if (!currentVms.contains(name) &&
+          backendStates[name] == 'running' &&
+          File('$name.conf').existsSync()) {
+        currentVms.add(name);
+        vmConfFiles[name] = '$name.conf';
+        activeVms[name] = _parseVmInfo(name);
       }
     }
     currentVms.sort();
