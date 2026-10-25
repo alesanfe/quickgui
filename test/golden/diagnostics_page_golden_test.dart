@@ -35,6 +35,7 @@ Widget _page({required bool dark, bool backendAvailable = true}) =>
     );
 
 void main() {
+  setUpAll(TestLocalizationsDelegate.preload);
   const scales = {'100%': 1.0, '150%': 1.5, '200%': 2.0};
   const size = BoxConstraints.tightFor(width: 720, height: 900);
 

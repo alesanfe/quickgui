@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quickgui/features/machines/domain/forms/vm_inputs.dart';
-import 'package:quickgui/features/machines/presentation/shared/validated_text_dialog.dart';
+import 'package:quickgui/shared/dialogs/validated_text_dialog.dart';
 import 'package:quickgui/features/machines/presentation/shared/vm_input_messages.dart';
 
 import '../support/harness/test_app.dart';
 
 void main() {
+  setUpAll(TestLocalizationsDelegate.preload);
+
   testWidgets('disables confirm and shows an error for an unsafe name', (
     tester,
   ) async {

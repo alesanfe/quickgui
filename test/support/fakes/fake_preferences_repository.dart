@@ -1,4 +1,4 @@
-import 'package:quickgui/core/persistence/preferences_repository.dart';
+import 'package:quickgui/features/settings/application/ports/preferences_repository.dart';
 
 class FakePreferencesRepository implements PreferencesRepository {
   final store = <String, Object?>{};

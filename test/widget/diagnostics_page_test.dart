@@ -10,6 +10,8 @@ import '../support/fakes/fake_virtualization_backend.dart';
 import '../support/harness/test_app.dart';
 
 void main() {
+  setUpAll(TestLocalizationsDelegate.preload);
+
   testWidgets('shows tool status with text, not only colour', (tester) async {
     tester.view.physicalSize = const Size(1000, 2400);
     tester.view.devicePixelRatio = 1;

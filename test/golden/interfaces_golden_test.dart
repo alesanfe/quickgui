@@ -42,7 +42,8 @@ Widget _app({required Widget home, required bool dark}) => ProviderScope(
 void main() {
   const size = BoxConstraints.tightFor(width: 852, height: 819);
 
-  setUpAll(() {
+  setUpAll(() async {
+    await TestLocalizationsDelegate.preload();
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
           const MethodChannel('window_manager'),

@@ -21,15 +21,21 @@ class FakeHostProbe implements HostProbe {
 
   bool writable = true;
   String? terminal;
+  String fallbackDir = '/home/tester';
   List<String> missingMacos = const [];
 
   @override
   Future<bool> canWriteToDirectory(String path) async => writable;
   @override
-  String get fallbackWorkingDirectory => '/home/tester';
+  String get fallbackWorkingDirectory => fallbackDir;
   @override
   Future<String?> terminalEmulator() async => terminal;
   @override
   Future<List<String>> missingMacosRequirements(String release) async =>
       missingMacos;
+
+  Set<int> alivePids = const {};
+
+  @override
+  Future<bool> isPidAlive(int pid) async => alivePids.contains(pid);
 }
