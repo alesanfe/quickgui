@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
+import 'package:quickgui/core/errors/app_failure.dart';
 import 'package:quickgui/features/activity/domain/app_operation.dart';
 import 'package:quickgui/features/activity/providers/activity_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -69,19 +72,26 @@ class _VmSnapshotsViewState extends ConsumerState<VmSnapshotsView> {
     if (_busy) return;
     setState(() => _busy = true);
     try {
-      final results = await ref
-          .read(activityProvider.notifier)
-          .run(
-            OperationKind.snapshot,
-            widget.vm,
-            () => _backend.runAction([
-              '--vm',
-              widget.confPath,
-              '--snapshot',
-              action,
-              if (tag.isNotEmpty) tag,
-            ]),
-          );
+      final results = await ref.read(activityProvider.notifier).run(
+        OperationKind.snapshot,
+        widget.vm,
+        () async {
+          final args = [
+            '--vm',
+            widget.confPath,
+            '--snapshot',
+            action,
+            if (tag.isNotEmpty) tag,
+          ];
+          try {
+            await _backend.runVmJson('snapshot-$action', args);
+            return ProcessResult(0, 0, '', '');
+          } on AppFailure catch (e) {
+            if (!isBackendEnvelopeMissing(e)) rethrow;
+            return await _backend.runAction(args);
+          }
+        },
+      );
       if (!mounted) return;
       showProcessOutputDialog(context, [results]);
       await _load();
