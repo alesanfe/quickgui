@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
+import 'package:quickgui/core/errors/app_failure.dart';
 import 'package:quickgui/features/machines/providers/tracked_backend_provider.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_connection_view.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_settings_page.dart';
@@ -81,11 +82,21 @@ class _VmPageState extends ConsumerState<VmPage> {
     }
     setState(() => _busy = true);
     try {
-      final result = await ref.read(trackedBackendProvider).runAction([
-        '--vm',
-        _confPath,
-        ...arguments,
-      ]);
+      final backend = ref.read(trackedBackendProvider);
+      final args = ['--vm', _confPath, ...arguments];
+      // Logical command name for the structured contract: the first
+      // quickemu flag after --vm (e.g. --reset -> 'reset').
+      final command = arguments
+          .firstWhere((a) => a.startsWith('--'), orElse: () => 'command')
+          .replaceFirst(RegExp('^--'), '');
+      late final ProcessResult result;
+      try {
+        await backend.runVmJson(command, args);
+        result = ProcessResult(0, 0, '', '');
+      } on AppFailure catch (e) {
+        if (!isBackendEnvelopeMissing(e)) rethrow;
+        result = await backend.runAction(args);
+      }
       if (mounted &&
           (result.exitCode != 0 ||
               '${result.stdout}${result.stderr}'.trim().isNotEmpty)) {
