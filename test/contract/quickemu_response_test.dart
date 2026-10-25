@@ -46,10 +46,8 @@ void main() {
     });
 
     test('tolerates unknown fields (forward compatibility)', () {
-      final raw = envelope(data: {'state': 'stopped'}).replaceFirst(
-        '{',
-        '{"futureField": {"nested": true},',
-      );
+      final raw = envelope(data: {'state': 'stopped'})
+          .replaceFirst('{', '{"futureField": {"nested": true},');
       final r = QuickemuResponse.parse(raw, command: 'inspect');
       expect(r.success, isTrue);
       expect(r.dataMap!['state'], 'stopped');

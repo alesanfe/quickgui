@@ -13,7 +13,11 @@ void main() {
     runner.results['quickemu'] = ProcessResult(
       0,
       0,
-      '{"schemaVersion":1,"vms":[{"name":"ubuntu-24.04"},{"name":"win11"}]}',
+      '{"schemaVersion":1,"command":"list-vms","success":true,'
+          '"data":{"vms":[{"name":"ubuntu-24.04"},{"name":"win11"}]},'
+          '"warnings":[],"errors":[],'
+          '"meta":{"quickemuVersion":"4.9.9",'
+          '"timestamp":"2026-01-01T00:00:00Z"}}',
       '',
     );
     final backend = QuickemuBackend(runner);

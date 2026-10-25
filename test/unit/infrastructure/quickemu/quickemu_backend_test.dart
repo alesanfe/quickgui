@@ -259,8 +259,12 @@ void main() {
       'quickemu --capabilities': ProcessResult(
         0,
         0,
-        '{"schemaVersion":1,"applicationVersion":"4.9.9",'
-            '"capabilities":{"structuredStatus":true}}',
+        '{"schemaVersion":1,"command":"capabilities","success":true,'
+            '"data":{"schemaVersion":1,"applicationVersion":"4.9.9",'
+            '"capabilities":{"structuredStatus":true}},'
+            '"warnings":[],"errors":[],'
+            '"meta":{"quickemuVersion":"4.9.9",'
+            '"timestamp":"2026-01-01T00:00:00Z"}}',
         '',
       ),
     });
@@ -279,7 +283,11 @@ void main() {
       'quickemu --vm vm1.conf --status --format json': ProcessResult(
         0,
         0,
-        '{"schemaVersion":1,"name":"vm1","state":"running","pid":42}',
+        '{"schemaVersion":1,"command":"status","success":true,'
+            '"data":{"name":"vm1","state":"running","pid":42},'
+            '"warnings":[],"errors":[],'
+            '"meta":{"quickemuVersion":"4.9.9",'
+            '"timestamp":"2026-01-01T00:00:00Z"}}',
         '',
       ),
     });
@@ -306,8 +314,12 @@ void main() {
       'quickemu --list-vms --format json': ProcessResult(
         0,
         0,
-        '{"schemaVersion":1,"vms":[{"name":"a","guest_os":"linux",'
-            '"state":"stopped","pid":null}]}',
+        '{"schemaVersion":1,"command":"list-vms","success":true,'
+            '"data":{"vms":[{"name":"a","guest_os":"linux",'
+            '"state":"stopped","pid":null}]},'
+            '"warnings":[],"errors":[],'
+            '"meta":{"quickemuVersion":"4.9.9",'
+            '"timestamp":"2026-01-01T00:00:00Z"}}',
         '',
       ),
     });

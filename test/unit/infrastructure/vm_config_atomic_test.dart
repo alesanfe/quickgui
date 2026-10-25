@@ -33,15 +33,18 @@ void main() {
     expect(content, contains('tpm="on"'));
   });
 
-  test('saveRaw is atomic and keeps a backup of the previous content', () async {
-    await store.saveRaw(conf, 'guest_os="linux"\nram="16G"\n');
-    expect(File('$conf.bak').readAsStringSync(), contains('ram="4G"'));
-    expect(File(conf).readAsStringSync(), contains('ram="16G"'));
-    expect(
-      dir.listSync().where((f) => f.path.endsWith('.quickgui-tmp')),
-      isEmpty,
-    );
-  });
+  test(
+    'saveRaw is atomic and keeps a backup of the previous content',
+    () async {
+      await store.saveRaw(conf, 'guest_os="linux"\nram="16G"\n');
+      expect(File('$conf.bak').readAsStringSync(), contains('ram="4G"'));
+      expect(File(conf).readAsStringSync(), contains('ram="16G"'));
+      expect(
+        dir.listSync().where((f) => f.path.endsWith('.quickgui-tmp')),
+        isEmpty,
+      );
+    },
+  );
 
   test('backups rotate keeping the three most recent', () async {
     for (var i = 0; i < 4; i++) {

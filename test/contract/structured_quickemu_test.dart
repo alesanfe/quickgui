@@ -1,0 +1,193 @@
+import 'dart:io';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:quickgui/core/errors/app_failure.dart';
+import 'package:quickgui/infrastructure/process/process_runner.dart';
+import 'package:quickgui/infrastructure/quickemu/quickemu_process.dart';
+import 'package:quickgui/infrastructure/quickemu/structured_quickemu.dart';
+
+class _FakeRunner implements ProcessRunner {
+  _FakeRunner(this.result, {this.delay});
+  ProcessResult result;
+  Duration? delay;
+  List<String>? lastArgs;
+
+  @override
+  Future<ProcessResult> run(String executable, List<String> arguments) {
+    lastArgs = arguments;
+    final d = delay;
+    return d == null ? Future.value(result) : Future.delayed(d, () => result);
+  }
+
+  @override
+  Future<Process> start(String executable, List<String> arguments) =>
+      throw UnimplementedError();
+}
+
+String _envelope({
+  bool success = true,
+  String data = '{}',
+  String errors = '[]',
+}) =>
+    '{"schemaVersion":1,"command":"status","success":$success,'
+    '"data":$data,"warnings":[],"errors":$errors,'
+    '"meta":{"quickemuVersion":"4.9.9","timestamp":"2026-01-01T00:00:00Z"}}';
+
+StructuredQuickemu _exec(ProcessResult r) =>
+    StructuredQuickemu(QuickemuProcess(_FakeRunner(r)));
+
+void main() {
+  group('StructuredQuickemu coherence', () {
+    test('exit 0 + success true returns envelope', () async {
+      final r = await _exec(ProcessResult(1, 0, _envelope(), ''))
+          .run('status', []);
+      expect(r.success, isTrue);
+    });
+
+    test('adds --format json automatically', () async {
+      final runner = _FakeRunner(ProcessResult(1, 0, _envelope(), ''));
+      await StructuredQuickemu(QuickemuProcess(runner))
+          .run('status', ['--vm', 'x.conf']);
+      expect(runner.lastArgs, containsAll(['--format', 'json']));
+    });
+
+    test('exit !=0 + success false throws structured failure', () async {
+      try {
+        await _exec(
+          ProcessResult(
+            1,
+            2,
+            _envelope(
+              success: false,
+              errors:
+                  '[{"code":"VM_NOT_FOUND","message":"nope",'
+                  '"severity":"error","retryable":false}]',
+            ),
+            '',
+          ),
+        ).run('status', []);
+        fail('expected AppFailure');
+      } on AppFailure catch (e) {
+        expect(e.code, 'VM_NOT_FOUND');
+        expect(e.kind, AppFailureKind.vmNotFound);
+        expect(e.exitCode, 2);
+      }
+    });
+
+    test('exit 0 + success false still throws failure', () async {
+      expect(
+        () => _exec(
+          ProcessResult(
+            1,
+            0,
+            _envelope(
+              success: false,
+              errors:
+                  '[{"code":"CONFIG_INVALID","message":"bad",'
+                  '"severity":"error","retryable":true}]',
+            ),
+            '',
+          ),
+        ).run('status', []),
+        throwsA(
+          isA<AppFailure>()
+              .having((e) => e.code, 'code', 'CONFIG_INVALID')
+              .having((e) => e.retryable, 'retryable', isTrue),
+        ),
+      );
+    });
+
+    test('success true + non-zero exit is incoherent', () async {
+      expect(
+        () => _exec(ProcessResult(1, 1, _envelope(), '')).run('status', []),
+        throwsA(
+          isA<AppFailure>().having(
+            (e) => e.code,
+            'code',
+            'INCOHERENT_RESPONSE',
+          ),
+        ),
+      );
+    });
+
+    test('non-zero exit without envelope uses stderr', () async {
+      expect(
+        () => _exec(ProcessResult(1, 3, '', 'qemu exploded')).run('status', []),
+        throwsA(
+          isA<AppFailure>()
+              .having((e) => e.code, 'code', 'COMMAND_FAILED')
+              .having(
+                (e) => e.technical,
+                'technical',
+                contains('qemu exploded'),
+              ),
+        ),
+      );
+    });
+
+    test('command mismatch rejected', () async {
+      expect(
+        () => _exec(ProcessResult(1, 0, _envelope(), '')).run('list-vms', []),
+        throwsA(
+          isA<AppFailure>().having((e) => e.code, 'code', 'COMMAND_MISMATCH'),
+        ),
+      );
+    });
+
+    test('empty stdout without stderr is a contract error', () async {
+      expect(
+        () => _exec(ProcessResult(1, 0, '', '')).run('status', []),
+        throwsA(
+          isA<AppFailure>().having((e) => e.code, 'code', 'EMPTY_RESPONSE'),
+        ),
+      );
+    });
+
+    test('isLegacyBackend only for envelope-absence failures', () {
+      expect(
+        StructuredQuickemu.isLegacyBackend(
+          const AppFailure(
+            AppFailureKind.backendContract,
+            'MALFORMED_JSON',
+            'x',
+          ),
+        ),
+        isTrue,
+      );
+      expect(
+        StructuredQuickemu.isLegacyBackend(
+          const AppFailure(
+            AppFailureKind.backendContract,
+            'INCOHERENT_RESPONSE',
+            'x',
+          ),
+        ),
+        isFalse,
+      );
+      expect(
+        StructuredQuickemu.isLegacyBackend(
+          const AppFailure(AppFailureKind.internal, 'COMMAND_FAILED', 'x'),
+        ),
+        isFalse,
+      );
+    });
+
+    test('timeout produces typed failure', () async {
+      final runner = _FakeRunner(
+        ProcessResult(1, 0, _envelope(), ''),
+        delay: const Duration(seconds: 5),
+      );
+      await expectLater(
+        StructuredQuickemu(
+          QuickemuProcess(runner),
+          timeout: const Duration(milliseconds: 1),
+        ).run('status', []),
+        throwsA(
+          isA<AppFailure>()
+              .having((e) => e.code, 'code', 'BACKEND_TIMEOUT')
+              .having((e) => e.retryable, 'retryable', isTrue),
+        ),
+      );
+    });
+  });
+}

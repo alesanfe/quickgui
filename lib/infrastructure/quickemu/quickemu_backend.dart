@@ -6,6 +6,9 @@ import 'package:quickgui/infrastructure/process/process_runner.dart';
 import 'package:quickgui/infrastructure/quickemu/quickemu_contract.dart';
 import 'package:quickgui/infrastructure/quickemu/quickemu_parser.dart';
 import 'package:quickgui/infrastructure/quickemu/quickemu_process.dart';
+import 'package:quickgui/infrastructure/quickemu/structured_quickemu.dart';
+import 'package:quickgui/core/errors/app_failure.dart';
+import 'package:quickgui/core/logging/app_logging.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
 
 /// VirtualizationBackend backed by the quickemu/quickget executables.
@@ -14,10 +17,12 @@ import 'package:quickgui/features/machines/application/ports/virtualization_back
 class QuickemuBackend implements VirtualizationBackend {
   QuickemuBackend(ProcessRunner runner)
     : _runner = runner,
-      _process = QuickemuProcess(runner);
+      _process = QuickemuProcess(runner),
+      _structured = StructuredQuickemu(QuickemuProcess(runner));
 
   final ProcessRunner _runner;
   final QuickemuProcess _process;
+  final StructuredQuickemu _structured;
 
   @override
   Future<bool> checkAvailability() async {
@@ -30,7 +35,16 @@ class QuickemuBackend implements VirtualizationBackend {
   Future<Map<String, dynamic>?> getCapabilities() async {
     final r = await _process.quickemu(capabilitiesArgs);
     if (r.exitCode != 0) return null;
-    return parseCapabilitiesPayload('${r.stdout}');
+    try {
+      final response = _structured.resolve('capabilities', r);
+      return response.dataMap;
+    } on AppFailure catch (e) {
+      if (!StructuredQuickemu.isLegacyBackend(e)) rethrow;
+      AppLog.backendContract.info(
+        'capabilities: legacy backend, envelope unavailable (${e.code})',
+      );
+      return parseCapabilitiesPayload('${r.stdout}');
+    }
   }
 
   @override
@@ -51,6 +65,24 @@ class QuickemuBackend implements VirtualizationBackend {
     // fall back to scanning *.conf files.
     final r = await _process.quickemu([...listVmsArgs, ...formatJsonArgs]);
     if (r.exitCode == 0) {
+      try {
+        final response = _structured.resolve('list-vms', r);
+        final vms = response.dataMap?['vms'];
+        if (vms is List) {
+          return [
+            for (final v in vms)
+              if (v is Map && v['name'] is String)
+                v['name'] as String
+              else if (v is String)
+                v,
+          ];
+        }
+      } on AppFailure catch (e) {
+        if (!StructuredQuickemu.isLegacyBackend(e)) rethrow;
+        AppLog.backendContract.info(
+          'list-vms: legacy backend, envelope unavailable (${e.code})',
+        );
+      }
       final parsed = parseVmListPayload('${r.stdout}');
       if (parsed != null) return parsed;
     }
@@ -74,6 +106,16 @@ class QuickemuBackend implements VirtualizationBackend {
       ...formatJsonArgs,
     ]);
     if (r.exitCode == 0) {
+      try {
+        final response = _structured.resolve('status', r, vm: vm);
+        final map = response.dataMap;
+        if (map != null) return map;
+      } on AppFailure catch (e) {
+        if (!StructuredQuickemu.isLegacyBackend(e)) rethrow;
+        AppLog.backendContract.info(
+          'status: legacy backend, envelope unavailable (${e.code})',
+        );
+      }
       final parsed = parseVmStatusPayload('${r.stdout}');
       if (parsed != null) return parsed;
     }
@@ -90,6 +132,21 @@ class QuickemuBackend implements VirtualizationBackend {
       ...formatJsonArgs,
     ]);
     if (r.exitCode != 0) return const [];
+    try {
+      final response = _structured.resolve('snapshot-list', r);
+      final snaps = response.dataList;
+      if (snaps != null) {
+        return [
+          for (final s in snaps)
+            if (s is Map<String, dynamic>) s,
+        ];
+      }
+    } on AppFailure catch (e) {
+      if (!StructuredQuickemu.isLegacyBackend(e)) rethrow;
+      AppLog.backendContract.info(
+        'snapshot-list: legacy backend, envelope unavailable (${e.code})',
+      );
+    }
     return parseVmSnapshotsPayload('${r.stdout}') ?? const [];
   }
 

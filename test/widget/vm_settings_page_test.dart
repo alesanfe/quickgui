@@ -94,12 +94,9 @@ void main() {
     store.loads.last.complete('ram="16G"\n');
     await tester.pumpAndSettle();
     expect(store.saves, isEmpty);
-    expect(
-      find.text(
-        'Configuration changed outside Quickgui. Reopen it before saving.',
-      ),
-      findsOneWidget,
-    );
+    expect(find.text('Configuration changed outside Quickgui'), findsOneWidget);
+    await tester.tap(find.text('Keep editing'));
+    await tester.pumpAndSettle();
     expect(find.text('8G'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
