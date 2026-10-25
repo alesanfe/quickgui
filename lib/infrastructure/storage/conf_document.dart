@@ -228,6 +228,62 @@ class ConfDocument {
   static bool isValidKey(String key) => _keyRe.hasMatch(key);
 }
 
+/// Three-way conf merge classification.
+enum ConfMergePick { same, local, disk, conflict }
+
+/// Compares one key across original/local/disk values.
+ConfMergePick classifyConfKey(String? original, String? local, String? disk) {
+  if (local == disk) return ConfMergePick.same;
+  if (disk == original) return ConfMergePick.local; // only local changed
+  if (local == original) return ConfMergePick.disk; // only disk changed
+  return ConfMergePick.conflict;
+}
+
+/// Keys that changed on both sides with different values — the ones
+/// that genuinely need a user decision.
+List<String> confConflictKeys(String original, String local, String disk) {
+  final o = ConfDocument.parse(original).toMap();
+  final l = ConfDocument.parse(local).toMap();
+  final d = ConfDocument.parse(disk).toMap();
+  final keys = <String>{...o.keys, ...l.keys, ...d.keys};
+  return [
+    for (final k in keys)
+      if (classifyConfKey(o[k], l[k], d[k]) == ConfMergePick.conflict) k,
+  ]..sort();
+}
+
+/// Merges [local] edits into [disk] after an external modification.
+///
+/// [choices] resolves each conflicting key: true keeps the local value,
+/// false keeps the disk value. Non-conflicting keys merge automatically
+/// (local-only changes win, disk-only changes are kept). Keys absent
+/// from [choices] that are in conflict keep the disk value — callers
+/// that require an explicit decision must check [confConflictKeys]
+/// first. Unknown lines, comments and unparsed syntax in [disk] are
+/// preserved via [ConfDocument.applyEdits].
+String mergeConfDocuments(
+  String local,
+  String disk, {
+  String? original,
+  Map<String, bool> choices = const {},
+}) {
+  final o = ConfDocument.parse(original ?? '').toMap();
+  final l = ConfDocument.parse(local).toMap();
+  final doc = ConfDocument.parse(disk);
+  final d = doc.toMap();
+  final keys = <String>{...o.keys, ...l.keys, ...d.keys};
+  final edits = <String, String>{};
+  for (final k in keys) {
+    final pick = switch (classifyConfKey(o[k], l[k], d[k])) {
+      ConfMergePick.conflict =>
+        choices[k] == true ? ConfMergePick.local : ConfMergePick.disk,
+      final p => p,
+    };
+    if (pick == ConfMergePick.local && d[k] != l[k]) edits[k] = l[k]!;
+  }
+  return doc.applyEdits(edits).serialize();
+}
+
 class _Decoded {
   const _Decoded(this.value, [this.warning]);
   final String value;

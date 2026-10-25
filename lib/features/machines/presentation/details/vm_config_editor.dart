@@ -84,19 +84,22 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
     }
     final disk = await ref.read(vmConfigStoreProvider).loadRaw(widget.confPath);
     if (!mounted) return false;
-    final action = await showConfConflictDialog(
+    final result = await showConfConflictDialog(
       context,
       confPath: widget.confPath,
       original: _initialContent,
       local: _editorController.text,
       disk: disk,
     );
-    switch (action) {
+    switch (result?.action) {
       case ConfConflictAction.reload:
         _editorController.text = disk;
         _initialContent = disk;
         _fingerprint = VmConfigFileStore.fingerprint(widget.confPath);
         return false;
+      case ConfConflictAction.merge:
+        _editorController.text = result?.merged ?? _editorController.text;
+        return true;
       case ConfConflictAction.overwrite:
         return true;
       case ConfConflictAction.saveCopy:

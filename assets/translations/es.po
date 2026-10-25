@@ -1217,3 +1217,27 @@ msgstr "Solo reintentables"
 
 msgid "Type"
 msgstr ""
+
+msgid "All changes can be merged."
+msgstr "Todos los cambios se pueden fusionar."
+
+msgid "Disk"
+msgstr "Disco"
+
+msgid "Merge and save"
+msgstr "Fusionar y guardar"
+
+msgid "Resolve conflicts"
+msgstr "Resolver conflictos"
+
+msgid "Use all local"
+msgstr "Usar todo local"
+
+msgid "Use all on-disk"
+msgstr "Usar todo del disco"
+
+msgid "Yours"
+msgstr "El tuyo"
+
+msgid "{0} key(s) need a decision before merging."
+msgstr "{0} clave(s) necesitan una decisión antes de fusionar."

@@ -130,4 +130,67 @@ void main() {
       expect(merged.serialize(), 'ram="16G"\n???not valid???\n');
     });
   });
+
+  group('conflict classification', () {
+    test('detects real conflicts, ignores one-sided changes', () {
+      final keys = confConflictKeys(
+        'a="1"\nb="1"\nc="1"\n',
+        'a="2"\nb="2"\nc="1"\n',
+        'a="3"\nb="1"\nc="1"\n',
+      );
+      expect(keys, ['a']);
+    });
+  });
+
+  group('mergeConfDocuments', () {
+    test('auto-merges one-sided changes both ways', () {
+      final merged = mergeConfDocuments(
+        'ram="8G"\ndisk="64G"\n',
+        'ram="4G"\ndisk="64G"\nextra="1"\n',
+        original: 'ram="4G"\ndisk="64G"\n',
+      );
+      expect(merged, contains('ram="8G"'));
+      expect(merged, contains('extra="1"'));
+    });
+
+    test('conflicts honour per-key choices', () {
+      final merged = mergeConfDocuments(
+        'ram="6G"\ncpu="4"\n',
+        'ram="8G"\ncpu="8"\n',
+        original: 'ram="4G"\ncpu="2"\n',
+        choices: {'ram': true, 'cpu': false},
+      );
+      expect(merged, contains('ram="6G"'));
+      expect(merged, contains('cpu="8"'));
+    });
+
+    test('unresolved conflicts keep disk value', () {
+      final merged = mergeConfDocuments(
+        'ram="6G"\n',
+        'ram="8G"\n',
+        original: 'ram="4G"\n',
+      );
+      expect(merged, contains('ram="8G"'));
+    });
+
+    test('preserves comments and unknown lines from disk', () {
+      final merged = mergeConfDocuments(
+        'ram="8G"\n',
+        '# note\nram="4G"\nweird syntax\n',
+        original: 'ram="4G"\n',
+      );
+      expect(merged, contains('# note'));
+      expect(merged, contains('weird syntax'));
+      expect(merged, contains('ram="8G"'));
+    });
+
+    test('local-only new keys are added', () {
+      final merged = mergeConfDocuments(
+        'ram="4G"\nnewkey="x"\n',
+        'ram="4G"\n',
+        original: 'ram="4G"\n',
+      );
+      expect(merged, contains('newkey="x"'));
+    });
+  });
 }

@@ -1179,3 +1179,27 @@ msgstr ""
 
 msgid "Type"
 msgstr ""
+
+msgid "All changes can be merged."
+msgstr ""
+
+msgid "Disk"
+msgstr ""
+
+msgid "Merge and save"
+msgstr ""
+
+msgid "Resolve conflicts"
+msgstr ""
+
+msgid "Use all local"
+msgstr ""
+
+msgid "Use all on-disk"
+msgstr ""
+
+msgid "Yours"
+msgstr ""
+
+msgid "{0} key(s) need a decision before merging."
+msgstr ""

@@ -1186,3 +1186,27 @@ msgstr "Retryable only"
 
 msgid "Type"
 msgstr "Type"
+
+msgid "All changes can be merged."
+msgstr "All changes can be merged."
+
+msgid "Disk"
+msgstr "Disk"
+
+msgid "Merge and save"
+msgstr "Merge and save"
+
+msgid "Resolve conflicts"
+msgstr "Resolve conflicts"
+
+msgid "Use all local"
+msgstr "Use all local"
+
+msgid "Use all on-disk"
+msgstr "Use all on-disk"
+
+msgid "Yours"
+msgstr "Yours"
+
+msgid "{0} key(s) need a decision before merging."
+msgstr "{0} key(s) need a decision before merging."

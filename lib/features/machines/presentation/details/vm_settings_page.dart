@@ -163,9 +163,9 @@ class _VmSettingsPageState extends ConsumerState<VmSettingsPage> {
           );
         }
       }
-      final merged = '${kept.join('\n')}\n';
+      var merged = '${kept.join('\n')}\n';
       if (raw != _rawLines.join('\n')) {
-        final action = await showConfConflictDialog(
+        final result = await showConfConflictDialog(
           context,
           confPath: _confPath,
           original: _rawLines.join('\n'),
@@ -173,10 +173,12 @@ class _VmSettingsPageState extends ConsumerState<VmSettingsPage> {
           disk: raw,
         );
         if (!mounted) return;
-        switch (action) {
+        switch (result?.action) {
           case ConfConflictAction.reload:
             await _load();
             return;
+          case ConfConflictAction.merge:
+            merged = result?.merged ?? merged;
           case ConfConflictAction.overwrite:
             break;
           case ConfConflictAction.saveCopy:
