@@ -23,6 +23,16 @@ doc/api/
 .flutter-plugins
 
 .flutter-plugins-dependencies
+
+# IDE and editor files
+.idea/
+*.iml
+
+# Test and coverage output
+coverage/
+test/capture/out/
+test/capture/failures/
+test/golden/failures/
 web/
 ios/
 android/
