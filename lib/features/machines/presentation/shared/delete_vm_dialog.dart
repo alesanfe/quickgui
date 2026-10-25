@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
+import 'package:quickgui/core/errors/app_failure.dart';
 import 'package:quickgui/core/result/result.dart';
 import 'package:quickgui/features/machines/application/delete_vm.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
@@ -89,6 +90,12 @@ Future<bool> showDeleteVmDialog(
     },
   );
   if (result == null || result == 'cancel') return false;
-  await backend.runAction(['--vm', '$vm.conf', '--delete-$result']);
+  final args = ['--vm', '$vm.conf', '--delete-$result'];
+  try {
+    await backend.runVmJson('delete-$result', args);
+  } on AppFailure catch (e) {
+    if (!isBackendEnvelopeMissing(e)) rethrow;
+    await backend.runAction(args);
+  }
   return true;
 }

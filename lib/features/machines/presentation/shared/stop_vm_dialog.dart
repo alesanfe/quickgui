@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:version/version.dart';
+import 'package:quickgui/core/errors/app_failure.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
 import 'package:quickgui/features/machines/application/stop_vm.dart';
 import 'package:quickgui/features/machines/presentation/shared/process_output_dialog.dart';
@@ -55,12 +57,15 @@ Future<VmStopChoice> showStopVmDialog(
   if (choice == 'shutdown') {
     // ACPI powerdown via the QEMU monitor socket; the
     // VM keeps running until the guest OS finishes.
-    final r = await backend.runAction([
-      '--vm',
-      confPath,
-      '--monitor-cmd',
-      'system_powerdown',
-    ]);
+    final args = ['--vm', confPath, '--monitor-cmd', 'system_powerdown'];
+    ProcessResult r;
+    try {
+      await backend.runVmJson('monitor-cmd', args);
+      r = ProcessResult(0, 0, '', '');
+    } on AppFailure catch (e) {
+      if (!isBackendEnvelopeMissing(e)) rethrow;
+      r = await backend.runAction(args);
+    }
     if (context.mounted) showProcessOutputDialog(context, [r]);
     return VmStopChoice.shutdown;
   }
