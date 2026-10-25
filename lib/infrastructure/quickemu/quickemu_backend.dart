@@ -160,6 +160,24 @@ class QuickemuBackend implements VirtualizationBackend {
       _process.quickemu(arguments);
 
   @override
+  Future<Map<String, dynamic>> runVmJson(
+    String command,
+    List<String> arguments,
+  ) async {
+    final response = await _structured.run(command, arguments);
+    final data = response.dataMap;
+    if (data == null) {
+      throw AppFailure(
+        AppFailureKind.backendContract,
+        'UNEXPECTED_DATA',
+        'The backend returned data in an unexpected shape.',
+        technical: 'command=$command data=${response.data.runtimeType}',
+      );
+    }
+    return data;
+  }
+
+  @override
   Future<ProcessResult> runQuickget(List<String> arguments) =>
       _process.quickget(arguments);
 

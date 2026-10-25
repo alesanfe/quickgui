@@ -77,6 +77,12 @@ class _TrackedBackend implements VirtualizationBackend {
   }
 
   @override
+  Future<Map<String, dynamic>> runVmJson(
+    String command,
+    List<String> arguments,
+  ) => backend.runVmJson(command, arguments);
+
+  @override
   Future<ProcessResult> runQuickget(List<String> arguments) =>
       arguments.contains('--create-config')
       ? track(

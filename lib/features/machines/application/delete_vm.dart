@@ -1,3 +1,4 @@
+import 'package:quickgui/core/errors/app_failure.dart';
 import 'package:quickgui/core/errors/failure.dart';
 import 'package:quickgui/core/result/result.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
@@ -13,19 +14,44 @@ class DeleteVm {
         Failure('backend.unavailable', 'Virtualization backend not found'),
       );
     }
-    final r = await _backend.runAction([
-      '--vm',
-      '$vm.conf',
-      '--delete-plan',
-      '--format',
-      'json',
-    ]);
-    if (r.exitCode != 0) {
-      return Err(
-        Failure('vm.delete_plan_failed', '${r.stderr}${r.stdout}'.trim()),
+    try {
+      final data = await _backend.runVmJson('delete-plan', [
+        '--vm',
+        '$vm.conf',
+        '--delete-plan',
+      ]);
+      final files = data['plan'] ?? data['files'];
+      if (files is List) return Ok([for (final f in files) '$f']);
+      return const Err(
+        Failure('vm.delete_plan_failed', 'Unexpected delete-plan payload'),
       );
+    } on AppFailure catch (e) {
+      // A pre-contract quickemu cannot answer the envelope at all —
+      // fall back to the line-oriented plan output (logged implicitly
+      // by the contract kind); real contract defects still surface.
+      const legacyCodes = {
+        'EMPTY_RESPONSE',
+        'MALFORMED_JSON',
+        'UNEXPECTED_SHAPE',
+        'MISSING_SCHEMA_VERSION',
+      };
+      if (!legacyCodes.contains(e.code)) {
+        return Err(Failure('vm.delete_plan_failed', e.userMessage));
+      }
+      final r = await _backend.runAction([
+        '--vm',
+        '$vm.conf',
+        '--delete-plan',
+        '--format',
+        'json',
+      ]);
+      if (r.exitCode != 0) {
+        return Err(
+          Failure('vm.delete_plan_failed', '${r.stderr}${r.stdout}'.trim()),
+        );
+      }
+      return Ok([...'${r.stdout}'.split('\n')..removeWhere((f) => f.isEmpty)]);
     }
-    return Ok([...'${r.stdout}'.split('\n')..removeWhere((e) => e.isEmpty)]);
   }
 
   Future<Result<void>> call(String vm, {bool diskOnly = false}) async {

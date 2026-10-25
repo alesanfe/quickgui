@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:quickgui/core/errors/app_failure.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
 
 import 'fake_process.dart';
@@ -64,6 +65,29 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
   Future<ProcessResult> runAction(List<String> arguments) async {
     actionCalls.add(List.of(arguments));
     return lastActionResult ?? ProcessResult(0, 0, '', '');
+  }
+
+  /// Configured per-command `data` payloads for [runVmJson]. When a
+  /// command has no entry the fake behaves like a pre-contract backend
+  /// and throws an envelope-absence failure — callers exercising the
+  /// structured path must opt in via [jsonResponses].
+  final Map<String, Map<String, dynamic>> jsonResponses = {};
+
+  @override
+  Future<Map<String, dynamic>> runVmJson(
+    String command,
+    List<String> arguments,
+  ) async {
+    actionCalls.add(List.of(arguments));
+    final response = jsonResponses[command];
+    if (response == null) {
+      throw const AppFailure(
+        AppFailureKind.backendContract,
+        'EMPTY_RESPONSE',
+        'fake backend: no structured envelope configured',
+      );
+    }
+    return response;
   }
 
   @override

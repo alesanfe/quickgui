@@ -42,6 +42,17 @@ abstract class VirtualizationBackend {
   /// '--snapshot','create','t1']). Returns exit code and merged output.
   Future<ProcessResult> runAction(List<String> arguments);
 
+  /// Runs [arguments] through the structured `--format json` contract
+  /// and returns the envelope `data` payload. [command] is the logical
+  /// command name the envelope must declare (e.g. 'delete-plan').
+  /// Throws `AppFailure` on contract, coherence or backend failures —
+  /// callers get typed errors instead of parsing stdout themselves.
+  /// `--format json` is appended by the backend; do not repeat it.
+  Future<Map<String, dynamic>> runVmJson(
+    String command,
+    List<String> arguments,
+  );
+
   /// Runs a quickget action (e.g. ['--create-config','name','/path.iso']).
   Future<ProcessResult> runQuickget(List<String> arguments);
 
