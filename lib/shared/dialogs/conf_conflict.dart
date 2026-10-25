@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
-import 'package:quickgui/features/machines/domain/vm_config_value.dart';
+import 'package:quickgui/infrastructure/storage/conf_document.dart';
 import 'package:quickgui/infrastructure/storage/vm_config.dart';
 
 /// Decision taken in the external-modification conflict dialog.
@@ -21,15 +21,8 @@ enum ConfConflictAction {
 
 /// Parses `key="value"` lines into a map (last occurrence wins — matching
 /// the `break`-free semantics bash `source` would apply).
-Map<String, String> parseConfPairs(String raw) {
-  final out = <String, String>{};
-  final re = RegExp(r'^([a-zA-Z_][\w-]*)\s*=\s*"(.*)"\s*$');
-  for (final line in raw.split('\n')) {
-    final m = re.firstMatch(line.trim());
-    if (m != null) out[m.group(1)!] = decodeVmValue(m.group(2)!);
-  }
-  return out;
-}
+Map<String, String> parseConfPairs(String raw) =>
+    ConfDocument.parse(raw).toMap();
 
 /// Shows the external-modification conflict dialog. [original] is the
 /// content loaded when editing started, [local] the pending edits and
