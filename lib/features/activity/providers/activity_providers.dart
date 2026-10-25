@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quickgui/core/constants/preference_keys.dart';
+import 'package:quickgui/core/errors/app_failure.dart';
 import 'package:quickgui/core/extensions/preferences_repository_x.dart';
 import 'package:quickgui/features/activity/domain/app_operation.dart';
 import 'package:quickgui/shared/models/operation_state.dart';
@@ -131,6 +132,18 @@ class ActivityController extends Notifier<ActivityState> {
         output: output,
       );
       return result;
+    } on AppFailure catch (failure) {
+      // Typed failures keep their stable code and retry policy instead
+      // of being flattened into an opaque exception string.
+      update(
+        operation,
+        OperationState.failed(
+          code: failure.code,
+          message: failure.userMessage,
+          retryable: failure.retryable,
+        ),
+      );
+      rethrow;
     } catch (error) {
       update(
         operation,
@@ -167,6 +180,14 @@ class ActivityController extends Notifier<ActivityState> {
             completedAt: op.completedAt!,
             status: status,
             message: message,
+            failureCode: switch (next) {
+              OperationFailed(:final code) => code,
+              _ => null,
+            },
+            retryable: switch (next) {
+              OperationFailed(:final retryable) => retryable,
+              _ => false,
+            },
           ),
           ...state.history,
         ].take(_historyLimit).toList(),
@@ -185,6 +206,8 @@ class ActivityController extends Notifier<ActivityState> {
     String target, {
     required bool success,
     String message = '',
+    String? failureCode,
+    bool retryable = false,
   }) {
     final now = DateTime.now();
     state = ActivityState(
@@ -197,6 +220,8 @@ class ActivityController extends Notifier<ActivityState> {
           completedAt: now,
           status: success ? OperationStatus.succeeded : OperationStatus.failed,
           message: message,
+          failureCode: failureCode,
+          retryable: retryable,
         ),
         ...state.history,
       ].take(_historyLimit).toList(),

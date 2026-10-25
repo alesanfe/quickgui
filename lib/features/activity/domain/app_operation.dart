@@ -64,6 +64,8 @@ class OperationHistoryEntry {
     required this.completedAt,
     required this.status,
     this.message = '',
+    this.failureCode,
+    this.retryable = false,
   });
 
   final OperationKind kind;
@@ -73,6 +75,14 @@ class OperationHistoryEntry {
   final OperationStatus status;
   final String message;
 
+  /// Stable `AppFailure` code when the operation failed — preserved so
+  /// history retries and reports stay meaningful after a restart.
+  final String? failureCode;
+
+  /// Whether the failure is safe to retry (transient backend issues
+  /// only — never retries for validation/contract/permission errors).
+  final bool retryable;
+
   Map<String, dynamic> toJson() => {
     'kind': kind.wire,
     'target': target,
@@ -80,6 +90,8 @@ class OperationHistoryEntry {
     'completedAt': completedAt.toIso8601String(),
     'status': status.name,
     'message': message,
+    if (failureCode != null) 'failureCode': failureCode,
+    if (retryable) 'retryable': true,
   };
 
   static OperationHistoryEntry? fromJson(Map<String, dynamic> json) {
@@ -97,6 +109,10 @@ class OperationHistoryEntry {
               .firstOrNull ??
           OperationStatus.succeeded,
       message: '${json['message'] ?? ''}',
+      failureCode: json['failureCode'] is String
+          ? json['failureCode'] as String
+          : null,
+      retryable: json['retryable'] == true,
     );
   }
 }
