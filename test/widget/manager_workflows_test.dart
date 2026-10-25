@@ -312,16 +312,12 @@ void main() {
     ) async {
       final screen = await open(tester);
       await screen.chooseAction('Delete');
-      // Structured delete-plan first, then the legacy fallback when the
-      // fake backend reports no envelope.
       expect(backend.actionCalls, [
-        ['--vm', 'linux-test.conf', '--delete-plan'],
         ['--vm', 'linux-test.conf', '--delete-plan', '--format', 'json'],
       ]);
       expect(File('linux-test.conf').existsSync(), isTrue);
       await screen.confirm(label);
       expect(backend.actionCalls, [
-        ['--vm', 'linux-test.conf', '--delete-plan'],
         ['--vm', 'linux-test.conf', '--delete-plan', '--format', 'json'],
         if (flag != null) ['--vm', 'linux-test.conf', flag],
       ]);

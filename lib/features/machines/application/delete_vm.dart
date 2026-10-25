@@ -27,15 +27,9 @@ class DeleteVm {
       );
     } on AppFailure catch (e) {
       // A pre-contract quickemu cannot answer the envelope at all —
-      // fall back to the line-oriented plan output (logged implicitly
-      // by the contract kind); real contract defects still surface.
-      const legacyCodes = {
-        'EMPTY_RESPONSE',
-        'MALFORMED_JSON',
-        'UNEXPECTED_SHAPE',
-        'MISSING_SCHEMA_VERSION',
-      };
-      if (!legacyCodes.contains(e.code)) {
+      // fall back to the line-oriented plan output; real contract
+      // defects still surface as typed failures.
+      if (!isBackendEnvelopeMissing(e)) {
         return Err(Failure('vm.delete_plan_failed', e.userMessage));
       }
       final r = await _backend.runAction([
@@ -60,14 +54,25 @@ class DeleteVm {
         Failure('backend.unavailable', 'Virtualization backend not found'),
       );
     }
-    final r = await _backend.runAction([
+    final args = [
       '--vm',
       '$vm.conf',
       if (diskOnly) '--delete-disk' else '--delete-vm',
-    ]);
-    if (r.exitCode != 0) {
-      return Err(Failure('vm.delete_failed', '${r.stderr}${r.stdout}'.trim()));
+    ];
+    try {
+      await _backend.runVmJson(diskOnly ? 'delete-disk' : 'delete-vm', args);
+      return const Ok(null);
+    } on AppFailure catch (e) {
+      if (!isBackendEnvelopeMissing(e)) {
+        return Err(Failure('vm.delete_failed', e.userMessage));
+      }
+      final r = await _backend.runAction(args);
+      if (r.exitCode != 0) {
+        return Err(
+          Failure('vm.delete_failed', '${r.stderr}${r.stdout}'.trim()),
+        );
+      }
+      return const Ok(null);
     }
-    return const Ok(null);
   }
 }

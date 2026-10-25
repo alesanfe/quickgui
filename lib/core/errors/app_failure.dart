@@ -181,3 +181,16 @@ class AppFailure implements Exception {
   @override
   String toString() => 'AppFailure($code): $userMessage';
 }
+
+/// True when [failure] means the backend cannot produce the structured
+/// response envelope at all — the only codes that may trigger a legacy
+/// fallback. Real contract defects (incoherence, wrong command, wrong
+/// types) stay failures and must never fall back silently.
+bool isBackendEnvelopeMissing(AppFailure failure) =>
+    failure.kind == AppFailureKind.backendContract &&
+    {
+      'EMPTY_RESPONSE',
+      'MALFORMED_JSON',
+      'UNEXPECTED_SHAPE',
+      'MISSING_SCHEMA_VERSION',
+    }.contains(failure.code);

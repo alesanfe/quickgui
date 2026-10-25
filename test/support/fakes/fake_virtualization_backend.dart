@@ -67,6 +67,11 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
     return lastActionResult ?? ProcessResult(0, 0, '', '');
   }
 
+  /// Structured-contract calls, recorded separately from [actionCalls]
+  /// so tests can assert the legacy path independently of the
+  /// envelope attempt.
+  final List<List<String>> jsonCalls = [];
+
   /// Configured per-command `data` payloads for [runVmJson]. When a
   /// command has no entry the fake behaves like a pre-contract backend
   /// and throws an envelope-absence failure — callers exercising the
@@ -78,7 +83,7 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
     String command,
     List<String> arguments,
   ) async {
-    actionCalls.add(List.of(arguments));
+    jsonCalls.add([command, ...arguments]);
     final response = jsonResponses[command];
     if (response == null) {
       throw const AppFailure(
