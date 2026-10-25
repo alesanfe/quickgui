@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:quickgui/core/operations/operation_state.dart';
+import 'package:quickgui/shared/models/operation_state.dart';
 
 class DownloadProgressBar extends StatelessWidget {
   const DownloadProgressBar({required this.state, super.key});

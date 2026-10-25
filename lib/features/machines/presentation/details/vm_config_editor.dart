@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
@@ -22,6 +23,19 @@ class VmConfigEditorDialog extends ConsumerStatefulWidget {
 class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
   final TextEditingController _editorController = TextEditingController();
   bool _loading = true;
+  String? _error;
+
+  /// quickemu conf lines are `key="value"`; comments (#) and blank lines
+  /// are allowed. Returns the offending line number, or null if valid.
+  static int? _firstInvalidLine(String text) {
+    final lines = text.split('\n');
+    for (var i = 0; i < lines.length; i++) {
+      final line = lines[i].trim();
+      if (line.isEmpty || line.startsWith('#')) continue;
+      if (!RegExp(r'^[a-zA-Z_][\w-]*\s*=').hasMatch(line)) return i + 1;
+    }
+    return null;
+  }
 
   @override
   void initState() {
@@ -33,6 +47,16 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
   }
 
   void _save() async {
+    final badLine = _firstInvalidLine(_editorController.text);
+    if (badLine != null) {
+      setState(() {
+        _error = context.t(
+          'Line {0}: expected key="value".',
+          args: ['$badLine'],
+        );
+      });
+      return;
+    }
     await ref
         .read(vmConfigStoreProvider)
         .saveRaw(widget.confPath, _editorController.text);
@@ -52,7 +76,7 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Edit VM: ${widget.vmName}'),
+      title: Text(context.t('Edit VM: {0}', args: [widget.vmName])),
       content: _loading
           ? const SizedBox(
               height: 100,
@@ -71,7 +95,7 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
                     alignment: Alignment.centerRight,
                     child: TextButton.icon(
                       icon: const Icon(Icons.help_outline),
-                      label: const Text("Open config documentation"),
+                      label: Text(context.t('Open config documentation')),
                       onPressed: _openDocs,
                     ),
                   ),
@@ -86,17 +110,44 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
                         border: OutlineInputBorder(),
                         contentPadding: EdgeInsets.all(8),
                       ),
+                      onChanged: (_) {
+                        if (_error != null) {
+                          setState(() => _error = null);
+                        }
+                      },
                     ),
                   ),
+                  if (_error != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 16,
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              _error!,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                 ],
               ),
             ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(context.t('Cancel')),
         ),
-        ElevatedButton(onPressed: _save, child: const Text('Save')),
+        ElevatedButton(onPressed: _save, child: Text(context.t('Save'))),
       ],
     );
   }

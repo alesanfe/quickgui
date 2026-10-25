@@ -11,28 +11,44 @@ Layered architecture — presentation widgets only talk to the
 
 ```
 lib/
-  main.dart                 # Entry point: backend wiring, catalogue/icons preload, PATH checks
-  app/                      # app.dart, dependencies/providers.dart (DI surface), localization/, theme/
-  core/result/              # Result/Failure types
+  main.dart                 # Thin entry point: delegates to bootstrap()
+  app/                      # app.dart, app_version.dart,
+                            #   bootstrap/ (app_bootstrap.dart), localization/
+                            #   (supported_locales + QuickguiLocalizationsDelegate),
+                            #   router/ (appRoute), theme/
+  core/
+    errors/                 # Failure
+    result/                 # Result/Ok/Err (re-exports Failure)
+    logging/                # AppLog
+    constants/              # preference_keys.dart
+    extensions/             # PreferencesRepositoryX (getAs<T>)
   features/                 # catalog diagnostics downloads home machines settings
     <feature>/domain        # models (no flutter/dart:io)
-    <feature>/application   # use cases + ports (virtualization_backend, host_probe)
+    <feature>/application   # use cases + ports (virtualization_backend, host_probe,
+                            #   preferences_repository)
+    <feature>/infrastructure # feature-owned port implementations
     <feature>/presentation  # widgets
     <feature>/providers     # Riverpod providers
   infrastructure/
-    process/                # ProcessRunner, SystemProcessRunner, host_process.dart (runHost/hostWrap)
-    platform/               # HostPlatform, SystemHostProbe, executable_locator
-    persistence/            # PreferencesRepository + SharedPreferences impl + pref keys
-    quickemu/               # QuickemuBackend (port implementation)
-    app_info/               # AppVersion (package_info_plus)
-    vm_config.dart          # VmConfig + confValue/writeConfValue
-  shared/presentation/      # widgets, os_assets/loadOsIcons
-assets/                     # images, i18n (.po files + quickgui.pot)
+    process/                # ProcessRunner, SystemProcessRunner, host_process.dart
+                            #   (runHost/hostWrap), host_platform.dart
+    quickemu/               # quickemu_backend / _process / _parser / _contract
+    storage/                # vm_config.dart (VmConfigFileStore)
+    settings/               # SharedPreferencesRepository
+    networking/             # quickgui_releases.dart (update check)
+  shared/
+    widgets/                # bytes_formatter.dart
+    dialogs/                # validated_text_dialog.dart (showValidatedTextDialog)
+    forms/                  # (empty)
+    providers/              # (empty)
+    models/                 # operation_state.dart, os_icons.dart (loadOsIcons)
+assets/                     # images/, icons/quickemu/, translations/ (.po + .pot),
+                            #   themes/, resources/ (packaging files)
 test/
-  unit/ widget/ fixtures/ fakes/ helpers/
-integration_test/           # backend-absence checks
+  unit/ widget/ golden/ contract/ architecture/ integration/ capture/ support/
+integration_test/           # backend-absence e2e checks (needs device/host)
 flatpak/                    # Flatpak manifest + metainfo + build docs
-docs/                       # architecture/, backend-integration/
+docs/                       # architecture/, backend-integration/, screenshots/
 ```
 
 ## Development commands
@@ -54,14 +70,14 @@ in `lib/infrastructure/process/host_process.dart` so they escape the Flatpak
 sandbox via `flatpak-spawn --host` when needed. Never call
 `Process.run`/`Shell().run` with a bare command for these tools.
 
-VM .conf files are key="value" files: read with `confValue()`, write with
-`writeConfValue()` (both in `lib/infrastructure/vm_config.dart`). Runtime
-state lives in `<vm>/<vm>.pid`, `<vm>/<vm>.ports`, `<vm>/<vm>.sock`.
+VM .conf files are key="value" files: accessed through `VmConfigFileStore`
+(`lib/infrastructure/storage/vm_config.dart`, implements the
+`VmConfigStore` port). Runtime state lives in `<vm>/<vm>.pid`, `<vm>/<vm>.ports`, `<vm>/<vm>.sock`.
 
 ## i18n
 
 - Strings are wrapped with `context.t('...')`.
-- New msgids must be appended to `assets/i18n/quickgui.pot` (msgid + empty
+- New msgids must be appended to `assets/translations/quickgui.pot` (msgid + empty
   msgstr) and ideally translated in the `.po` files.
 - Supported locales live in `lib/app/localization/supported_locales.dart`.
 
@@ -93,11 +109,11 @@ state lives in `<vm>/<vm>.pid`, `<vm>/<vm>.ports`, `<vm>/<vm>.sock`.
 ## State, models and UI stack (learned)
 
 - State: Riverpod only (`package:provider` removed). Settings live in
-  `features/settings/providers/settings_providers.dart`; `main()` loads them
+  `features/settings/providers/settings_providers.dart`; `bootstrap()` loads them
   with `LoadSettings` and overrides `initialSettingsProvider` /
   `preferencesRepositoryProvider` in `ProviderScope`.
-- DI surface: `app/dependencies/providers.dart` exposes `backendProvider`,
-  `osCatalogueProvider` and `osIconsProvider`; `main()` constructs the
+- DI surface: feature `providers/` dirs expose `backendProvider`,
+  `osCatalogueProvider` and `osIconsProvider`; `bootstrap()` constructs the
   backend once and overrides them. Preferences go through
   `preferencesRepositoryProvider` (`getAs<T>`/`set`), not the old
   `PreferencesMixin`.

@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 
+import 'package:quickgui/features/catalog/application/load_catalog.dart';
 import 'package:quickgui/features/catalog/providers/catalog_providers.dart';
 import 'package:quickgui/features/catalog/domain/operating_system.dart';
+import 'package:quickgui/features/machines/providers/backend_providers.dart';
 
 class OperatingSystemSelection extends ConsumerStatefulWidget {
   const OperatingSystemSelection({super.key});
@@ -19,6 +21,7 @@ class _OperatingSystemSelectionState
   String term = "";
   final focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
+  int _retry = 0;
 
   @override
   void initState() {
@@ -74,12 +77,46 @@ class _OperatingSystemSelectionState
       body: Scrollbar(
         controller: _scrollController,
         child: FutureBuilder(
-          future: ref.watch(osCatalogueProvider),
+          // _retry re-runs loadOperatingSystems when the catalogue fails;
+          // the provider holds a fixed Future, so a retry must bypass it.
+          future: _retry == 0
+              ? ref.watch(osCatalogueProvider)
+              : loadOperatingSystems(ref.read(backendProvider)),
           builder:
               (
                 BuildContext context,
                 AsyncSnapshot<List<OperatingSystem>> snapshot,
               ) {
+                if (snapshot.hasError || snapshot.data == null) {
+                  if (snapshot.connectionState == ConnectionState.done ||
+                      snapshot.hasError) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.cloud_off,
+                            size: 48,
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            context.t(
+                              'Could not load the OS catalogue. Check that quickget is installed and try again.',
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          FilledButton.icon(
+                            onPressed: () => setState(() => _retry++),
+                            icon: const Icon(Icons.refresh),
+                            label: Text(context.t('Retry')),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                }
                 if (snapshot.hasData) {
                   final List<OperatingSystem> list = snapshot.data!
                       .where(

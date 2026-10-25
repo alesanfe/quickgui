@@ -27,11 +27,6 @@ dependencies:
   shared_preferences: ^2.3.2
   tuple: ^2.0.2
   version: ^3.0.2
-  window_size:
-    git:
-      url: https://github.com/google/flutter-desktop-embedding.git
-      path: plugins/window_size
-      ref: eb3964990cf19629c89ff8cb4a37640c7b3d5601
   desktop_drop: ^0.8.4
   file: ^7.0.1
   platform: ^3.2.0
@@ -60,6 +55,8 @@ dependencies:
   skeletonizer: ^3.0.0
   percent_indicator: ^4.2.5
   window_to_front: ^1.0.0
+  screen_retriever: ^0.1.9
+  # tray_manager: ^0.8.0  # TEMP: comentado para tests sin GTK dev
 
 dev_dependencies:
   integration_test:
@@ -82,10 +79,11 @@ dev_dependencies:
   alchemist: ^0.14.1
   dart_arch_test: ^0.2.0
   test: ^1.31.1
+  accessibility_tools: ^3.0.0
 
 flutter:
   uses-material-design: true
   assets:
     - assets/images/
-    - assets/i18n/
-    - assets/quickemu-icons/
+    - assets/translations/
+    - assets/icons/quickemu/

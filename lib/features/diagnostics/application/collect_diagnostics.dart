@@ -1,3 +1,4 @@
+import 'package:quickgui/core/errors/failure.dart';
 import 'package:quickgui/core/result/result.dart';
 import 'package:quickgui/features/diagnostics/application/ports/host_probe.dart';
 import 'package:quickgui/features/diagnostics/domain/diagnostics_report.dart';

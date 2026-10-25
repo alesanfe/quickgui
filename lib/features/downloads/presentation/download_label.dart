@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
-import 'package:quickgui/core/operations/operation_state.dart';
+import 'package:quickgui/shared/models/operation_state.dart';
 
 class DownloadLabel extends StatelessWidget {
   const DownloadLabel({

@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:quickgui/infrastructure/platform/host_platform.dart';
+import 'package:quickgui/infrastructure/process/host_platform.dart';
 import 'package:quickgui/infrastructure/process/host_process.dart';
 
 import 'process_runner.dart';
@@ -14,8 +14,7 @@ class SystemProcessRunner implements ProcessRunner {
   @override
   Future<Process> start(String executable, List<String> arguments) =>
       Process.start(HostPlatform.isFlatpak ? 'flatpak-spawn' : executable, [
-        if (HostPlatform.isFlatpak) '--host',
-        executable,
+        if (HostPlatform.isFlatpak) ...['--host', executable],
         ...arguments,
       ]);
 }

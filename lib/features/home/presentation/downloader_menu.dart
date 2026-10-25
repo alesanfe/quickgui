@@ -7,13 +7,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:path/path.dart' as p;
 
+import 'package:quickgui/shared/providers/preferences_providers.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
-import 'package:quickgui/features/settings/providers/settings_providers.dart';
-import 'package:quickgui/core/persistence/preferences_repository.dart';
+import 'package:quickgui/core/constants/preference_keys.dart';
+import 'package:quickgui/core/extensions/preferences_repository_x.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
 import 'package:quickgui/features/home/presentation/home_page_button_group.dart';
 import 'package:quickgui/features/machines/domain/forms/vm_inputs.dart';
-import 'package:quickgui/features/machines/presentation/shared/validated_text_dialog.dart';
+import 'package:quickgui/shared/dialogs/validated_text_dialog.dart';
 import 'package:quickgui/features/machines/presentation/shared/vm_input_messages.dart';
 
 class DownloaderMenu extends ConsumerStatefulWidget {

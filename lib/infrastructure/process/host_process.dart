@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:quickgui/infrastructure/platform/host_platform.dart';
+import 'package:quickgui/infrastructure/process/host_platform.dart';
 
 /// Runs [exe] with [args], escaping the Flatpak sandbox when needed so
 /// commands execute on the host system.

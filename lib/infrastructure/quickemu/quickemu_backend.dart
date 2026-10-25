@@ -1,80 +1,58 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
 import 'package:quickgui/infrastructure/process/process_runner.dart';
+import 'package:quickgui/infrastructure/quickemu/quickemu_contract.dart';
+import 'package:quickgui/infrastructure/quickemu/quickemu_parser.dart';
+import 'package:quickgui/infrastructure/quickemu/quickemu_process.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
 
 /// VirtualizationBackend backed by the quickemu/quickget executables.
 /// Uses the structured CLI contract (--capabilities, --format json)
 /// when present and degrades gracefully on older versions.
 class QuickemuBackend implements VirtualizationBackend {
-  QuickemuBackend(this._runner);
+  QuickemuBackend(ProcessRunner runner)
+    : _runner = runner,
+      _process = QuickemuProcess(runner);
 
   final ProcessRunner _runner;
+  final QuickemuProcess _process;
 
   @override
   Future<bool> checkAvailability() async {
-    final get = await _runner.run('quickget', ['--version']);
-    final emu = await _runner.run('quickemu', ['--version']);
+    final get = await _process.quickget(['--version']);
+    final emu = await _process.quickemu(['--version']);
     return get.exitCode == 0 && emu.exitCode == 0;
   }
 
   @override
   Future<Map<String, dynamic>?> getCapabilities() async {
-    try {
-      final r = await _runner.run('quickemu', ['--capabilities']);
-      if (r.exitCode != 0) return null;
-      final decoded = jsonDecode('${r.stdout}'.trim());
-      return decoded is Map<String, dynamic> ? decoded : null;
-    } catch (_) {
-      return null; // older quickemu without --capabilities
-    }
+    final r = await _process.quickemu(capabilitiesArgs);
+    if (r.exitCode != 0) return null;
+    return parseCapabilitiesPayload('${r.stdout}');
   }
 
   @override
   Future<List<List<String>>> listOperatingSystems() async {
     // Prefer the structured JSON catalogue, fall back to CSV.
-    final json = await _runner.run('quickget', ['--list-json']);
-    if (json.exitCode == 0 && '${json.stdout}'.trim().isNotEmpty) {
-      try {
-        return [
-          for (final e in jsonDecode('${json.stdout}') as List)
-            [
-              '${e['Display Name']}',
-              '${e['OS']}',
-              '${e['Release']}',
-              '${e['Option']}',
-              '${e['Downloader']}',
-            ],
-        ];
-      } catch (_) {}
+    final json = await _process.quickget(['--list-json']);
+    if (json.exitCode == 0) {
+      final parsed = parseOsCatalogueJson('${json.stdout}');
+      if (parsed != null) return parsed;
     }
-    final csv = await _runner.run('quickget', ['--list-csv']);
-    return '${csv.stdout}'
-        .split('\n')
-        .skip(1)
-        .where((l) => l.isNotEmpty)
-        .map((l) => l.trim().split(','))
-        .toList();
+    final csv = await _process.quickget(['--list-csv']);
+    return parseOsCatalogueCsv('${csv.stdout}');
   }
 
   @override
   Future<List<String>> listVirtualMachines() async {
     // Structured path first (quickemu --list-vms --format json);
     // fall back to scanning *.conf files.
-    final r = await _runner.run('quickemu', ['--list-vms', '--format', 'json']);
+    final r = await _process.quickemu([...listVmsArgs, ...formatJsonArgs]);
     if (r.exitCode == 0) {
-      try {
-        final decoded = jsonDecode('${r.stdout}'.trim());
-        if (decoded is Map) {
-          final vms = decoded['vms'];
-          if (vms is List) {
-            return [for (final v in vms) '${(v as Map)['name']}'];
-          }
-        }
-      } catch (_) {}
+      final parsed = parseVmListPayload('${r.stdout}');
+      if (parsed != null) return parsed;
     }
     return Directory.current
         .listSync()
@@ -89,60 +67,64 @@ class QuickemuBackend implements VirtualizationBackend {
 
   @override
   Future<Map<String, dynamic>> inspectVirtualMachine(String vm) async {
-    final r = await _runner.run('quickemu', [
+    final r = await _process.quickemu([
       '--vm',
       '$vm.conf',
       '--status',
-      '--format',
-      'json',
+      ...formatJsonArgs,
     ]);
     if (r.exitCode == 0) {
-      try {
-        final decoded = jsonDecode('${r.stdout}'.trim());
-        if (decoded is Map<String, dynamic>) return decoded;
-      } catch (_) {}
+      final parsed = parseVmStatusPayload('${r.stdout}');
+      if (parsed != null) return parsed;
     }
-    // Fallback: legacy "running <pid>" / "stopped" text.
-    final text = '${r.stdout}'.trim();
-    return {
-      'name': vm,
-      'state': text.startsWith('running') ? 'running' : 'stopped',
-      'pid': int.tryParse(text.split(' ').last),
-    };
+    return parseLegacyVmStatus(vm, '${r.stdout}');
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> listSnapshots(String confPath) async {
+    final r = await _process.quickemu([
+      '--vm',
+      confPath,
+      '--snapshot',
+      'list',
+      ...formatJsonArgs,
+    ]);
+    if (r.exitCode != 0) return const [];
+    return parseVmSnapshotsPayload('${r.stdout}') ?? const [];
   }
 
   @override
   Future<Process> startDownloadImage(String os, String release, String option) {
-    return _runner.start('quickget', [
-      os,
-      release,
-      if (option.isNotEmpty) option,
-    ]);
+    return _process.startQuickget([os, release, if (option.isNotEmpty) option]);
   }
 
   @override
   Future<ProcessResult> runAction(List<String> arguments) =>
-      _runner.run('quickemu', arguments);
+      _process.quickemu(arguments);
 
   @override
   Future<ProcessResult> runQuickget(List<String> arguments) =>
-      _runner.run('quickget', arguments);
+      _process.quickget(arguments);
 
   @override
-  Future<ProcessResult> exportVm(String vmName) => _runner.run('quickemu', [
-    '--vm',
-    '$vmName.conf',
-    '--export',
-    '$vmName.tar.gz',
-  ]);
+  Future<ProcessResult> exportVm(String vmName) =>
+      _process.quickemu(['--vm', '$vmName.conf', '--export', '$vmName.tar.gz']);
 
   @override
   Future<ProcessResult> verifyImage(String isoPath) =>
-      _runner.run('chunkcheck', [isoPath]);
+      _process.chunkcheck(isoPath);
 
   @override
-  Future<ProcessResult> killVmProcess(String vmName) =>
-      _runner.run('killall', [vmName]);
+  Future<ProcessResult> killVmProcess(String vmName) {
+    // Kill by pid from <vm>/<vm>.pid — `killall <name>` matches by process
+    // name and can hit unrelated processes.
+    final pidFile = File('$vmName/$vmName.pid');
+    if (pidFile.existsSync()) {
+      final pid = pidFile.readAsStringSync().trim();
+      if (pid.isNotEmpty) return _runner.run('kill', ['-9', pid]);
+    }
+    return _runner.run('killall', [vmName]);
+  }
 
   @override
   Future<ProcessResult> openVmFolder(String vmName) =>
@@ -162,11 +144,16 @@ class QuickemuBackend implements VirtualizationBackend {
     required String user,
     required String sshPort,
   }) {
+    // The ssh user comes from the VM .conf and is interpolated into a
+    // `sh -c` string — reject anything that is not a plain login name.
+    final safeUser = RegExp(r'^[a-zA-Z_][a-zA-Z0-9_.-]*$').hasMatch(user)
+        ? user
+        : '';
     var sshArgs = <String>[
       'ssh',
       '-p',
       sshPort,
-      if (user.isEmpty) 'localhost' else '$user@localhost',
+      if (safeUser.isEmpty) 'localhost' else '$safeUser@localhost',
     ];
     // Set the arguments to execute the ssh command in the default terminal.
     // Strip the extension as x-terminal-emulator may point to a .wrapper
@@ -212,11 +199,11 @@ class QuickemuBackend implements VirtualizationBackend {
   }
 
   @override
-  Future<ProcessResult> diagnosticsReport() => _runner.run('quickreport', []);
+  Future<ProcessResult> diagnosticsReport() => _process.quickreport();
 
   @override
   Future<String> version() async {
-    final result = await _runner.run('quickemu', ['--version']);
+    final result = await _process.quickemu(['--version']);
     return result.exitCode == 0 ? '${result.stdout}'.trim() : '';
   }
 }

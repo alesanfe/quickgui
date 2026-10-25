@@ -1,3 +1,4 @@
+import 'package:quickgui/core/errors/failure.dart';
 import 'package:quickgui/core/result/result.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
 

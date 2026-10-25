@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:path/path.dart' as path;
+import 'package:quickgui/shared/providers/preferences_providers.dart';
 import 'package:quickgui/features/diagnostics/application/ports/host_probe.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
 import 'package:quickgui/features/machines/presentation/shared/new_vm_tag.dart';
@@ -16,8 +17,9 @@ import 'package:version/version.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quickgui/features/catalog/providers/catalog_providers.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
-import 'package:quickgui/features/settings/providers/settings_providers.dart';
-import 'package:quickgui/core/persistence/preferences_repository.dart';
+import 'package:quickgui/features/settings/application/ports/preferences_repository.dart';
+import 'package:quickgui/core/constants/preference_keys.dart';
+import 'package:quickgui/core/extensions/preferences_repository_x.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
 import 'package:quickgui/features/machines/application/delete_vm.dart';
 import 'package:quickgui/features/machines/application/inspect_vm.dart';
@@ -27,8 +29,9 @@ import 'package:quickgui/features/machines/application/stop_vm.dart';
 import 'package:quickgui/core/result/result.dart';
 import 'package:quickgui/features/machines/domain/vminfo.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_config_editor.dart';
+import 'package:quickgui/features/machines/presentation/details/vm_details_pane.dart';
 import 'package:quickgui/features/machines/domain/forms/vm_inputs.dart';
-import 'package:quickgui/features/machines/presentation/shared/validated_text_dialog.dart';
+import 'package:quickgui/shared/dialogs/validated_text_dialog.dart';
 import 'package:quickgui/features/machines/presentation/shared/vm_input_messages.dart';
 
 /// VM manager page.
@@ -51,6 +54,21 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
   String _vmSort = 'name';
   Map<String, String> _vmConfFiles = {};
   Map<String, VmInfo> _activeVms = {};
+  Map<String, String> _vmStates = {};
+  String? _selectedVm;
+  // Conf values for the details pane, cached in _getVms so no file IO
+  // happens inside build().
+  final Map<String, Map<String, String?>> _vmDetails = {};
+  static const _detailKeys = [
+    'guest_os',
+    'ram',
+    'cpu_cores',
+    'disk_size',
+    'boot',
+    'network',
+    'display',
+    'viewer',
+  ];
   bool _spicy = false;
   bool _hasKvm = true;
   Map<String, dynamic>? _backendCaps;
@@ -135,9 +153,12 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
   }
 
   /// Edits one or more `key="value"` entries of a VM .conf file.
+  /// [title] names the purpose of the dialog (e.g. 'Resources') so the
+  /// user sees a semantic heading instead of the raw .conf filename.
   Future<void> _editVmConfValues(
     String currentVm,
     Map<String, String> keys, {
+    required String title,
     Map<String, List<String>>? options,
   }) async {
     final confPath = _vmConfFiles[currentVm] ?? '$currentVm.conf';
@@ -157,32 +178,42 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('$currentVm.conf'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: keys.entries.map((e) {
-            final opts = options?[e.key];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: opts == null
-                  ? TextField(
-                      controller: controllers[e.key],
-                      decoration: InputDecoration(labelText: e.value),
-                    )
-                  : DropdownButtonFormField<String>(
-                      initialValue: opts.contains(controllers[e.key]!.text)
-                          ? controllers[e.key]!.text
-                          : opts.first,
-                      decoration: InputDecoration(labelText: e.value),
-                      items: opts
-                          .map(
-                            (o) => DropdownMenuItem(value: o, child: Text(o)),
-                          )
-                          .toList(),
-                      onChanged: (v) => controllers[e.key]!.text = v ?? '',
-                    ),
-            );
-          }).toList(),
+        title: Text('$title — $currentVm'),
+        content: SizedBox(
+          width: double.maxFinite,
+          // Scrollable: the 16-field "Settings (all)" dialog must stay
+          // usable at the minimum window height (~800px).
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: keys.entries.map((e) {
+                final opts = options?[e.key];
+                final current = controllers[e.key]!.text;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: opts == null
+                      ? TextField(
+                          controller: controllers[e.key],
+                          decoration: InputDecoration(labelText: e.value),
+                        )
+                      : DropdownButtonFormField<String>(
+                          // Keep the current value as an extra item when it
+                          // is not one of the known options — picking
+                          // opts.first would silently rewrite the .conf on OK.
+                          initialValue: current.isEmpty ? null : current,
+                          decoration: InputDecoration(labelText: e.value),
+                          items: {...opts, if (current.isNotEmpty) current}
+                              .map(
+                                (o) =>
+                                    DropdownMenuItem(value: o, child: Text(o)),
+                              )
+                              .toList(),
+                          onChanged: (v) => controllers[e.key]!.text = v ?? '',
+                        ),
+                );
+              }).toList(),
+            ),
+          ),
         ),
         actions: [
           TextButton(
@@ -213,112 +244,243 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
     await file.writeAsString('${lines.join('\n')}\n');
   }
 
+  /// 'YYYY-MM-DD HH:MM' from the contract's unix timestamp; '' when
+  /// the backend did not provide one.
+  static String _formatSnapshotDate(dynamic date) {
+    if (date is! num) return '';
+    final dt = DateTime.fromMillisecondsSinceEpoch((date * 1000).round())
+        .toLocal();
+    final s = dt.toString();
+    return s.length >= 16 ? s.substring(0, 16) : s;
+  }
+
   void _manageSnapshot(BuildContext context, String currentVm) async {
     // Expose quickemu's --snapshot apply/create/delete/info actions.
+    // Load the existing snapshots first (v1 vm-snapshots contract) so
+    // the dialog can list them like VirtualBox/Boxes do.
+    final confPath = _vmConfFiles[currentVm] ?? '$currentVm.conf';
+    final snapshots = await _backend.listSnapshots(confPath);
+    if (!context.mounted) return;
     final tagController = TextEditingController();
-    await showDialog<String>(
+    final selection = await showDialog<({String action, String tag})>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.t('Snapshots {0}', args: [currentVm])),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: tagController,
-              decoration: InputDecoration(hintText: context.t('Snapshot tag')),
+      builder: (context) => ValueListenableBuilder<TextEditingValue>(
+        valueListenable: tagController,
+        builder: (context, value, _) {
+          final tag = value.text.trim();
+          return AlertDialog(
+            title: Text(context.t('Snapshots {0}', args: [currentVm])),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (snapshots.isNotEmpty) ...[
+                  Text(
+                    context.t('Existing snapshots'),
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  const SizedBox(height: 4),
+                  // Fixed size: a shrink-wrap ListView breaks the
+                  // AlertDialog intrinsic-dimension pass.
+                  SizedBox(
+                    height: snapshots.length.clamp(1, 4) * 48.0,
+                    width: 360,
+                    child: ListView(
+                      children: [
+                        for (final s in snapshots)
+                          ListTile(
+                            dense: true,
+                            leading: const Icon(Icons.history),
+                            title: Text('${s['name']}'),
+                            subtitle: Text(_formatSnapshotDate(s['date'])),
+                            onTap: () => tagController.text = '${s['name']}',
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+                TextField(
+                  controller: tagController,
+                  decoration: InputDecoration(
+                    hintText: context.t('Snapshot tag'),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(context.t('Cancel')),
+              ),
+              TextButton(
+                onPressed: () =>
+                    Navigator.of(context).pop((action: 'info', tag: '')),
+                child: Text(context.t('Info')),
+              ),
+              TextButton(
+                onPressed: tag.isEmpty
+                    ? null
+                    : () =>
+                          Navigator.of(context)
+                              .pop((action: 'create', tag: tag)),
+                child: Text(context.t('Create')),
+              ),
+              TextButton(
+                onPressed: tag.isEmpty
+                    ? null
+                    : () =>
+                          Navigator.of(context)
+                              .pop((action: 'apply', tag: tag)),
+                child: Text(context.t('Apply')),
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.error,
+                ),
+                onPressed: tag.isEmpty
+                    ? null
+                    : () =>
+                          Navigator.of(context)
+                              .pop((action: 'delete', tag: tag)),
+                child: Text(context.t('Delete')),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+    if (selection == null) return;
+    // Applying a snapshot replaces the current disk state and deleting
+    // removes it permanently — both need an explicit confirmation.
+    if (selection.action == 'apply' || selection.action == 'delete') {
+      if (!context.mounted) return;
+      final isDelete = selection.action == 'delete';
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(
+            isDelete
+                ? context.t('Delete snapshot {0}', args: [selection.tag])
+                : context.t('Apply snapshot {0}', args: [selection.tag]),
+          ),
+          content: Text(
+            isDelete
+                ? context.t(
+                    'The snapshot {0} of {1} will be permanently deleted. This cannot be undone.',
+                    args: [selection.tag, currentVm],
+                  )
+                : context.t(
+                    'The current state of {0} will be replaced by the snapshot {1}. This cannot be undone.',
+                    args: [currentVm, selection.tag],
+                  ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(context.t('Cancel')),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.error,
+              ),
+              onPressed: () => Navigator.of(context).pop(true),
+              child: isDelete
+                  ? Text(context.t('Delete'))
+                  : Text(context.t('Apply')),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop('info'),
-            child: Text(context.t('Info')),
-          ),
-          TextButton(
-            onPressed: () =>
-                Navigator.of(context)
-                    .pop('create ${tagController.text.trim()}'),
-            child: Text(context.t('Create')),
-          ),
-          TextButton(
-            onPressed: () =>
-                Navigator.of(context).pop('apply ${tagController.text.trim()}'),
-            child: Text(context.t('Apply')),
-          ),
-          TextButton(
-            onPressed: () =>
-                Navigator.of(context)
-                    .pop('delete ${tagController.text.trim()}'),
-            child: Text(context.t('Delete')),
-          ),
-        ],
-      ),
-    ).then((action) async {
-      if (action == null || action.isEmpty) return;
-      final parts = action.split(' ');
-      final command = [
-        'quickemu',
-        '--vm',
-        '$currentVm.conf',
-        '--snapshot',
-        ...parts.where((p) => p.isNotEmpty),
-      ];
-      final results = await _backend.runAction(command.sublist(1));
-      if (!mounted) return;
-      _showProcessOutput([results]);
-    });
+      );
+      if (confirmed != true) return;
+    }
+    final results = await _backend.runAction([
+      '--vm',
+      confPath,
+      '--snapshot',
+      selection.action,
+      if (selection.tag.isNotEmpty) selection.tag,
+    ]);
+    if (!mounted) return;
+    _showProcessOutput([results]);
   }
 
   void _confirmDeleteVm(BuildContext context, String currentVm) async {
     // Preview what will be deleted via the backend's safe delete plan.
     final planResult = await DeleteVm(_backend).plan(currentVm);
-    final planText = switch (planResult) {
+    var planText = switch (planResult) {
       Ok<List<String>>(value: final v) when v.isNotEmpty => v.join('\n'),
       _ => '',
     };
+    if (planText.isEmpty) {
+      // Backends without a delete plan still need to show exactly what is
+      // about to be removed: the .conf plus every file in the VM folder.
+      final paths = <String>[
+        _vmConfFiles[currentVm] ?? '$currentVm.conf',
+        if (Directory(currentVm).existsSync())
+          ...Directory(currentVm).listSync(recursive: true).map((e) => e.path),
+      ]..sort();
+      planText = paths.join('\n');
+    }
     if (!context.mounted) return;
     showDialog<String?>(
       context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: Text(context.t('Delete {0}', args: [currentVm])),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              context.t(
-                'You are about to delete {0}. This cannot be undone. Would you like to delete the disk image but keep the configuration, or delete the whole VM?',
-                args: [currentVm],
+      builder: (BuildContext context) {
+        final error = Theme.of(context).colorScheme.error;
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: error),
+              const SizedBox(width: 8),
+              Flexible(child: Text(context.t('Delete {0}', args: [currentVm]))),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                context.t(
+                  'You are about to delete {0}. This cannot be undone. Would you like to delete the disk image but keep the configuration, or delete the whole VM?',
+                  args: [currentVm],
+                ),
               ),
+              const SizedBox(height: 8),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 160),
+                child: SingleChildScrollView(
+                  child: Text(
+                    planText,
+                    style: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              child: Text(context.t('Cancel')),
+              onPressed: () => Navigator.pop(context, 'cancel'),
             ),
-            const SizedBox(height: 8),
-            if (planText.isNotEmpty)
-              Text(
-                planText,
-                style: const TextStyle(fontFamily: 'monospace', fontSize: 11),
-              )
-            else
-              Text(
-                _vmConfFiles[currentVm] ?? '$currentVm.conf',
-                style: const TextStyle(fontFamily: 'monospace', fontSize: 11),
+            TextButton(
+              style: TextButton.styleFrom(foregroundColor: error),
+              onPressed: () => Navigator.pop(context, 'disk'),
+              child: Text(context.t('Delete disk image')),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: error,
+                foregroundColor: Theme.of(context).colorScheme.onError,
               ),
+              onPressed: () => Navigator.pop(context, 'vm'),
+              child: Text(context.t('Delete whole VM')),
+            ),
           ],
-        ),
-        actions: [
-          TextButton(
-            child: Text(context.t('Cancel')),
-            onPressed: () => Navigator.pop(context, 'cancel'),
-          ),
-          TextButton(
-            child: Text(context.t('Delete disk image')),
-            onPressed: () => Navigator.pop(context, 'disk'),
-          ),
-          TextButton(
-            child: Text(context.t('Delete whole VM')),
-            onPressed: () => Navigator.pop(context, 'vm'),
-          ),
-        ],
-      ),
+        );
+      },
     ).then((result) async {
       result = result ?? 'cancel';
       if (result != 'cancel') {
@@ -355,13 +517,148 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
     _getVms();
   }
 
+  Future<void> _startVm(String currentVm) async {
+    final Map<String, VmInfo> activeVms = _activeVms;
+    final List<String> command = ['quickemu', '--vm', '$currentVm.conf'];
+    // Respect a display= setting in the .conf; fall back
+    // to the SPICE toggle.
+    final confDisplay = ref
+        .read(vmConfigStoreProvider)
+        .read(_vmConfFiles[currentVm] ?? '$currentVm.conf', 'display');
+    if (confDisplay != null && confDisplay.isNotEmpty) {
+      if (confDisplay != 'none') {
+        command.addAll(['--display', confDisplay]);
+      }
+    } else if (_spicy) {
+      command.addAll(['--display', 'spice']);
+    }
+    final startResult = await StartVm(_backend)(
+      currentVm,
+      display: command.contains('--display')
+          ? command[command.indexOf('--display') + 1]
+          : null,
+    );
+    if (!mounted) return;
+    if (startResult is Err) {
+      _showProcessOutput([
+        ProcessResult(0, 1, '', startResult.failure.message),
+      ]);
+    }
+    final VmInfo info = _parseVmInfo(currentVm);
+    activeVms[currentVm] = info;
+    setState(() {
+      _activeVms = activeVms;
+      _vmStates[currentVm] = 'running';
+    });
+  }
+
+  Future<void> _stopVm(String currentVm) async {
+    final choice = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        final error = Theme.of(context).colorScheme.error;
+        return AlertDialog(
+          title: Text(context.t('Stop {0}', args: [currentVm])),
+          content: Text(
+            context.t(
+              'Shut down {0} gracefully, or force it to stop? Forcing discards unsaved changes in the guest.',
+              args: [currentVm],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.pop(context, 'cancel'),
+              child: Text(context.t('Cancel')),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(foregroundColor: error),
+              onPressed: () => Navigator.pop(context, 'kill'),
+              child: Text(context.t('Force stop')),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, 'shutdown'),
+              child: Text(context.t('Shut down')),
+            ),
+          ],
+        );
+      },
+    );
+    if (choice == 'shutdown') {
+      // ACPI powerdown via the QEMU monitor socket; the
+      // VM keeps running until the guest OS finishes.
+      final r = await _backend.runAction([
+        '--vm',
+        _vmConfFiles[currentVm] ?? '$currentVm.conf',
+        '--monitor-cmd',
+        'system_powerdown',
+      ]);
+      if (!mounted) return;
+      _showProcessOutput([r]);
+    } else if (choice == 'kill') {
+      // If Quickemu is newer than 4.9.6, use the new --kill option
+      // which is macOS compatible.
+      final quickemuVersion = Version.parse(await _backend.version());
+      if (quickemuVersion >= Version(4, 9, 6)) {
+        StopVm(_backend)(currentVm);
+      } else {
+        unawaited(_backend.killVmProcess(currentVm));
+      }
+      setState(() {
+        _activeVms.remove(currentVm);
+        _vmStates[currentVm] = 'stopped';
+      });
+    }
+  }
+
+  void _editVmSettings(String currentVm) {
+    _editVmConfValues(
+      currentVm,
+      title: context.t('Settings (all)'),
+      {
+        'guest_os': context.t('Guest OS'),
+        'ram': context.t('RAM'),
+        'cpu_cores': context.t('CPU cores'),
+        'disk_size': context.t('Disk size'),
+        'boot': context.t('Boot mode'),
+        'network': context.t('Network'),
+        'macaddr': context.t('MAC address'),
+        'secureboot': context.t('Secure boot'),
+        'tpm': context.t('TPM'),
+        'usb_devices': context.t('USB devices'),
+        'gpu_passthrough': context.t('GPU passthrough'),
+        'port_forwards': context.t('Port forwards'),
+        'public_dir': context.t('Shared folder'),
+        'viewer': context.t('Display viewer'),
+        'display': context.t('Display'),
+        'sound': context.t('Sound'),
+      },
+      options: {
+        'boot': ['efi', 'legacy'],
+        'network': ['nat', 'restrict', 'bridged', 'none'],
+        'secureboot': ['on', 'off'],
+        'tpm': ['on', 'off'],
+        'viewer': ['spicy', 'remote-viewer', 'none'],
+      },
+    );
+  }
+
   void _resizeVmDisk(BuildContext context, String currentVm) async {
+    // Prefill with the current size so the user knows what they grow from.
+    final currentSize =
+        ref
+            .read(vmConfigStoreProvider)
+            .read(_vmConfFiles[currentVm] ?? '$currentVm.conf', 'disk_size') ??
+        '64G';
+    if (!context.mounted) return;
     final size = await showValidatedTextDialog<SizeError>(
       context: context,
       title: context.t('Resize disk of {0}', args: [currentVm]),
-      label: context.t('New size (e.g. 64G)'),
+      label: context.t(
+        'New size (current: {0}, grow only)',
+        args: [currentSize],
+      ),
       confirmLabel: context.t('Resize'),
-      initialValue: '64G',
+      initialValue: currentSize,
       dirty: SizeInput.dirty,
       message: (context, e) => context.sizeError(e),
     );
@@ -388,7 +685,7 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('quickemu'),
+        title: Text(context.t('Command output')),
         content: SizedBox(
           width: double.maxFinite,
           child: SingleChildScrollView(
@@ -443,6 +740,7 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
     final List<String> currentVms = [];
     final Map<String, String> vmConfFiles = {};
     final Map<String, VmInfo> activeVms = {};
+    final Map<String, String> vmStates = {};
 
     // Prefer the structured backend contract when the installed
     // quickemu advertises it; fall back to the pid-file scan otherwise.
@@ -461,12 +759,15 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
       }
     }
 
-    await for (final entity in Directory.current.list()) {
+    // listSync instead of the async stream: the sync call also works inside
+    // testWidgets/FakeAsync, where real async IO never gets drained.
+    for (final entity in Directory.current.listSync()) {
       if ((entity.path.endsWith('.conf')) && (_isValidConf(entity.path))) {
         final String name = path.basenameWithoutExtension(entity.path);
         currentVms.add(name);
         vmConfFiles[name] = entity.path;
         var running = backendStates[name] == 'running';
+        var state = backendStates[name] ?? 'stopped';
         if (backendStates.isEmpty) {
           final File pidFile = File('$name/$name.pid');
           if (pidFile.existsSync()) {
@@ -475,6 +776,11 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
             // a portable way to check if a process is running on macOS and Linux.
             final ProcessResult result = Process.runSync('kill', ['-0', pid]);
             running = result.exitCode == 0;
+            // A pid file with a dead process means the VM crashed or was
+            // killed outside the app — surface it instead of "stopped".
+            state = running ? 'running' : 'stale';
+          } else {
+            state = 'stopped';
           }
         }
         if (running) {
@@ -484,6 +790,11 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
             activeVms[name] = _parseVmInfo(name);
           }
         }
+        vmStates[name] = state;
+        final store = ref.read(vmConfigStoreProvider);
+        _vmDetails[name] = {
+          for (final k in _detailKeys) k: store.read(entity.path, k),
+        };
       }
     }
     // Surface VMs the backend knows about that our scan missed
@@ -503,6 +814,11 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
       _currentVms = currentVms;
       _vmConfFiles = vmConfFiles;
       _activeVms = activeVms;
+      _vmStates = vmStates;
+      _vmDetails.removeWhere((name, _) => !currentVms.contains(name));
+      if (_selectedVm == null || !currentVms.contains(_selectedVm)) {
+        _selectedVm = currentVms.isEmpty ? null : currentVms.first;
+      }
     });
   }
 
@@ -539,14 +855,16 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
     widgetList.addAll([
       Padding(
         padding: const EdgeInsets.symmetric(vertical: 16.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 8,
+          runSpacing: 4,
           children: [
             Text(
               "${context.t('Directory where the machines are stored')}:",
               style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
-            const SizedBox(width: 8),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 foregroundColor: Theme.of(context).colorScheme.onSurface,
@@ -650,10 +968,29 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
     }
     return <Widget>[
       ListTile(
+        selected: currentVm == _selectedVm,
+        onTap: () => setState(() => _selectedVm = currentVm),
         leading: osIcon ?? const Icon(Icons.computer, size: 32),
+        subtitle: Text(
+          switch (_vmStates[currentVm] ?? 'stopped') {
+            'running' => context.t('Running'),
+            'paused' => context.t('Paused'),
+            'stale' => context.t('Stale (process exited unexpectedly)'),
+            _ => context.t('Stopped'),
+          },
+          style: TextStyle(
+            fontSize: 12,
+            color: switch (_vmStates[currentVm]) {
+              'running' => Colors.green,
+              'paused' => Theme.of(context).colorScheme.tertiary,
+              'stale' => Theme.of(context).colorScheme.error,
+              _ => Theme.of(context).colorScheme.onSurfaceVariant,
+            },
+          ),
+        ),
         title: Row(
           children: [
-            Text(currentVm),
+            Flexible(child: Text(currentVm, overflow: TextOverflow.ellipsis)),
             if (newVM) const NewVmTag() else const SizedBox.shrink(),
             if (File('$currentVm/virtio-win.iso').existsSync() ||
                 File('$currentVm/unattended.iso').existsSync())
@@ -674,48 +1011,10 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                 color: active ? Colors.green : buttonColor,
                 semanticLabel: active ? 'Running' : 'Run',
               ),
-              onPressed: active
-                  ? null
-                  : () async {
-                      final Map<String, VmInfo> activeVms = _activeVms;
-                      final List<String> command = [
-                        'quickemu',
-                        '--vm',
-                        '$currentVm.conf',
-                      ];
-                      // Respect a display= setting in the .conf; fall back
-                      // to the SPICE toggle.
-                      final confDisplay = ref
-                          .read(vmConfigStoreProvider)
-                          .read(
-                            _vmConfFiles[currentVm] ?? '$currentVm.conf',
-                            'display',
-                          );
-                      if (confDisplay != null && confDisplay.isNotEmpty) {
-                        if (confDisplay != 'none') {
-                          command.addAll(['--display', confDisplay]);
-                        }
-                      } else if (_spicy) {
-                        command.addAll(['--display', 'spice']);
-                      }
-                      final startResult = await StartVm(_backend)(
-                        currentVm,
-                        display: command.contains('--display')
-                            ? command[command.indexOf('--display') + 1]
-                            : null,
-                      );
-                      if (!mounted) return;
-                      if (startResult is Err) {
-                        _showProcessOutput([
-                          ProcessResult(0, 1, '', startResult.failure.message),
-                        ]);
-                      }
-                      final VmInfo info = _parseVmInfo(currentVm);
-                      activeVms[currentVm] = info;
-                      setState(() {
-                        _activeVms = activeVms;
-                      });
-                    },
+              tooltip: active
+                  ? context.t('Running')
+                  : context.t('Start the virtual machine'),
+              onPressed: active ? null : () => _startVm(currentVm),
             ),
             IconButton(
               icon: Icon(
@@ -723,53 +1022,17 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                 color: active ? Colors.red : null,
                 semanticLabel: active ? 'Stop' : 'Not running',
               ),
-              onPressed: !active
-                  ? null
-                  : () {
-                      showDialog<bool>(
-                        context: context,
-                        builder: (BuildContext context) => AlertDialog(
-                          title: Text(context.t('Stop The Virtual Machine?')),
-                          content: Text(
-                            context.t(
-                              'You are about to terminate the virtual machine {0}',
-                              args: [currentVm],
-                            ),
-                          ),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, false),
-                              child: Text(context.t('Cancel')),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, true),
-                              child: Text(context.t('OK')),
-                            ),
-                          ],
-                        ),
-                      ).then((result) async {
-                        result = result ?? false;
-                        if (result) {
-                          // If Quickemu is newer than 4.9.6, use the new --kill option
-                          // which is macOS compatible.
-                          final quickemuVersion = Version.parse(
-                            await _backend.version(),
-                          );
-                          if (quickemuVersion >= Version(4, 9, 6)) {
-                            StopVm(_backend)(currentVm);
-                          } else {
-                            unawaited(_backend.killVmProcess(currentVm));
-                          }
-                          setState(() {
-                            _activeVms.remove(currentVm);
-                          });
-                        }
-                      });
-                    },
+              tooltip: active
+                  ? context.t('Shut down or stop the virtual machine')
+                  : context.t('Not running'),
+              onPressed: !active ? null : () => _stopVm(currentVm),
             ),
             PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert, semanticLabel: 'More actions'),
               tooltip: context.t('More actions'),
+              // Keep the menu inside the window: with ~17 items it exceeds
+              // 800px and traps "Delete" below the fold.
+              constraints: const BoxConstraints(maxHeight: 560),
               onSelected: (choice) async {
                 switch (choice) {
                   case 'config':
@@ -787,17 +1050,18 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                   case 'shared':
                     _editVmConfValues(currentVm, {
                       'public_dir': context.t('Shared folder'),
-                    });
+                    }, title: context.t('Shared folder'));
                   case 'resources':
                     _editVmConfValues(currentVm, {
                       'ram': context.t('RAM (e.g. 4G)'),
                       'cpu_cores': context.t('CPU cores'),
                       'disk_size': context.t('Disk size (e.g. 64G)'),
-                    });
+                    }, title: context.t('Resources'));
                   case 'display':
                     _editVmConfValues(
                       currentVm,
                       {'viewer': context.t('Display viewer')},
+                      title: context.t('Display viewer'),
                       options: {
                         'viewer': ['spicy', 'remote-viewer', 'none'],
                       },
@@ -812,6 +1076,7 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                         'secureboot': context.t('Secure boot'),
                         'tpm': context.t('TPM'),
                       },
+                      title: context.t('Boot & network'),
                       options: {
                         'boot': ['efi', 'legacy'],
                         'network': ['nat', 'restrict', 'bridged', 'none'],
@@ -826,7 +1091,7 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                       'port_forwards': context.t('Port forwards'),
                       'sound': context.t('Sound'),
                       'display': context.t('Display'),
-                    });
+                    }, title: context.t('Devices'));
                   case 'pause':
                     await _backend.runAction([
                       '--vm',
@@ -856,6 +1121,40 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                     ]);
                     if (!context.mounted) return;
                     _showProcessOutput([r]);
+                  case 'reset':
+                    // QEMU monitor `system_reset` — equivalent to pressing
+                    // the reset button: abrupt reboot, unsaved guest state
+                    // may be lost, so confirm first.
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text(context.t('Reset {0}?', args: [currentVm])),
+                        content: Text(
+                          context.t(
+                            'The virtual machine reboots immediately. Unsaved guest state may be lost.',
+                          ),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: Text(context.t('Cancel')),
+                          ),
+                          FilledButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: Text(context.t('Reset')),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirm != true) return;
+                    final resetResult = await _backend.runAction([
+                      '--vm',
+                      _vmConfFiles[currentVm] ?? '$currentVm.conf',
+                      '--monitor-cmd',
+                      'system_reset',
+                    ]);
+                    if (!context.mounted) return;
+                    _showProcessOutput([resetResult]);
                   case 'doctor':
                     final r = await _backend.runAction([
                       '--vm',
@@ -869,38 +1168,42 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                   case 'clone':
                     _cloneVm(context, currentVm);
                   case 'export':
+                    // Export writes <vm>.tar.gz in the working directory —
+                    // confirm before overwriting an existing archive.
+                    if (File('$currentVm.tar.gz').existsSync()) {
+                      final overwrite = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text(
+                            context.t(
+                              'Replace {0}?',
+                              args: ['$currentVm.tar.gz'],
+                            ),
+                          ),
+                          content: Text(
+                            context.t(
+                              'The file already exists and will be overwritten.',
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: Text(context.t('Cancel')),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: Text(context.t('Replace')),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (overwrite != true) return;
+                    }
                     final r = await _backend.exportVm(currentVm);
                     if (!context.mounted) return;
                     _showProcessOutput([r]);
                   case 'settings':
-                    _editVmConfValues(
-                      currentVm,
-                      {
-                        'guest_os': context.t('Guest OS'),
-                        'ram': context.t('RAM'),
-                        'cpu_cores': context.t('CPU cores'),
-                        'disk_size': context.t('Disk size'),
-                        'boot': context.t('Boot mode'),
-                        'network': context.t('Network'),
-                        'macaddr': context.t('MAC address'),
-                        'secureboot': context.t('Secure boot'),
-                        'tpm': context.t('TPM'),
-                        'usb_devices': context.t('USB devices'),
-                        'gpu_passthrough': context.t('GPU passthrough'),
-                        'port_forwards': context.t('Port forwards'),
-                        'public_dir': context.t('Shared folder'),
-                        'viewer': context.t('Display viewer'),
-                        'display': context.t('Display'),
-                        'sound': context.t('Sound'),
-                      },
-                      options: {
-                        'boot': ['efi', 'legacy'],
-                        'network': ['nat', 'restrict', 'bridged', 'none'],
-                        'secureboot': ['on', 'off'],
-                        'tpm': ['on', 'off'],
-                        'viewer': ['spicy', 'remote-viewer', 'none'],
-                      },
-                    );
+                    _editVmSettings(currentVm);
                   case 'verify':
                     final iso = ref
                         .read(vmConfigStoreProvider)
@@ -1040,6 +1343,16 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),
+                if (active)
+                  PopupMenuItem(
+                    value: 'reset',
+                    child: ListTile(
+                      leading: const Icon(Icons.restart_alt),
+                      title: Text(context.t('Reset')),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
                 PopupMenuItem(
                   value: 'doctor',
                   child: ListTile(
@@ -1089,8 +1402,16 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                 PopupMenuItem(
                   value: 'delete',
                   child: ListTile(
-                    leading: const Icon(Icons.delete),
-                    title: Text(context.t('Delete')),
+                    leading: Icon(
+                      Icons.delete,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    title: Text(
+                      context.t('Delete'),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
                     dense: true,
                     contentPadding: EdgeInsets.zero,
                   ),
@@ -1236,7 +1557,39 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
           ),
         ],
       ),
-      body: _buildVmList(),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final vm = _selectedVm;
+          // Persistent details pane (VISTA S-01): at desktop widths it
+          // shows the selected VM summary like VirtualBox/virt-manager;
+          // under ~1000px the list keeps the full width as before.
+          if (constraints.maxWidth < 1000 || vm == null) {
+            return _buildVmList();
+          }
+          final state = _vmStates[vm] ?? 'stopped';
+          final active = state == 'running' || state == 'paused';
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(flex: 5, child: _buildVmList()),
+              const VerticalDivider(width: 1),
+              Expanded(
+                flex: 6,
+                child: VmDetailsPane(
+                  name: vm,
+                  state: state,
+                  conf: _vmDetails[vm] ?? const {},
+                  onStart: active ? null : () => _startVm(vm),
+                  onStop: active ? () => _stopVm(vm) : null,
+                  onConfigure: () => _editVmSettings(vm),
+                  onSnapshots: () => _manageSnapshot(context, vm),
+                  onDelete: () => _confirmDeleteVm(context, vm),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 }

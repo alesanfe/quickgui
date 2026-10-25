@@ -3,10 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
+import 'package:quickgui/shared/providers/preferences_providers.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
-import 'package:quickgui/features/settings/providers/settings_providers.dart';
-import 'package:quickgui/core/persistence/preferences_repository.dart';
+import 'package:quickgui/core/constants/preference_keys.dart';
+import 'package:quickgui/core/extensions/preferences_repository_x.dart';
 import 'package:tuple/tuple.dart';
 
 import 'package:quickgui/features/catalog/domain/operating_system.dart';
@@ -32,6 +33,7 @@ class _HomePageButtonGroupState extends ConsumerState<HomePageButtonGroup> {
   OperatingSystem? _selectedOperatingSystem;
   Version? _selectedVersion;
   Option? _selectedOption;
+  bool _checking = false;
 
   @override
   Widget build(BuildContext context) {
@@ -99,6 +101,7 @@ class _HomePageButtonGroupState extends ConsumerState<HomePageButtonGroup> {
         DownloaderPageButton(
           label: context.t('Download'),
           text: context.t('Download'),
+          busy: _checking,
           onPressed: (_selectedVersion == null)
               ? null
               : () async {
@@ -179,7 +182,9 @@ class _HomePageButtonGroupState extends ConsumerState<HomePageButtonGroup> {
                       }
                     }
                     // Verify the image is still downloadable before
-                    // starting the download page.
+                    // starting the download page. Show progress on the
+                    // button — the check does a network round-trip.
+                    setState(() => _checking = true);
                     final check = await ref.read(backendProvider).runQuickget([
                       '--check',
                       _selectedOperatingSystem!.code,
@@ -188,6 +193,7 @@ class _HomePageButtonGroupState extends ConsumerState<HomePageButtonGroup> {
                           _selectedOption!.option.isNotEmpty)
                         _selectedOption!.option,
                     ]);
+                    if (mounted) setState(() => _checking = false);
                     if (!context.mounted) return;
                     if (check.exitCode != 0) {
                       showDialog<void>(
@@ -209,7 +215,10 @@ class _HomePageButtonGroupState extends ConsumerState<HomePageButtonGroup> {
                       );
                       return;
                     }
-                    final custom = await _customizeDialog(context);
+                    final custom = await _customizeDialog(
+                      context,
+                      workingDirectory ?? Directory.current.path,
+                    );
                     if (!context.mounted || custom == null) return;
                     Navigator.of(context).push(
                       MaterialPageRoute<void>(
@@ -249,108 +258,10 @@ class _HomePageButtonGroupState extends ConsumerState<HomePageButtonGroup> {
     );
   }
 
-  void showLoadingIndicator({String text = ''}) {
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => PopScope(
-        canPop: false,
-        child: AlertDialog(
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(8.0)),
-          ),
-          backgroundColor: Colors.black87,
-          content: SizedBox(
-            height: 200,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 32),
-                  child: Text(
-                    context.t('Downloading...'),
-                    style: Theme.of(context).textTheme.bodyLarge
-                        ?.copyWith(color: Colors.white),
-                  ),
-                ),
-                const CircularProgressIndicator(),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 32),
-                  child: Text(
-                    'Target : ${Directory.current.absolute.path}',
-                    style: Theme.of(context).textTheme.bodyLarge
-                        ?.copyWith(color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void hideLoadingIndicator() {
-    Navigator.of(context).pop();
-  }
-
-  void showDoneDialog({
-    required String operatingSystem,
-    required String version,
-  }) {
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => PopScope(
-        canPop: false,
-        child: AlertDialog(
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(8.0)),
-          ),
-          backgroundColor: Colors.black87,
-          content: SizedBox(
-            height: 200,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 32),
-                  child: Text(
-                    context.t('Done !'),
-                    style: Theme.of(context).textTheme.bodyLarge
-                        ?.copyWith(color: Colors.white),
-                  ),
-                ),
-                Text(
-                  context.t(
-                    'Now run {0} to start the VM',
-                    args: ["quickemu --vm $operatingSystem-$version"],
-                  ),
-                  style: Theme.of(context).textTheme.bodyLarge
-                      ?.copyWith(color: Colors.white),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 32),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Text(
-                      'Dismiss',
-                      style: Theme.of(context).textTheme.bodyLarge
-                          ?.copyWith(color: Colors.white),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<Map<String, String>?> _customizeDialog(BuildContext context) {
+  Future<Map<String, String>?> _customizeDialog(
+    BuildContext context,
+    String workingDirectory,
+  ) {
     var ram = const SizeInput.pure('4G', true);
     var cores = const CpuCoresInput.pure();
     var disk = const SizeInput.pure('64G', true);
@@ -363,7 +274,24 @@ class _HomePageButtonGroupState extends ConsumerState<HomePageButtonGroup> {
             title: Text(context.t('Customise VM (optional)')),
             content: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Recap the pending download so the user confirms what
+                // they selected before customising resources.
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(
+                    '${_selectedOperatingSystem!.name} ${_selectedVersion!.version}${(_selectedOption?.option ?? '').isNotEmpty ? ' (${_selectedOption!.option})' : ''}',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(
+                    context.t('Destination: {0}', args: [workingDirectory]),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
                 TextFormField(
                   initialValue: ram.value,
                   onChanged: (v) =>

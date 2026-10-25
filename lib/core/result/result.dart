@@ -1,12 +1,8 @@
-/// Minimal Result/Failure types used by application use cases so the
-/// presentation layer receives typed errors instead of raw exit codes.
-class Failure {
-  const Failure(this.code, this.message, {this.detail});
+import 'package:quickgui/core/errors/failure.dart';
 
-  final String code;
-  final String message;
-  final String? detail;
-}
+/// Minimal Result type used by application use cases so the
+/// presentation layer receives typed errors instead of raw exit codes.
+/// [Failure] lives in `core/errors/failure.dart`.
 
 sealed class Result<T> {
   const Result();

@@ -112,7 +112,10 @@ class _VersionSelectionState extends State<VersionSelection> {
                         });
                   } else {
                     Navigator.of(context).pop(
-                      Tuple2<Version, Option?>(item, list[index].options[0]),
+                      Tuple2<Version, Option?>(
+                        item,
+                        item.options.isEmpty ? null : item.options.first,
+                      ),
                     );
                   }
                 },

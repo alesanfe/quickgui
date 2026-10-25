@@ -6,15 +6,16 @@ import 'package:desktop_notifications/desktop_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
+import 'package:quickgui/shared/providers/preferences_providers.dart';
 import 'package:quickgui/features/downloads/presentation/manage_machines_after_download_button.dart';
 import 'package:path/path.dart' as p;
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
-import 'package:quickgui/core/operations/operation_state.dart';
+import 'package:quickgui/shared/models/operation_state.dart';
 import 'package:quickgui/core/result/result.dart';
 import 'package:quickgui/features/downloads/application/cancel_download.dart';
 import 'package:quickgui/features/downloads/application/download_image.dart';
-import 'package:quickgui/features/settings/providers/settings_providers.dart';
-import 'package:quickgui/core/persistence/preferences_repository.dart';
+import 'package:quickgui/core/constants/preference_keys.dart';
+import 'package:quickgui/core/extensions/preferences_repository_x.dart';
 
 import 'package:quickgui/features/catalog/domain/operating_system.dart';
 import 'package:quickgui/features/catalog/domain/option.dart';
@@ -109,9 +110,19 @@ class _DownloaderState extends ConsumerState<Downloader> {
       (a, b) => b.statSync().modified.compareTo(a.statSync().modified),
     );
 
-    // Update the prefNewlyInstalledVms with the newest folder
-    if (folders.isNotEmpty) {
-      final String newestFolder = p.basename(folders.first.path);
+    // Update the prefNewlyInstalledVms with the downloaded VM. Prefer the
+    // conventional quickget folder name (<os>-<release>) over mtime, which
+    // can pick the wrong directory when other folders were touched.
+    final expected = '${widget.operatingSystem.code}-${widget.version.version}';
+    Directory? newest = folders.isEmpty ? null : folders.first;
+    for (final f in folders) {
+      if (p.basename(f.path) == expected) {
+        newest = f;
+        break;
+      }
+    }
+    if (newest != null) {
+      final String newestFolder = p.basename(newest.path);
 
       final prefs = ref.read(preferencesRepositoryProvider);
       final List<String> newVmNames =
@@ -132,7 +143,7 @@ class _DownloaderState extends ConsumerState<Downloader> {
         .then((process) {
           _emit(const OperationState.running());
           process.stdout.transform(utf8.decoder).forEach(_captureOutput);
-          if (widget.option!.downloader != 'zsync') {
+          if (widget.option?.downloader != 'zsync') {
             process.stderr.transform(utf8.decoder).forEach((chunk) {
               _captureOutput(chunk);
               parseCurlProgress(chunk);
@@ -155,15 +166,19 @@ class _DownloaderState extends ConsumerState<Downloader> {
             addNewestVmToPrefs();
             final prefs = ref.read(preferencesRepositoryProvider);
             final history =
-                await prefs.getAs<List<String>>('downloadHistory') ??
+                await prefs.getAs<List<String>>(prefDownloadHistory) ??
                 <String>[];
             history.add(
               '${widget.operatingSystem.name} ${widget.version.version} — ${DateTime.now()}',
             );
-            prefs.set('downloadHistory', history);
+            prefs.set(prefDownloadHistory, history);
             final conf = widget.customConf ?? {};
             if (conf.isNotEmpty && terminal is OperationSucceeded) {
-              // Apply wizard values to the newest generated .conf.
+              // Apply wizard values to the generated .conf. Prefer the
+              // conventional quickget name (<os>-<release>.conf); fall back
+              // to the newest file only when it is absent.
+              final expected =
+                  '${widget.operatingSystem.code}-${widget.version.version}.conf';
               final confs =
                   Directory.current
                       .listSync()
@@ -174,10 +189,17 @@ class _DownloaderState extends ConsumerState<Downloader> {
                       (a, b) =>
                           b.lastModifiedSync().compareTo(a.lastModifiedSync()),
                     );
-              if (confs.isNotEmpty) {
+              File? target = confs.isEmpty ? null : confs.first;
+              for (final f in confs) {
+                if (p.basename(f.path) == expected) {
+                  target = f;
+                  break;
+                }
+              }
+              if (target != null) {
                 final store = ref.read(vmConfigStoreProvider);
                 for (final e in conf.entries) {
-                  store.write(confs.first.path, e.key, e.value);
+                  store.write(target.path, e.key, e.value);
                 }
               }
             }
@@ -235,7 +257,7 @@ class _DownloaderState extends ConsumerState<Downloader> {
           context.t(
             'Downloading {0}',
             args: [
-              '${widget.operatingSystem.name} ${widget.version.version}${widget.option!.option.isNotEmpty ? ' (${widget.option!.option})' : ''}',
+              '${widget.operatingSystem.name} ${widget.version.version}${(widget.option?.option ?? '').isNotEmpty ? ' (${widget.option!.option})' : ''}',
             ],
           ),
         ),
@@ -254,14 +276,14 @@ class _DownloaderState extends ConsumerState<Downloader> {
                       children: [
                         DownloadLabel(
                           state: state,
-                          downloader: widget.option!.downloader,
+                          downloader: widget.option?.downloader ?? 'curl',
                         ),
                         DownloadProgressBar(state: state),
                         Padding(
                           padding: const EdgeInsets.only(top: 32),
                           child: Text(
                             context.t(
-                              'Target folder : {0}',
+                              'Target folder: {0}',
                               args: [Directory.current.path],
                             ),
                           ),
@@ -306,6 +328,7 @@ class _DownloaderState extends ConsumerState<Downloader> {
           ),
           ManageMachinesAfterDownloadButton(
             downloadFinished: _state is OperationSucceeded,
+            vmName: '${widget.operatingSystem.code}-${widget.version.version}',
           ),
           CancelDismissButton(
             onCancel: () {

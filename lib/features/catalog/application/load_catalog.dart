@@ -1,5 +1,6 @@
 import 'package:tuple/tuple.dart';
 
+import 'package:quickgui/core/errors/failure.dart';
 import 'package:quickgui/core/result/result.dart';
 import 'package:quickgui/features/catalog/domain/operating_system.dart';
 import 'package:quickgui/features/catalog/domain/option.dart';

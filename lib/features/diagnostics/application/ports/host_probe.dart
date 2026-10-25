@@ -22,4 +22,8 @@ abstract class HostProbe {
   /// Host CPU/OS requirements missing to run the macOS [release] guest.
   /// Empty when the host satisfies them or cannot be determined.
   Future<List<String>> missingMacosRequirements(String release);
+
+  /// Whether a process with [pid] is alive on the host. Uses `kill -0`
+  /// through the host runner so it also works from inside Flatpak.
+  Future<bool> isPidAlive(int pid);
 }

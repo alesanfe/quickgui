@@ -5,6 +5,7 @@ import 'package:window_manager/window_manager.dart';
 import 'package:quickgui/features/home/presentation/logo.dart';
 import 'package:quickgui/features/home/presentation/main_menu.dart';
 import 'package:quickgui/features/home/presentation/left_menu.dart';
+import 'package:quickgui/shared/widgets/dependency_warning.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -32,7 +33,7 @@ class _MainPageState extends State<MainPage> {
         foregroundColor: Theme.of(context).colorScheme.onPrimary,
       ),
       drawer: const LeftMenu(),
-      body: const Column(children: [Logo(), MainMenu()]),
+      body: const Column(children: [Logo(), DependencyWarning(), MainMenu()]),
     );
   }
 }

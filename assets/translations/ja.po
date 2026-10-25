@@ -1,0 +1,374 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2021-09-29 09:59+0200\n"
+"PO-Revision-Date: 2022-03-01 20:27+0900\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.3\n"
+"X-Poedit-Basepath: .\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"Last-Translator: \n"
+"Language: ja_JP\n"
+
+msgid "Quickgui : a Flutter frontend for Quickget and Quickemu"
+msgstr "Quickgui : Flutterで作られたQuickget、Quickemuのフロントエンド"
+
+msgid "Main menu"
+msgstr "メインメニュー"
+
+msgid "Use dark mode"
+msgstr "ダークモードを使用する"
+
+msgid "Cancel"
+msgstr "キャンセル"
+
+msgid "Click to use SPICE display"
+msgstr "クリックしてSPICEディスプレイを使用する"
+
+msgid "Create new machines"
+msgstr "新規仮想マシンを作成"
+
+msgid "Dismiss"
+msgstr "終了する"
+
+msgid "Done !"
+msgstr "完了！"
+
+msgid "Download"
+msgstr "ダウンロード"
+
+msgid "Download finished."
+msgstr "ダウンロードが完了しました。"
+
+msgid "Downloader"
+msgstr "ダウンローダ"
+
+msgid "Downloading (no progress available)..."
+msgstr "ダウンロード中(進行状況を推定中)..."
+
+msgid "Downloading... {0}%"
+msgstr "ダウンロード中... {0}%"
+
+msgid "Downloading {0}"
+msgstr "{0}をダウンロード中"
+
+msgid "Download cancelled"
+msgstr "ダウンロードがキャンセルされました"
+
+msgid "Download complete"
+msgstr "ダウンロード完了"
+
+msgid "Download of {0} has completed."
+msgstr "{0}のダウンロードは完了しました。"
+
+msgid "Download of {0} has been cancelled."
+msgstr "{0}のダウンロードはキャンセルされました。"
+
+msgid "Manage existing machines"
+msgstr "既存の仮想マシンを管理"
+
+msgid "Manager"
+msgstr "マネージャ"
+
+msgid "{0} Mbs downloaded"
+msgstr "{0} Mbs がダウンロードされました"
+
+msgid "Now run {0} to start the VM"
+msgstr "今すぐ{0}を起動して仮想マシンを開始"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Operating system"
+msgstr "オペレーティングシステム"
+
+msgid "Search operating system"
+msgstr "オペレーティングシステムを検索"
+
+msgid "Search option"
+msgstr "オプションを検索"
+
+msgid "Select operating system"
+msgstr "オペレーティングシステムを選択"
+
+msgid "Select option"
+msgstr "オプションを選択"
+
+msgid "Select version for {0}"
+msgstr "{0}のバージョンを選択"
+
+msgid "Select..."
+msgstr "選択..."
+
+msgid "SPICE port"
+msgstr "SPICEのポート"
+
+msgid "SSH port"
+msgstr "SSHのポート"
+
+msgid "Stop The Virtual Machine?"
+msgstr "仮想マシンを停止しますか？"
+
+msgid "Target folder : {0}"
+msgstr "対象フォルダ:{0}"
+
+msgid "Use SPICE display"
+msgstr "SPICEディスプレイを使用する"
+
+msgid "Using SPICE display"
+msgstr "SPICEディスプレイを使用中"
+
+msgid "Version"
+msgstr "バージョン"
+
+msgid "Waiting for download to start"
+msgstr "ダウンロードの開始を待機しています"
+
+msgid "You are about to terminate the virtual machine {0}"
+msgstr "仮想マシン{0}を終了しようとしています"
+
+msgid "Language"
+msgstr "言語"
+
+msgid "Download history"
+msgstr ""
+
+msgid "Apply"
+msgstr ""
+
+msgid "Boot & network"
+msgstr ""
+
+msgid "Boot mode"
+msgstr ""
+
+msgid "Check for updates"
+msgstr ""
+
+msgid "Clone"
+msgstr ""
+
+msgid "Connect"
+msgstr ""
+
+msgid "Connect display with SPICE"
+msgstr ""
+
+msgid "Connect with SSH"
+msgstr ""
+
+msgid "Could not check for updates."
+msgstr ""
+
+msgid "CPU cores"
+msgstr ""
+
+msgid "Create"
+msgstr ""
+
+msgid "Customise VM (optional)"
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+msgid "Delete disk image"
+msgstr ""
+
+msgid "Delete whole VM"
+msgstr ""
+
+msgid "Devices"
+msgstr ""
+
+msgid "Directory where the machines are stored"
+msgstr ""
+
+msgid "Disk size"
+msgstr ""
+
+msgid "Disk size (e.g. 64G)"
+msgstr ""
+
+msgid "Display"
+msgstr ""
+
+msgid "Display viewer"
+msgstr ""
+
+msgid "Download failed"
+msgstr ""
+
+msgid "Downloading..."
+msgstr ""
+
+msgid "Edit configuration"
+msgstr ""
+
+msgid "Error"
+msgstr ""
+
+msgid "Export"
+msgstr ""
+
+msgid "for more information"
+msgstr ""
+
+msgid "Forget host key"
+msgstr ""
+
+msgid "GPU passthrough"
+msgstr ""
+
+msgid "Guest OS"
+msgstr ""
+
+msgid "Import"
+msgstr ""
+
+msgid "Import a disk image"
+msgstr ""
+
+msgid "Info"
+msgstr ""
+
+msgid "Loading available downloads"
+msgstr ""
+
+msgid "MAC address"
+msgstr ""
+
+msgid "More actions"
+msgstr ""
+
+msgid "Network"
+msgstr ""
+
+msgid "New VM name"
+msgstr ""
+
+msgid "No downloads yet"
+msgstr ""
+
+msgid "No terminal emulator found"
+msgstr ""
+
+msgid "Open release page"
+msgstr ""
+
+msgid "Open VM folder"
+msgstr ""
+
+msgid "Pause"
+msgstr ""
+
+msgid "Please install it and try again."
+msgstr ""
+
+msgid "Port forwards"
+msgstr ""
+
+msgid "Powered by"
+msgstr ""
+
+msgid "quickemu was not found in your PATH"
+msgstr ""
+
+msgid "RAM"
+msgstr ""
+
+msgid "RAM (e.g. 4G)"
+msgstr ""
+
+msgid "Resources"
+msgstr ""
+
+msgid "Resume"
+msgstr ""
+
+msgid "Running first"
+msgstr ""
+
+msgid "Screenshot"
+msgstr ""
+
+msgid "Search version"
+msgstr ""
+
+msgid "Search virtual machine"
+msgstr ""
+
+msgid "Secure boot"
+msgstr ""
+
+msgid "See"
+msgstr ""
+
+msgid "Select a disk image to import"
+msgstr ""
+
+msgid "Settings (all)"
+msgstr ""
+
+msgid "Shared folder"
+msgstr ""
+
+msgid "Show terminal output"
+msgstr ""
+
+msgid "Snapshot tag"
+msgstr ""
+
+msgid "Snapshots"
+msgstr ""
+
+msgid "Sort"
+msgstr ""
+
+msgid "Sort by name"
+msgstr ""
+
+msgid "Sound"
+msgstr ""
+
+msgid "SPICE client not found"
+msgstr ""
+
+msgid "SSH server not detected on guest"
+msgstr ""
+
+msgid "System diagnostics"
+msgstr ""
+
+msgid "TPM"
+msgstr ""
+
+msgid "USB devices"
+msgstr ""
+
+msgid "Verify image"
+msgstr ""
+
+msgid "Virtual machine imported"
+msgstr ""
+
+msgid "Virtual machine name"
+msgstr ""
+
+msgid "Installed: {0}nLatest: {1}"
+msgstr ""
+
+msgid "SSH username"
+msgstr ""
+
+msgid "Clone {0}"
+msgstr ""
+
+msgid "Delete {0}"
+msgstr ""
+
+msgid "Snapshots {0}"
+msgstr ""

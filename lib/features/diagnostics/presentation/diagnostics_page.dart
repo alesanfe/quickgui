@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:quickgui/features/diagnostics/domain/diagnostics_report.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
-import 'package:quickgui/shared/presentation/formatters/bytes_formatter.dart';
+import 'package:quickgui/shared/widgets/bytes_formatter.dart';
 
 /// Local diagnostics: backend, contract, tools, KVM, disk and capabilities.
 /// Status is conveyed by icon + text, never by colour alone.

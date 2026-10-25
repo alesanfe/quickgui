@@ -1,0 +1,596 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2021-09-29 09:59+0200\n"
+"PO-Revision-Date: 2021-09-29 10:00+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.0\n"
+"X-Poedit-Basepath: .\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: en\n"
+
+msgid "Quickgui : a Flutter frontend for Quickget and Quickemu"
+msgstr ""
+
+msgid "Main menu"
+msgstr ""
+
+msgid "Use dark mode"
+msgstr ""
+
+msgid "Cancel"
+msgstr ""
+
+msgid "Click to use SPICE display"
+msgstr ""
+
+msgid "Create new machines"
+msgstr ""
+
+msgid "Dismiss"
+msgstr ""
+
+msgid "Download"
+msgstr ""
+
+msgid "Download finished."
+msgstr ""
+
+msgid "Downloader"
+msgstr ""
+
+msgid "Downloading (no progress available)..."
+msgstr ""
+
+msgid "Downloading... {0}%"
+msgstr ""
+
+msgid "Downloading {0}"
+msgstr ""
+
+msgid "Download cancelled"
+msgstr ""
+
+msgid "Download complete"
+msgstr ""
+
+msgid "Download failed"
+msgstr ""
+
+msgid "Download of {0} has completed."
+msgstr ""
+
+msgid "Download of {0} has failed."
+msgstr ""
+
+msgid "Download of {0} has been cancelled."
+msgstr ""
+
+msgid "Manage existing machines"
+msgstr ""
+
+msgid "Manager"
+msgstr ""
+
+msgid "{0} Mbs downloaded"
+msgstr ""
+
+msgid "OK"
+msgstr ""
+
+msgid "Operating system"
+msgstr ""
+
+msgid "Search operating system"
+msgstr ""
+
+msgid "Search option"
+msgstr ""
+
+msgid "Select operating system"
+msgstr ""
+
+msgid "Select option"
+msgstr ""
+
+msgid "Select version for {0}"
+msgstr ""
+
+msgid "Select..."
+msgstr ""
+
+msgid "SPICE port"
+msgstr ""
+
+msgid "SSH port"
+msgstr ""
+
+msgid "Stop The Virtual Machine?"
+msgstr ""
+
+msgid "Use SPICE display"
+msgstr ""
+
+msgid "Using SPICE display"
+msgstr ""
+
+msgid "Version"
+msgstr ""
+
+msgid "Waiting for download to start"
+msgstr ""
+
+msgid "You are about to terminate the virtual machine {0}"
+msgstr ""
+
+msgid "Language"
+msgstr ""
+
+msgid "Directory where the machines are stored"
+msgstr ""
+
+msgid "Search version"
+msgstr ""
+
+msgid "quickemu was not found in your PATH"
+msgstr ""
+
+msgid "Please install it and try again."
+msgstr ""
+
+# The complete sentence is "See github.com/quickemu-project/quickemu for more information"
+msgid "See"
+msgstr ""
+
+# The complete sentence is "See github.com/quickemu-project/quickemu for more information"
+msgid "for more information"
+msgstr ""
+
+msgid "Delete {0}"
+msgstr ""
+
+msgid "You are about to delete {0}. This cannot be undone. Would you like to delete the disk image but keep the configuration, or delete the whole VM?"
+msgstr ""
+
+msgid "Delete disk image"
+msgstr ""
+
+msgid "Delete whole VM"
+msgstr ""
+
+msgid "Connect display with SPICE"
+msgstr ""
+
+msgid "SPICE client not found"
+msgstr ""
+
+msgid "Connect with SSH"
+msgstr ""
+
+msgid "SSH server not detected on guest"
+msgstr ""
+
+msgid "Launch SSH connection to {0}"
+msgstr ""
+
+msgid "SSH username"
+msgstr ""
+
+# Connect to the VM via SSH
+msgid "Connect"
+msgstr ""
+
+msgid "Error"
+msgstr ""
+
+msgid "Could not write to the working directory. Please check the permissions."
+msgstr ""
+
+msgid "Loading available downloads"
+msgstr ""
+
+msgid "Powered by"
+msgstr ""
+
+msgid "Apply"
+msgstr ""
+
+msgid "Boot & network"
+msgstr ""
+
+msgid "Boot mode"
+msgstr ""
+
+msgid "CPU cores"
+msgstr ""
+
+msgid "Check for updates"
+msgstr ""
+
+msgid "Clone"
+msgstr ""
+
+msgid "Clone {0}"
+msgstr ""
+
+msgid "Create"
+msgstr ""
+
+msgid "Customise VM (optional)"
+msgstr ""
+
+msgid "Delete"
+msgstr ""
+
+msgid "Dependency check"
+msgstr ""
+
+msgid "Devices"
+msgstr ""
+
+msgid "Disk size"
+msgstr ""
+
+msgid "Disk size (e.g. 64G)"
+msgstr ""
+
+msgid "Display"
+msgstr ""
+
+msgid "Display viewer"
+msgstr ""
+
+msgid "Download history"
+msgstr ""
+
+msgid "Edit configuration"
+msgstr ""
+
+msgid "Export"
+msgstr ""
+
+msgid "Forget host key"
+msgstr ""
+
+msgid "GPU passthrough"
+msgstr ""
+
+msgid "Guest OS"
+msgstr ""
+
+msgid "Import"
+msgstr ""
+
+msgid "Import a disk image"
+msgstr ""
+
+msgid "Info"
+msgstr ""
+
+msgid "MAC address"
+msgstr ""
+
+msgid "More actions"
+msgstr ""
+
+msgid "Network"
+msgstr ""
+
+msgid "New VM name"
+msgstr ""
+
+msgid "No downloads yet"
+msgstr ""
+
+msgid "No terminal emulator found"
+msgstr ""
+
+msgid "Open VM folder"
+msgstr ""
+
+msgid "Open release page"
+msgstr ""
+
+msgid "Pause"
+msgstr ""
+
+msgid "Port forwards"
+msgstr ""
+
+msgid "RAM"
+msgstr ""
+
+msgid "RAM (e.g. 4G)"
+msgstr ""
+
+msgid "Resources"
+msgstr ""
+
+msgid "Resume"
+msgstr ""
+
+msgid "Running first"
+msgstr ""
+
+msgid "Screenshot"
+msgstr ""
+
+msgid "Search virtual machine"
+msgstr ""
+
+msgid "Secure boot"
+msgstr ""
+
+msgid "Select a disk image to import"
+msgstr ""
+
+msgid "Settings (all)"
+msgstr ""
+
+msgid "Shared folder"
+msgstr ""
+
+msgid "Show terminal output"
+msgstr ""
+
+msgid "Snapshot tag"
+msgstr ""
+
+msgid "Snapshots"
+msgstr ""
+
+msgid "Snapshots {0}"
+msgstr ""
+
+msgid "Sort"
+msgstr ""
+
+msgid "Sort by name"
+msgstr ""
+
+msgid "Sound"
+msgstr ""
+
+msgid "TPM"
+msgstr ""
+
+msgid "USB devices"
+msgstr ""
+
+msgid "Verify image"
+msgstr ""
+
+msgid "Virtual machine imported"
+msgstr ""
+
+msgid "Virtual machine name"
+msgstr ""
+
+msgid "Send Ctrl+Alt+Del"
+msgstr ""
+
+msgid "Check VM"
+msgstr ""
+
+msgid "Resize disk"
+msgstr ""
+
+msgid "Resize disk of {0}"
+msgstr ""
+
+msgid "New size (e.g. 64G)"
+msgstr ""
+
+msgid "Resize"
+msgstr ""
+
+msgid "A name is required"
+msgstr ""
+
+msgid "The name is too long"
+msgstr ""
+
+msgid "Use letters, digits, dot, dash or underscore"
+msgstr ""
+
+msgid "A size is required"
+msgstr ""
+
+msgid "Use a size like 4G or 4096M"
+msgstr ""
+
+msgid "Enter a whole number"
+msgstr ""
+
+msgid "Enter a value between 1 and 256"
+msgstr ""
+
+msgid "Diagnostics"
+msgstr ""
+
+msgid "Refresh"
+msgstr ""
+
+msgid "Copy sanitised report"
+msgstr ""
+
+msgid "Report copied"
+msgstr ""
+
+msgid "Versions"
+msgstr ""
+
+msgid "Unknown"
+msgstr ""
+
+msgid "Contract version"
+msgstr ""
+
+msgid "None"
+msgstr ""
+
+msgid "Host"
+msgstr ""
+
+msgid "Backend found"
+msgstr ""
+
+msgid "Working directory"
+msgstr ""
+
+msgid "Free space"
+msgstr ""
+
+msgid "Tools"
+msgstr ""
+
+msgid "Capabilities"
+msgstr ""
+
+msgid "Missing"
+msgstr ""
+
+msgid "SSH username"
+msgstr ""
+
+msgid "Clone {0}"
+msgstr ""
+
+msgid "Delete {0}"
+msgstr ""
+
+msgid "Snapshots {0}"
+msgstr ""
+
+msgid "Apply snapshot {0}"
+msgstr ""
+
+msgid "Delete snapshot {0}"
+msgstr ""
+
+msgid "The current state of {0} will be replaced by the snapshot {1}. This cannot be undone."
+msgstr ""
+
+msgid "The snapshot {0} of {1} will be permanently deleted. This cannot be undone."
+msgstr ""
+
+msgid "Could not check for updates. Check your network connection and try again later."
+msgstr ""
+
+msgid "Installed: {0}\nLatest: {1}"
+msgstr ""
+
+msgid "Quickemu report"
+msgstr ""
+
+msgid "Target folder: {0}"
+msgstr ""
+
+msgid "Could not load the OS catalogue. Check that quickget is installed and try again."
+msgstr ""
+
+msgid "Retry"
+msgstr ""
+
+msgid "Stop {0}"
+msgstr ""
+
+msgid "Shut down {0} gracefully, or force it to stop? Forcing discards unsaved changes in the guest."
+msgstr ""
+
+msgid "Force stop"
+msgstr ""
+
+msgid "Shut down"
+msgstr ""
+
+msgid "Running"
+msgstr ""
+
+msgid "Stopped"
+msgstr ""
+
+msgid "Stale (process exited unexpectedly)"
+msgstr ""
+
+msgid "New size (current: {0}, grow only)"
+msgstr ""
+
+msgid "Command output"
+msgstr ""
+
+msgid "Replace {0}?"
+msgstr ""
+
+msgid "The file already exists and will be overwritten."
+msgstr ""
+
+msgid "Replace"
+msgstr ""
+
+msgid "Start the virtual machine"
+msgstr ""
+
+msgid "Shut down or stop the virtual machine"
+msgstr ""
+
+msgid "Not running"
+msgstr ""
+
+msgid "Destination: {0}"
+msgstr ""
+
+msgid "Start {0}"
+msgstr ""
+
+msgid "Could not start {0}."
+msgstr ""
+
+msgid "Reset {0}?"
+msgstr ""
+
+msgid "The virtual machine reboots immediately. Unsaved guest state may be lost."
+msgstr ""
+
+msgid "Reset"
+msgstr ""
+
+msgid "Paused"
+msgstr ""
+
+msgid "Quickemu was not found in your PATH"
+msgstr ""
+
+msgid "Downloads and virtual machines will not work until it is installed."
+msgstr ""
+
+msgid "Open diagnostics"
+msgstr ""
+
+msgid "Select a virtual machine"
+msgstr ""
+
+msgid "Start"
+msgstr ""
+
+msgid "Configure"
+msgstr ""
+
+msgid "Line {0}: expected key=\"value\"."
+msgstr ""
+
+msgid "Edit VM: {0}"
+msgstr ""
+
+msgid "Open config documentation"
+msgstr ""
+
+msgid "Save"
+msgstr ""
+
+msgid "Existing snapshots"
+msgstr ""

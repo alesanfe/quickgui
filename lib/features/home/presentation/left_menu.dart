@@ -1,18 +1,18 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:quickgui/features/settings/domain/supported_locales.dart';
 
+import 'package:quickgui/shared/providers/preferences_providers.dart';
+import 'package:quickgui/app/router/app_router.dart';
 import 'package:quickgui/features/diagnostics/presentation/diagnostics_page.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
-import 'package:quickgui/features/settings/providers/settings_providers.dart';
-import 'package:quickgui/core/persistence/preferences_repository.dart';
+import 'package:quickgui/features/settings/presentation/settings_section.dart';
+import 'package:quickgui/core/extensions/preferences_repository_x.dart';
+import 'package:quickgui/core/constants/preference_keys.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
+import 'package:quickgui/infrastructure/networking/quickgui_releases.dart';
 
 class LeftMenu extends ConsumerStatefulWidget {
   const LeftMenu({super.key});
@@ -22,15 +22,10 @@ class LeftMenu extends ConsumerStatefulWidget {
 }
 
 class _LeftMenuState extends ConsumerState<LeftMenu> {
-  List<DropdownMenuItem<String>> _dropdownMenuItems = [];
-
   @override
   void initState() {
     super.initState();
     ref.read(backendProvider).version();
-    _dropdownMenuItems = supportedLocales
-        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-        .toList();
   }
 
   TextSpan _linkSpan(
@@ -54,8 +49,6 @@ class _LeftMenuState extends ConsumerState<LeftMenu> {
   @override
   Widget build(BuildContext context) {
     final version = ref.read(hostProbeProvider).appVersion;
-    final settings = ref.watch(settingsProvider);
-    final controller = ref.read(settingsProvider.notifier);
     return Builder(
       builder: (context) {
         return Drawer(
@@ -105,62 +98,15 @@ class _LeftMenuState extends ConsumerState<LeftMenu> {
                       }
                     },
               ),
-              Container(height: 4.0),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: [
-                    Text(
-                      context.t('Use dark mode'),
-                      style: TextStyle(color: Colors.grey[300]),
-                    ),
-                    Expanded(child: Container()),
-                    Switch(
-                      value: settings.darkMode,
-                      activeThumbColor: Colors.black26,
-                      activeTrackColor: Theme.of(context).colorScheme.primary,
-                      inactiveThumbColor: Colors.grey[500],
-                      inactiveTrackColor: Colors.grey[300],
-
-                      onChanged: (value) {
-                        controller.setDarkMode(enabled: value);
-                      },
-                      // activeColor: Colors.white,
-                      // activeTrackColor: Colors.black26,
-                      // inactiveThumbColor:
-                      //     Theme.of(context).colorScheme.onPrimary,
-                      // inactiveTrackColor: Theme.of(context).colorScheme.primary,
-                    ),
-                  ],
-                ),
-              ),
-              Container(height: 4.0),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: [
-                    Text(context.t('Language')),
-                    Expanded(child: Container()),
-                    DropdownButton<String>(
-                      value: settings.locale,
-                      items: _dropdownMenuItems,
-                      onChanged: (value) {
-                        if (value != null) controller.setLocale(value);
-                      },
-                    ),
-                  ],
-                ),
-              ),
+              const SettingsSection(),
               Container(height: 32.0),
               ListTile(
                 leading: const Icon(Icons.health_and_safety),
                 title: Text(context.t('Diagnostics')),
                 dense: true,
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const DiagnosticsPage(),
-                  ),
-                ),
+                onTap: () =>
+                    Navigator.of(context)
+                        .push(appRoute<void>(const DiagnosticsPage())),
               ),
               ListTile(
                 leading: const Icon(Icons.history),
@@ -169,7 +115,7 @@ class _LeftMenuState extends ConsumerState<LeftMenu> {
                 onTap: () async {
                   final history = await ref
                       .read(preferencesRepositoryProvider)
-                      .getAs<List<String>>('downloadHistory');
+                      .getAs<List<String>>(prefDownloadHistory);
                   if (!context.mounted) return;
                   showDialog<void>(
                     context: context,
@@ -203,23 +149,7 @@ class _LeftMenuState extends ConsumerState<LeftMenu> {
                 title: Text(context.t('Check for updates')),
                 dense: true,
                 onTap: () async {
-                  String latest = '';
-                  try {
-                    final client = HttpClient();
-                    final req = await client.getUrl(
-                      Uri.parse(
-                        'https://api.github.com/repos/quickemu-project/quickgui/releases/latest',
-                      ),
-                    );
-                    req.headers.add('User-Agent', 'quickgui');
-                    final res = await req.close();
-                    final body = await res.transform(utf8.decoder).join();
-                    latest =
-                        RegExp('"tag_name":s*"([^"]+)"')
-                            .firstMatch(body)
-                            ?.group(1) ??
-                        '';
-                  } catch (_) {}
+                  final latest = await fetchLatestQuickguiRelease();
                   if (!context.mounted) return;
                   final current = ref.read(hostProbeProvider).appVersion;
                   showDialog<void>(
@@ -228,9 +158,11 @@ class _LeftMenuState extends ConsumerState<LeftMenu> {
                       title: Text(context.t('Check for updates')),
                       content: Text(
                         latest.isEmpty
-                            ? context.t('Could not check for updates.')
+                            ? context.t(
+                                'Could not check for updates. Check your network connection and try again later.',
+                              )
                             : context.t(
-                                'Installed: {0}nLatest: {1}',
+                                'Installed: {0}\nLatest: {1}',
                                 args: [current, latest],
                               ),
                       ),
@@ -255,7 +187,7 @@ class _LeftMenuState extends ConsumerState<LeftMenu> {
               ),
               ListTile(
                 leading: const Icon(Icons.monitor_heart),
-                title: Text(context.t('System diagnostics')),
+                title: Text(context.t('Quickemu report')),
                 dense: true,
                 onTap: () async {
                   final proc = await ref
@@ -265,7 +197,7 @@ class _LeftMenuState extends ConsumerState<LeftMenu> {
                   showDialog<void>(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: Text(context.t('System diagnostics')),
+                      title: Text(context.t('Quickemu report')),
                       content: SizedBox(
                         width: double.maxFinite,
                         child: SingleChildScrollView(
@@ -324,7 +256,7 @@ class _LeftMenuState extends ConsumerState<LeftMenu> {
                       text: TextSpan(
                         style: DefaultTextStyle.of(context).style,
                         children: <TextSpan>[
-                          const TextSpan(text: '© 2021 - 2024\n'),
+                          TextSpan(text: '© 2021 - ${DateTime.now().year}\n'),
                           _linkSpan(
                             'Quickemu Project\n',
                             'https://github.com/quickemu-project',

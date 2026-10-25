@@ -26,6 +26,12 @@ abstract class VirtualizationBackend {
   /// Structured VM state: {name, state, pid}.
   Future<Map<String, dynamic>> inspectVirtualMachine(String vm);
 
+  /// Snapshots of the VM described by [confPath], as normalized maps
+  /// {id, name, date (unix seconds), vm-state-size} from the v1
+  /// `vm-snapshots` contract. Empty when the backend does not publish
+  /// the contract or the VM has no snapshots.
+  Future<List<Map<String, dynamic>>> listSnapshots(String confPath);
+
   /// Starts a `quickget` download process for [os] [release] ([option]
   /// may be empty). The caller owns the process: its streams drive
   /// progress, exitCode reports completion, and kill() cancels it.

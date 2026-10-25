@@ -4,7 +4,7 @@ import 'package:quickgui/features/machines/application/ports/virtualization_back
 import 'package:quickgui/features/machines/application/ports/vm_config_store.dart';
 import 'package:quickgui/infrastructure/process/system_process_runner.dart';
 import 'package:quickgui/infrastructure/quickemu/quickemu_backend.dart';
-import 'package:quickgui/infrastructure/vm_config.dart';
+import 'package:quickgui/infrastructure/storage/vm_config.dart';
 
 /// The app's virtualization backend (quickemu/quickget).
 final backendProvider = Provider<VirtualizationBackend>(
