@@ -14,13 +14,33 @@
   &nbsp;<a href="https://wimpysworld.io/discord" target="_blank"><img alt="Discord" src="https://img.shields.io/discord/712850672223125565?style=for-the-badge&logo=discord&logoColor=%23ffffff&label=Discord&labelColor=%234253e8&color=%23e4e2e2"></a>
 </p>
 
+## Contents
+
+- [Introduction](#introduction)
+- [Features](#features)
+- [Installation](#installation)
+- [Building from source](#building-from-source)
+- [Usage](#usage)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
+- [License](#license)
+
 # Introduction
 
 Quickgui is a graphical user interface for the [Quickemu](https://github.com/quickemu-project/quickemu) virtual machine manager.
 Quickgui enables you to create and manage virtual machines from a simple and elegant interface.
 Nearly 1000 operating systems supported including Windows, macOS, BSDs, and 100s of Linux distros. All with automated downloads and configuration.
 
-# Install
+# Features
+
+- Discover and download **nearly 1000 operating systems** powered by `quickget`
+- Create virtual machines with **sensible, hardware-optimised defaults** powered by `quickemu`
+- Start, stop and delete VMs from the **Manager** screen
+- Reconnect to a running guest with **SPICE** or open a shell with **SSH**
+- Host/guest **port mapping display** for SPICE and SSH
+- Available for **Linux and macOS**, packaged as .deb, .rpm, AppImage, zip and Nix flake
+
+# Installation
 
 Quickgui depends on Quickemu. Most package managers will automatically install Quickemu when you install Quickgui.
 
@@ -89,7 +109,7 @@ The AppImage should work on most Linux distributions.
 * `chmod +x quickgui`
 * `./quickgui`
 
-# Compile
+# Building from source
 
 To compile the Quickgui yourself:
 
@@ -121,7 +141,7 @@ open ./build/macos/Build/Products/Release/quickgui.app
 
 <div align="center">
 <small><b>Main Screen</b></small><br /><br />
-<img src="assets/github/screenshot_01_main.png" width="346" height="290" alt="Quickgui Main screen">
+<img src="docs/screenshots/screenshot_01_main.png" width="346" height="290" alt="Quickgui Main screen">
 </div>
 
 ## Downloader
@@ -148,7 +168,7 @@ Some guests need a few extra steps after their first boot:
 
 <div align="center">
 <small><b>Downloader</b></small><br />
-<img src="assets/github/screenshot_02_downloader.png" width="346" height="290" alt="Quickgui Downloader">
+<img src="docs/screenshots/screenshot_02_downloader.png" width="346" height="290" alt="Quickgui Downloader">
 </div>
 
 ## Manager
@@ -161,7 +181,7 @@ Some guests need a few extra steps after their first boot:
 
 <div align="center">
 <small><b>Manager</b></small><br />
-<img src="assets/github/screenshot_03_manager.png" width="346" height="290" alt="Quickgui Manager">
+<img src="docs/screenshots/screenshot_03_manager.png" width="346" height="290" alt="Quickgui Manager">
 </div>
 
 When a VM is running, Quickgui will display the host ports that are mapped to the SPICE and SSH ports on the guest. These ports are used to connect to the guest for display and SSH access.
@@ -177,3 +197,25 @@ If the "Connect display with SPICE" button is disabled, the `spicy` client canno
 If the "Connect with SSH" button is disabled, an SSH server cannot be detected on the guest. Most guest operating systems will not install an SSH server by default, so if it was not an option during installation, you will need to install one yourself. It must be listening on port 22 (the default SSH port). Once a server is installed and running, it should be detected automatically.
 
 "Connect with SSH" will open a terminal and attempt to connect to the guest. If the connection is successful, you will be prompted for the password. If the connection is unsuccessful, you might need to remove the host key for the guest from your `~/.ssh/known_hosts` file using something like `ssh-keygen -R [localhost]:22220`.
+
+# Documentation
+
+Developer documentation lives in [`docs/`](docs/):
+
+- [Architecture overview](docs/architecture/overview.md) and [backend boundary ADR](docs/adr/0001-backend-boundary.md)
+- [Quickemu backend integration](docs/backend-integration/quickemu.md)
+- [State management](docs/state-management/README.md), [testing](docs/testing/README.md), [accessibility](docs/accessibility/README.md) and [security](docs/security/README.md)
+- [Release process](docs/release/README.md)
+
+# Contributing
+
+Contributions are welcome: bug reports, feature requests, documentation fixes
+and pull requests. Please read [CONTRIBUTING.md](CONTRIBUTING.md) first —
+commit messages must follow [Conventional Commits](https://www.conventionalcommits.org/).
+
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Security policy](SECURITY.md)
+
+# License
+
+Quickgui is distributed under the [MIT License](LICENSE).
