@@ -48,9 +48,11 @@ class Downloader extends ConsumerStatefulWidget {
 }
 
 class _DownloaderState extends ConsumerState<Downloader> {
-  final NotificationsClient? notificationsClient = Platform.isMacOS
-      ? null
-      : NotificationsClient();
+  // desktop_notifications talks to a Linux session D-Bus; on other
+  // platforms constructing the client throws (no UID).
+  final NotificationsClient? notificationsClient = Platform.isLinux
+      ? NotificationsClient()
+      : null;
   final curlPattern = RegExp("( [0-9.]+%)");
   late final Stream<OperationState<Object?>> _progressStream;
   OperationState<Object?> _state = const OperationState.idle();
@@ -227,12 +229,25 @@ class _DownloaderState extends ConsumerState<Downloader> {
                   ),
                 ),
               };
-              notificationsClient?.notify(
-                title,
-                body: body,
-                appName: 'Quickgui',
-                expireTimeoutMs: 10000 /* 10 seconds */,
-              );
+              final client = notificationsClient;
+              if (client != null) {
+                // Notifications are best-effort: a missing session bus
+                // (headless/SSH/container) must not break downloads. The
+                // client reports D-Bus errors through an internal stream, so
+                // a guarded zone is needed on top of the try/catch.
+                unawaited(
+                  runZonedGuarded(() async {
+                    try {
+                      await client.notify(
+                        title,
+                        body: body,
+                        appName: 'Quickgui',
+                        expireTimeoutMs: 10000 /* 10 seconds */,
+                      );
+                    } catch (_) {}
+                  }, (_, _) {}),
+                );
+              }
             });
           });
 

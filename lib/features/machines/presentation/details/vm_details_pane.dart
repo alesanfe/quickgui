@@ -17,6 +17,7 @@ class VmDetailsPane extends StatelessWidget {
     this.onConfigure,
     this.onSnapshots,
     this.onDelete,
+    this.onOpenDetails,
     super.key,
   });
 
@@ -35,6 +36,7 @@ class VmDetailsPane extends StatelessWidget {
   final VoidCallback? onConfigure;
   final VoidCallback? onSnapshots;
   final VoidCallback? onDelete;
+  final VoidCallback? onOpenDetails;
 
   @override
   Widget build(BuildContext context) {
@@ -80,6 +82,12 @@ class VmDetailsPane extends StatelessWidget {
                 side: BorderSide(color: stateColor),
                 labelStyle: TextStyle(color: stateColor),
               ),
+              if (onOpenDetails != null)
+                IconButton(
+                  onPressed: onOpenDetails,
+                  tooltip: context.t('Open details'),
+                  icon: const Icon(Icons.open_in_new),
+                ),
             ],
           ),
           const SizedBox(height: 12),

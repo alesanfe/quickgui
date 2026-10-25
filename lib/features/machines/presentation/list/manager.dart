@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:core';
 import 'dart:io';
 
@@ -7,6 +6,10 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
+import 'package:go_router/go_router.dart';
+import 'package:quickgui/features/machines/presentation/shared/vm_actions_menu.dart';
+import 'package:quickgui/features/machines/providers/vm_tags_providers.dart';
+import 'package:quickgui/features/machines/providers/tracked_backend_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:quickgui/shared/providers/preferences_providers.dart';
 import 'package:quickgui/features/diagnostics/application/ports/host_probe.dart';
@@ -30,6 +33,8 @@ import 'package:quickgui/core/result/result.dart';
 import 'package:quickgui/features/machines/domain/vminfo.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_config_editor.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_details_pane.dart';
+import 'package:quickgui/features/machines/domain/vm_config_value.dart';
+import 'package:quickgui/infrastructure/storage/vm_config.dart';
 import 'package:quickgui/features/machines/domain/forms/vm_inputs.dart';
 import 'package:quickgui/shared/dialogs/validated_text_dialog.dart';
 import 'package:quickgui/features/machines/presentation/shared/vm_input_messages.dart';
@@ -45,13 +50,172 @@ class Manager extends ConsumerStatefulWidget {
 }
 
 class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
-  VirtualizationBackend get _backend => ref.read(backendProvider);
+  VirtualizationBackend get _backend => ref.read(trackedBackendProvider);
   HostProbe get _probe => ref.read(hostProbeProvider);
   PreferencesRepository get _prefs => ref.read(preferencesRepositoryProvider);
 
   List<String> _currentVms = [];
   String _vmFilter = '';
   String _vmSort = 'name';
+  String _statusFilter = 'all';
+  String? _tagFilter;
+  bool _selectionMode = false;
+  bool _batchBusy = false;
+  bool _cards = false;
+  final Set<String> _selection = {};
+  DateTime? _refreshedAt;
+
+  Future<void> _editTags(Iterable<String> machines) async {
+    final targets = machines.toList();
+    final controller = TextEditingController(
+      text: targets.length == 1
+          ? ref
+                .read(vmTagsProvider.notifier)
+                .tagsFor(targets.single)
+                .where((tag) => tag != '_favorite')
+                .join(', ')
+          : '',
+    );
+    final tags = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.t('Edit tags')),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            labelText: context.t('Comma-separated tags'),
+            helperText: context.t('Use group:name to organise a collection'),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(context.t('Cancel')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, controller.text),
+            child: Text(context.t('Save')),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (tags == null || !mounted) return;
+    final notifier = ref.read(vmTagsProvider.notifier);
+    for (final name in targets) {
+      await notifier.setTags(
+        name,
+        {
+          ...tags
+              .split(',')
+              .map((t) => t.trim())
+              .where((t) => t.isNotEmpty && t != '_favorite'),
+          if (notifier.tagsFor(name).contains('_favorite')) '_favorite',
+        }.toList(),
+      );
+    }
+  }
+
+  Future<void> _batch(String action) async {
+    final names = _selection.toList();
+    if (names.isEmpty || _batchBusy) return;
+    final included = names.toSet();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, update) => AlertDialog(
+          title: Text(context.t('Review batch operation')),
+          content: SizedBox(
+            width: 440,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(context.t('Action: {0}', args: [action])),
+                  for (final name in names)
+                    CheckboxListTile(
+                      value: included.contains(name),
+                      title: Text(name),
+                      subtitle: Text(_vmStates[name] ?? 'stopped'),
+                      onChanged: (value) => update(() {
+                        if (value == true) {
+                          included.add(name);
+                        } else {
+                          included.remove(name);
+                        }
+                      }),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(context.t('Cancel')),
+            ),
+            FilledButton(
+              onPressed: included.isEmpty
+                  ? null
+                  : () => Navigator.pop(context, true),
+              child: Text(context.t('Continue')),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    if (action == 'tags') {
+      await _editTags(included);
+      return;
+    }
+    setState(() => _batchBusy = true);
+    final failures = <String>[];
+    try {
+      for (final name in included) {
+        try {
+          final conf = _vmConfFiles[name] ?? '$name.conf';
+          if (action == 'start') {
+            await _startVm(name);
+            continue;
+          }
+          final result = action == 'export'
+              ? await _backend.exportVm(name)
+              : await _backend.runAction([
+                  '--vm',
+                  conf,
+                  switch (action) {
+                    'stop' => '--powerdown',
+                    'pause' => '--pause',
+                    'resume' => '--resume',
+                    _ => '--doctor',
+                  },
+                ]);
+          if (result.exitCode != 0) failures.add(name);
+        } catch (_) {
+          failures.add(name);
+        }
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _batchBusy = false);
+        _getVms();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              failures.isEmpty
+                  ? context.t('Batch operation completed')
+                  : context.t(
+                      'Some machines failed: {0}',
+                      args: [failures.join(', ')],
+                    ),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
   Map<String, String> _vmConfFiles = {};
   Map<String, VmInfo> _activeVms = {};
   Map<String, String> _vmStates = {};
@@ -229,7 +393,7 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
     );
     if (result != true) return;
     for (final key in keys.keys) {
-      final value = controllers[key]!.text;
+      final value = encodeVmValue(controllers[key]!.text);
       final re = RegExp('^$key="');
       var replaced = false;
       for (var i = 0; i < lines.length; i++) {
@@ -241,7 +405,9 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
       }
       if (!replaced) lines.add('$key="$value"');
     }
-    await file.writeAsString('${lines.join('\n')}\n');
+    // Atomic commit (temp + verify + .bak + rename) — a torn write must
+    // never corrupt the VM configuration.
+    VmConfigFileStore.unawaitedWrite(confPath, '${lines.join('\n')}\n');
   }
 
   /// 'YYYY-MM-DD HH:MM' from the contract's unix timestamp; '' when
@@ -771,11 +937,10 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
         if (backendStates.isEmpty) {
           final File pidFile = File('$name/$name.pid');
           if (pidFile.existsSync()) {
-            final String pid = pidFile.readAsStringSync().trim();
-            // Check if the process is still running using kill -0, which is
-            // a portable way to check if a process is running on macOS and Linux.
-            final ProcessResult result = Process.runSync('kill', ['-0', pid]);
-            running = result.exitCode == 0;
+            final int? pid = int.tryParse(pidFile.readAsStringSync().trim());
+            // Ask the host probe whether the recorded process is still
+            // alive (kill -0 on the host — works inside Flatpak too).
+            running = pid != null && await _probe.isPidAlive(pid);
             // A pid file with a dead process means the VM crashed or was
             // killed outside the app — surface it instead of "stopped".
             state = running ? 'running' : 'stale';
@@ -811,6 +976,8 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
     currentVms.sort();
     if (!mounted) return;
     setState(() {
+      _refreshedAt = DateTime.now();
+      _selection.removeWhere((name) => !currentVms.contains(name));
       _currentVms = currentVms;
       _vmConfFiles = vmConfFiles;
       _activeVms = activeVms;
@@ -822,17 +989,7 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
     });
   }
 
-  Future<bool> _detectSsh(int port) async {
-    bool isSSH = false;
-    try {
-      final Socket socket = await Socket.connect('localhost', port);
-      isSSH = await socket.any((event) => utf8.decode(event).contains('SSH'));
-      socket.close();
-      return isSSH;
-    } catch (exception) {
-      return false;
-    }
-  }
+  Future<bool> _detectSsh(int port) => _probe.isSshAlive(port);
 
   Widget _buildVmList() {
     final List<Widget> widgetList = [];
@@ -903,9 +1060,136 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
         ),
       ),
     ]);
-    final filteredVms = _currentVms
-        .where((vm) => vm.toLowerCase().contains(_vmFilter.toLowerCase()))
-        .toList();
+    final tags = ref.watch(vmTagsProvider);
+    widgetList.add(
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final filter in [
+            ('all', context.t('All')),
+            ('running', context.t('Running')),
+            ('stopped', context.t('Stopped')),
+            ('paused', context.t('Paused')),
+            ('stale', context.t('Warnings')),
+            ('favorite', context.t('Favourites')),
+            ('new', context.t('New')),
+          ])
+            FilterChip(
+              label: Text(filter.$2),
+              selected: _statusFilter == filter.$1,
+              onSelected: (_) => setState(() => _statusFilter = filter.$1),
+            ),
+          for (final tag in {
+            for (final values in tags.values) ...values,
+          }.where((t) => t != '_favorite'))
+            FilterChip(
+              label: Text(tag),
+              selected: _tagFilter == tag,
+              onSelected: (value) =>
+                  setState(() => _tagFilter = value ? tag : null),
+            ),
+        ],
+      ),
+    );
+    widgetList.add(const SizedBox(height: 12));
+    if (_selectionMode) {
+      widgetList.add(
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Wrap(
+              spacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(context.t('{0} selected', args: ['${_selection.length}'])),
+                TextButton(
+                  onPressed: () => setState(() {
+                    _selection.addAll(_currentVms);
+                  }),
+                  child: Text(context.t('Select all')),
+                ),
+                for (final action in [
+                  ('start', context.t('Start')),
+                  ('stop', context.t('Shut down')),
+                  ('pause', context.t('Pause')),
+                  ('resume', context.t('Resume')),
+                  ('check', context.t('Check VM')),
+                  ('export', context.t('Export')),
+                  ('tags', context.t('Edit tags')),
+                ])
+                  OutlinedButton(
+                    onPressed: _batchBusy || _selection.isEmpty
+                        ? null
+                        : () => _batch(action.$1),
+                    child: Text(action.$2),
+                  ),
+                if (_batchBusy)
+                  const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+    if (_currentVms.isEmpty) {
+      widgetList.add(
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                const Icon(Icons.computer, size: 48),
+                const SizedBox(height: 12),
+                Text(
+                  context.t('No virtual machines yet'),
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  context.t(
+                    'Download an operating system or import a disk image to create your first machine.',
+                  ),
+                ),
+                if (GoRouter.maybeOf(context) != null)
+                  TextButton(
+                    onPressed: () => context.go('/create'),
+                    child: Text(context.t('Create a machine')),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+    final filteredVms = _currentVms.where((vm) {
+      final vmTags = tags[vm] ?? const <String>[];
+      final state = _vmStates[vm] ?? 'stopped';
+      final text =
+          '$vm ${vmTags.join(' ')} ${_vmDetails[vm]?['guest_os'] ?? ''}'
+              .toLowerCase();
+      final matchesState = switch (_statusFilter) {
+        'all' => true,
+        'favorite' => vmTags.contains('_favorite'),
+        'new' => _newVmNames.contains(vm),
+        _ => state == _statusFilter,
+      };
+      return text.contains(_vmFilter.toLowerCase()) &&
+          matchesState &&
+          (_tagFilter == null || vmTags.contains(_tagFilter));
+    }).toList();
+    if (_currentVms.isNotEmpty && filteredVms.isEmpty) {
+      widgetList.add(
+        Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(context.t('No machines match these filters')),
+        ),
+      );
+    }
     if (_vmSort == 'running') {
       filteredVms.sort(
         (a, b) => (_activeVms.containsKey(b) ? 1 : 0).compareTo(
@@ -917,7 +1201,11 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
       return _buildRow(vm, buttonColor);
     }).toList();
     for (final row in rows) {
-      widgetList.addAll(row);
+      if (_cards) {
+        widgetList.add(Card(child: Column(children: row)));
+      } else {
+        widgetList.addAll(row);
+      }
     }
 
     return ListView(padding: const EdgeInsets.all(16.0), children: widgetList);
@@ -969,8 +1257,28 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
     return <Widget>[
       ListTile(
         selected: currentVm == _selectedVm,
-        onTap: () => setState(() => _selectedVm = currentVm),
-        leading: osIcon ?? const Icon(Icons.computer, size: 32),
+        isThreeLine: _cards,
+        onLongPress: () => _editTags([currentVm]),
+        onTap: () {
+          if (MediaQuery.sizeOf(context).width < 1000 &&
+              GoRouter.maybeOf(context) != null) {
+            context.push('/machines/${Uri.encodeComponent(currentVm)}');
+          } else {
+            setState(() => _selectedVm = currentVm);
+          }
+        },
+        leading: _selectionMode
+            ? Checkbox(
+                value: _selection.contains(currentVm),
+                onChanged: (value) => setState(() {
+                  if (value == true) {
+                    _selection.add(currentVm);
+                  } else {
+                    _selection.remove(currentVm);
+                  }
+                }),
+              )
+            : osIcon ?? const Icon(Icons.computer, size: 32),
         subtitle: Text(
           switch (_vmStates[currentVm] ?? 'stopped') {
             'running' => context.t('Running'),
@@ -991,6 +1299,34 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
         title: Row(
           children: [
             Flexible(child: Text(currentVm, overflow: TextOverflow.ellipsis)),
+            IconButton(
+              visualDensity: VisualDensity.compact,
+              tooltip: context.t('Favourite'),
+              icon: Icon(
+                (ref.watch(vmTagsProvider)[currentVm] ?? const <String>[])
+                        .contains('_favorite')
+                    ? Icons.star
+                    : Icons.star_border,
+                size: 18,
+              ),
+              onPressed: () {
+                final tags = ref.read(vmTagsProvider.notifier);
+                if (tags.tagsFor(currentVm).contains('_favorite')) {
+                  tags.removeTag(currentVm, '_favorite');
+                } else {
+                  tags.addTag(currentVm, '_favorite');
+                }
+              },
+            ),
+            if (_cards) ...[
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  '${_vmDetails[currentVm]?['cpu_cores'] ?? '—'} CPU · ${_vmDetails[currentVm]?['ram'] ?? '—'} RAM',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+            ],
             if (newVM) const NewVmTag() else const SizedBox.shrink(),
             if (File('$currentVm/virtio-win.iso').existsSync() ||
                 File('$currentVm/unattended.iso').existsSync())
@@ -1027,7 +1363,7 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                   : context.t('Not running'),
               onPressed: !active ? null : () => _stopVm(currentVm),
             ),
-            PopupMenuButton<String>(
+            VmActionsMenu(
               icon: const Icon(Icons.more_vert, semanticLabel: 'More actions'),
               tooltip: context.t('More actions'),
               // Keep the menu inside the window: with ~17 items it exceeds
@@ -1538,8 +1874,60 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.t('Manager')),
+        title: Text(context.t('Machines')),
         actions: [
+          IconButton(
+            tooltip: context.t('Select multiple'),
+            icon: const Icon(Icons.checklist),
+            onPressed: () => setState(() {
+              _selectionMode = !_selectionMode;
+              if (!_selectionMode) _selection.clear();
+            }),
+          ),
+          IconButton(
+            tooltip: context.t('Switch view'),
+            icon: Icon(_cards ? Icons.view_list : Icons.grid_view),
+            onPressed: () => setState(() => _cards = !_cards),
+          ),
+          IconButton(
+            tooltip: context.t('Edit tags'),
+            icon: const Icon(Icons.label_outline),
+            onPressed: _selectedVm == null
+                ? null
+                : () => _editTags([_selectedVm!]),
+          ),
+          IconButton(
+            tooltip: _refreshedAt == null
+                ? context.t('Refresh')
+                : context.t(
+                    'Last refreshed: {0}',
+                    args: [
+                      _refreshedAt!.toLocal().toString().substring(11, 19),
+                    ],
+                  ),
+            icon: const Icon(Icons.refresh),
+            onPressed: _getVms,
+          ),
+          // At narrow widths or large text scales the labelled button
+          // cannot fit next to the title and the other actions — fall
+          // back to an icon with the same action and a tooltip.
+          if (GoRouter.maybeOf(context) != null)
+            if (MediaQuery.sizeOf(context).width < 850 ||
+                MediaQuery.textScalerOf(context).scale(1) > 1.5)
+              IconButton(
+                tooltip: context.t('New machine'),
+                icon: const Icon(Icons.add),
+                onPressed: () => context.go('/create'),
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: FilledButton.icon(
+                  onPressed: () => context.go('/create'),
+                  icon: const Icon(Icons.add),
+                  label: Text(context.t('New machine')),
+                ),
+              ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.sort),
             tooltip: context.t('Sort'),
@@ -1581,7 +1969,20 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                   conf: _vmDetails[vm] ?? const {},
                   onStart: active ? null : () => _startVm(vm),
                   onStop: active ? () => _stopVm(vm) : null,
-                  onConfigure: () => _editVmSettings(vm),
+                  onOpenDetails: GoRouter.maybeOf(context) == null
+                      ? null
+                      : () => context.push(
+                          '/machines/${Uri.encodeComponent(vm)}',
+                        ),
+                  onConfigure: () {
+                    if (GoRouter.maybeOf(context) != null) {
+                      context.push(
+                        '/machines/${Uri.encodeComponent(vm)}/settings',
+                      );
+                    } else {
+                      _editVmSettings(vm);
+                    }
+                  },
                   onSnapshots: () => _manageSnapshot(context, vm),
                   onDelete: () => _confirmDeleteVm(context, vm),
                 ),

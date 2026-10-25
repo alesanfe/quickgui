@@ -1,0 +1,5 @@
+# Enforce LF line endings on checkout. The CI format check
+# (`dart format --set-exit-if-changed`) and the Linux packaging
+# scripts assume LF; a Windows checkout with core.autocrlf=true
+# would otherwise produce CRLF and fail them.
+* text=auto eol=lf

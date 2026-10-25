@@ -4,6 +4,8 @@ import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
+import 'package:quickgui/infrastructure/storage/vm_config.dart';
+import 'package:quickgui/shared/dialogs/conf_conflict.dart';
 
 class VmConfigEditorDialog extends ConsumerStatefulWidget {
   final String vmName;
@@ -37,11 +39,16 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
     return null;
   }
 
+  String _initialContent = '';
+  String _fingerprint = '';
+
   @override
   void initState() {
     super.initState();
     ref.read(vmConfigStoreProvider).loadRaw(widget.confPath).then((content) {
       _editorController.text = content;
+      _initialContent = content;
+      _fingerprint = VmConfigFileStore.fingerprint(widget.confPath);
       setState(() => _loading = false);
     });
   }
@@ -57,11 +64,55 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
       });
       return;
     }
+    if (!mounted) return;
+    if (!await _checkExternalChange()) return;
+    if (!mounted) return;
     await ref
         .read(vmConfigStoreProvider)
         .saveRaw(widget.confPath, _editorController.text);
+    _fingerprint = VmConfigFileStore.fingerprint(widget.confPath);
     if (!mounted) return;
     Navigator.of(context).pop();
+  }
+
+  /// Detects an external modification since the editor was opened and
+  /// resolves it via the conflict dialog. Returns true when the save may
+  /// proceed, false when the user reloaded/aborted.
+  Future<bool> _checkExternalChange() async {
+    if (VmConfigFileStore.fingerprint(widget.confPath) == _fingerprint) {
+      return true;
+    }
+    final disk = await ref.read(vmConfigStoreProvider).loadRaw(widget.confPath);
+    if (!mounted) return false;
+    final action = await showConfConflictDialog(
+      context,
+      confPath: widget.confPath,
+      original: _initialContent,
+      local: _editorController.text,
+      disk: disk,
+    );
+    switch (action) {
+      case ConfConflictAction.reload:
+        _editorController.text = disk;
+        _initialContent = disk;
+        _fingerprint = VmConfigFileStore.fingerprint(widget.confPath);
+        return false;
+      case ConfConflictAction.overwrite:
+        return true;
+      case ConfConflictAction.saveCopy:
+        final path = writeLocalCopy(widget.confPath, _editorController.text);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(context.t('Local copy saved to {0}', args: [path])),
+            ),
+          );
+        }
+        return false;
+      case ConfConflictAction.cancel:
+      case null:
+        return false;
+    }
   }
 
   void _openDocs() async {

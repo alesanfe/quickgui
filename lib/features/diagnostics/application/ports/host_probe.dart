@@ -26,4 +26,8 @@ abstract class HostProbe {
   /// Whether a process with [pid] is alive on the host. Uses `kill -0`
   /// through the host runner so it also works from inside Flatpak.
   Future<bool> isPidAlive(int pid);
+
+  /// Whether an SSH banner is served on localhost:[port] — used to tell a
+  /// running VM's forwarded ssh port from an unresponsive one.
+  Future<bool> isSshAlive(int port);
 }

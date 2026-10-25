@@ -22,9 +22,21 @@ class ManagerScreen {
   Future<void> chooseAction(String label) async {
     await tester.tap(find.byTooltip('More actions').first);
     await tester.pumpAndSettle();
-    final item = find.text(label).last;
-    await tester.ensureVisible(item);
-    await tester.tap(item);
+    // Items live under Configure/Lifecycle/Maintenance submenus; direct
+    // items (Snapshots, Delete) are at the top level.
+    var item = find.text(label);
+    if (item.evaluate().isEmpty) {
+      for (final group in ['Configure', 'Lifecycle', 'Maintenance']) {
+        final g = find.text(group);
+        if (g.evaluate().isEmpty) continue;
+        await tester.tap(g.last);
+        await tester.pumpAndSettle();
+        item = find.text(label);
+        if (item.evaluate().isNotEmpty) break;
+      }
+    }
+    await tester.ensureVisible(item.last);
+    await tester.tap(item.last);
     await tester.pumpAndSettle();
   }
 
@@ -48,7 +60,7 @@ void main() {
     original = Directory.current;
     directory = Directory.systemTemp.createTempSync('qg-manager-');
     Directory.current = directory;
-    File('${directory.path}/linux-test.conf')
+    File('${directory.path}${Platform.pathSeparator}linux-test.conf')
         .writeAsStringSync('guest_os="linux"\nram="4G"\n');
     File('${directory.path}/invalid.conf').writeAsStringSync('not a VM');
     backend = FakeVirtualizationBackend()
@@ -106,7 +118,7 @@ void main() {
       expect(backend.actionCalls, [
         [
           '--vm',
-          '${directory.path}/linux-test.conf',
+          '${directory.path}${Platform.pathSeparator}linux-test.conf',
           '--snapshot',
           action.toLowerCase(),
           if (action != 'Info') 'checkpoint',
@@ -172,7 +184,12 @@ void main() {
     }
     await screen.confirm('Info');
     expect(backend.actionCalls, [
-      ['--vm', '${directory.path}/linux-test.conf', '--snapshot', 'info'],
+      [
+        '--vm',
+        '${directory.path}${Platform.pathSeparator}linux-test.conf',
+        '--snapshot',
+        'info',
+      ],
     ]);
   });
 
@@ -187,7 +204,7 @@ void main() {
     expect(backend.actionCalls, [
       [
         '--vm',
-        '${directory.path}/linux-test.conf',
+        '${directory.path}${Platform.pathSeparator}linux-test.conf',
         '--snapshot',
         'create',
         'my snapshot',
@@ -224,7 +241,12 @@ void main() {
       await tester.pump();
       await screen.confirm(confirm);
       expect(backend.actionCalls, [
-        ['--vm', '${directory.path}/linux-test.conf', flag, value],
+        [
+          '--vm',
+          '${directory.path}${Platform.pathSeparator}linux-test.conf',
+          flag,
+          value,
+        ],
       ]);
     });
     testWidgets('$label cancellation leaves the backend untouched', (
@@ -270,7 +292,11 @@ void main() {
       final screen = await open(tester);
       await screen.chooseAction(label);
       expect(backend.actionCalls, [
-        ['--vm', '${directory.path}/linux-test.conf', flag],
+        [
+          '--vm',
+          '${directory.path}${Platform.pathSeparator}linux-test.conf',
+          flag,
+        ],
       ]);
       expect(tester.takeException(), isNull);
     });
@@ -328,7 +354,7 @@ void main() {
     expect(backend.actionCalls, [
       [
         '--vm',
-        '${directory.path}/linux-test.conf',
+        '${directory.path}${Platform.pathSeparator}linux-test.conf',
         '--monitor-cmd',
         'system_reset',
       ],
@@ -424,7 +450,9 @@ void main() {
     backend.capabilities = null;
     Directory('linux-test').createSync();
     File('linux-test/linux-test.pid').writeAsStringSync('$pid');
+    host.alivePids = {pid};
     await open(tester);
+    expect(find.byIcon(Icons.stop), findsOneWidget);
     // The name appears both in the row and in the details pane header.
     expect(find.text('linux-test'), findsWidgets);
     expect(tester.takeException(), isNull);

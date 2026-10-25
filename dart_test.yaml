@@ -1,0 +1,6 @@
+tags:
+  # Screenshot-capture tests generate documentation imagery into
+  # test/capture/out/ (gitignored). They are excluded from CI via
+  # `flutter test --exclude-tags capture`; run them explicitly with
+  # `flutter test --tags capture test/capture`.
+  capture:

@@ -373,7 +373,10 @@ void main() {
         'guest_os="linux"\nram="8G"\n',
       );
       await tester.tap(find.text('Save'));
-      for (var i = 0; i < 4; i++) {
+      // The atomic save pipeline (temp+verify+backup+rename) is several
+      // real file IOs — give it a larger drain budget than the old single
+      // write needed.
+      for (var i = 0; i < 10; i++) {
         await flush(tester);
         await tester.runAsync(
           () => Future<void>.delayed(const Duration(milliseconds: 80)),
@@ -432,6 +435,64 @@ void main() {
       );
       await flush(tester);
       expect(find.textContaining('expected key='), findsNothing);
+    });
+
+    testWidgets('an external change offers conflict resolution', (
+      tester,
+    ) async {
+      final confPath = '${directory.path}/linux-test.conf';
+      File(confPath).writeAsStringSync('guest_os="linux"\nram="4G"\n');
+      await open(
+        tester,
+        Builder(
+          builder: (context) => TextButton(
+            onPressed: () => showDialog<void>(
+              context: context,
+              builder: (context) => VmConfigEditorDialog(
+                vmName: 'linux-test',
+                confPath: confPath,
+              ),
+            ),
+            child: const Text('open'),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      for (var i = 0; i < 6; i++) {
+        await flush(tester);
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 80)),
+        );
+      }
+      await flush(tester);
+      // Simulate an external edit after the editor captured its fingerprint.
+      File(confPath).writeAsStringSync('guest_os="linux"\nram="2G"\n');
+      await tester.tap(find.text('Save'));
+      // The conflict check re-reads the file — real IO needs real event
+      // loop time alongside the fake-async pumps.
+      for (var i = 0; i < 4; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 80)),
+        );
+        await flush(tester);
+      }
+      expect(find.textContaining('changed outside Quickgui'), findsOneWidget);
+      await tester.tap(find.text('Reload from disk'));
+      await flush(tester);
+      // The editor buffer was replaced by the disk version.
+      final field = tester.widget<TextField>(find.byType(TextField).first);
+      expect(field.controller?.text, contains('ram="2G"'));
+      // The fingerprint was refreshed, so saving now works silently.
+      await tester.tap(find.text('Save'));
+      for (var i = 0; i < 6; i++) {
+        await flush(tester);
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 80)),
+        );
+      }
+      await flush(tester);
+      expect(File(confPath).readAsStringSync(), contains('ram="2G"'));
+      expect(tester.takeException(), isNull);
     });
   });
 }

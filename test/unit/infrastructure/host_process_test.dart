@@ -20,6 +20,7 @@ void main() {
       expect(await process.exitCode, 0, reason: await stderr);
       expect(await stdout, 'literal value ; not a command');
     },
+    skip: Platform.isWindows ? 'requires a POSIX sh' : null,
   );
 
   test('process runner propagates exit code stdout and stderr', () async {
@@ -30,7 +31,7 @@ void main() {
     expect(result.exitCode, 7);
     expect(result.stdout, 'output');
     expect(result.stderr, 'error');
-  });
+  }, skip: Platform.isWindows ? 'requires a POSIX sh' : null);
 
   group('writable directory probe', () {
     late Directory directory;
@@ -42,8 +43,9 @@ void main() {
     test(
       'does not overwrite or delete an existing file with the old probe name',
       () {
-        final existing = File('${directory.path}/.quickgui_write_test')
-          ..writeAsStringSync('user content');
+        final existing = File(
+          '${directory.path}${Platform.pathSeparator}.quickgui_write_test',
+        )..writeAsStringSync('user content');
         expect(isWritableDirectory(directory.path), isTrue);
         expect(existing.existsSync(), isTrue);
         expect(existing.readAsStringSync(), 'user content');

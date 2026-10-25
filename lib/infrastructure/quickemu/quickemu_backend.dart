@@ -131,8 +131,32 @@ class QuickemuBackend implements VirtualizationBackend {
       _runner.run(Platform.isMacOS ? 'open' : 'xdg-open', [vmName]);
 
   @override
-  Future<ProcessResult> launchSpiceViewer(String spicePort) =>
-      _runner.run('spicy', ['-p', spicePort]);
+  Future<ProcessResult> launchSpiceViewer(
+    String spicePort, {
+    String viewer = 'spicy',
+    bool fullscreen = false,
+  }) {
+    if (!{'spicy', 'remote-viewer'}.contains(viewer) ||
+        int.tryParse(spicePort) == null ||
+        int.parse(spicePort) < 1 ||
+        int.parse(spicePort) > 65535) {
+      return Future.value(
+        ProcessResult(0, 2, '', 'Invalid viewer or SPICE port'),
+      );
+    }
+    return viewer == 'remote-viewer'
+        ? _runner.run(viewer, [
+            if (fullscreen) '--full-screen',
+            'spice://127.0.0.1:$spicePort',
+          ])
+        : _runner.run(viewer, [
+            '-h',
+            '127.0.0.1',
+            '-p',
+            spicePort,
+            if (fullscreen) '--full-screen',
+          ]);
+  }
 
   @override
   Future<ProcessResult> forgetSshHostKey(String sshPort) =>
@@ -200,6 +224,16 @@ class QuickemuBackend implements VirtualizationBackend {
 
   @override
   Future<ProcessResult> diagnosticsReport() => _process.quickreport();
+
+  @override
+  Future<ProcessResult> convertDiskImage(String inputPath, String outputPath) =>
+      _runner.run('qemu-img', [
+        'convert',
+        '-O',
+        'qcow2',
+        inputPath,
+        outputPath,
+      ]);
 
   @override
   Future<String> version() async {

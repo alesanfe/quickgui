@@ -72,7 +72,11 @@ void main() {
           ['a b'],
           (b) => b.openVmFolder('a b'),
         ),
-        ('spicy', ['-p', '5930'], (b) => b.launchSpiceViewer('5930')),
+        (
+          'spicy',
+          ['-h', '127.0.0.1', '-p', '5930'],
+          (b) => b.launchSpiceViewer('5930'),
+        ),
         (
           'ssh-keygen',
           ['-R', '[localhost]:2222'],

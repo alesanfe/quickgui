@@ -35,7 +35,10 @@ class FakeHostProbe implements HostProbe {
       missingMacos;
 
   Set<int> alivePids = const {};
+  Set<int> sshPorts = const {};
 
   @override
   Future<bool> isPidAlive(int pid) async => alivePids.contains(pid);
+  @override
+  Future<bool> isSshAlive(int port) async => sshPorts.contains(port);
 }

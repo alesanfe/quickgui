@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -83,6 +84,20 @@ class SystemHostProbe implements HostProbe {
   @override
   Future<bool> isPidAlive(int pid) async =>
       (await _run('kill', ['-0', '$pid'])).exitCode == 0;
+
+  @override
+  Future<bool> isSshAlive(int port) async {
+    try {
+      final Socket socket = await Socket.connect('localhost', port);
+      final isSSH = await socket.any(
+        (event) => utf8.decode(event).contains('SSH'),
+      );
+      socket.close();
+      return isSSH;
+    } catch (exception) {
+      return false;
+    }
+  }
 
   @override
   Future<List<String>> missingMacosRequirements(String release) async {

@@ -30,12 +30,17 @@ void main() {
     expect(() => store.read(conf, 'ram'), returnsNormally);
   });
 
-  test('a conf inside a symlinked directory stays in place', () {
-    final link = Link('${dir.path}/link.conf');
-    link.createSync(conf);
-    store.write(link.path, 'ram', '8G');
-    expect(File(conf).existsSync(), isTrue);
-  });
+  test(
+    'a conf inside a symlinked directory stays in place',
+    () {
+      final link = Link('${dir.path}/link.conf');
+      link.createSync(conf);
+      store.write(link.path, 'ram', '8G');
+      expect(File(conf).existsSync(), isTrue);
+    },
+    // Symlink creation needs Developer Mode/admin on Windows.
+    skip: Platform.isWindows ? 'symlink creation needs a privilege' : null,
+  );
 
   test('VmStatus tolerates garbage backend output', () {
     expect(VmStatus.fromWire('\x00\xffgarbage'), VmStatus.unknown);

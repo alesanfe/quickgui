@@ -121,25 +121,29 @@ void main() {
     });
   });
 
-  group('missingMacosRequirements', () {
-    test('reports flags absent from the host cpu', () async {
-      // /proc/cpuinfo is real here; pick a requirement the host lacks when
-      // possible, otherwise assert the known-present flag is filtered out.
-      final cpuinfo = await File('/proc/cpuinfo').readAsString();
-      final hasSse42 = cpuinfo.toLowerCase().contains('sse4_2');
-      final p = probe({});
-      final missing = await p.missingMacosRequirements('ventura');
-      expect(missing.contains('sse4_2'), isNot(hasSse42));
-    });
-    test('uses the default requirement for unknown releases', () async {
-      final p = probe({});
-      final missing = await p.missingMacosRequirements('hurd');
-      final hasSse41 = (await File(
-        '/proc/cpuinfo',
-      ).readAsString()).toLowerCase().contains('sse4_1');
-      expect(missing, hasSse41 ? isEmpty : ['sse4_1']);
-    });
-  });
+  group(
+    'missingMacosRequirements',
+    skip: Platform.isWindows ? 'reads /proc/cpuinfo (Linux only)' : null,
+    () {
+      test('reports flags absent from the host cpu', () async {
+        // /proc/cpuinfo is real here; pick a requirement the host lacks when
+        // possible, otherwise assert the known-present flag is filtered out.
+        final cpuinfo = await File('/proc/cpuinfo').readAsString();
+        final hasSse42 = cpuinfo.toLowerCase().contains('sse4_2');
+        final p = probe({});
+        final missing = await p.missingMacosRequirements('ventura');
+        expect(missing.contains('sse4_2'), isNot(hasSse42));
+      });
+      test('uses the default requirement for unknown releases', () async {
+        final p = probe({});
+        final missing = await p.missingMacosRequirements('hurd');
+        final hasSse41 = (await File(
+          '/proc/cpuinfo',
+        ).readAsString()).toLowerCase().contains('sse4_1');
+        expect(missing, hasSse41 ? isEmpty : ['sse4_1']);
+      });
+    },
+  );
 
   test('canWriteToDirectory defers to the platform probe', () async {
     final dir = Directory.systemTemp.createTempSync('qg-probe-');

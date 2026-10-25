@@ -1,4 +1,5 @@
 @TestOn('vm')
+@Tags(['capture'])
 library;
 
 import 'dart:convert';
@@ -152,12 +153,20 @@ Widget _app({
   bool backendAvailable = true,
   ProcessResult? actionResult,
   FakeHostProbe? probe,
+  String? runningVm,
 }) => ProviderScope(
   overrides: [
     backendProvider.overrideWithValue(
       FakeVirtualizationBackend()
         ..available = backendAvailable
         ..vms = ['ubuntu-24.04', 'windows-11', 'debian-12']
+        ..states = {
+          ?runningVm: {
+            'name': runningVm,
+            'state': 'running',
+            'pid': runningPid,
+          },
+        }
         ..capabilities = {
           'schemaVersion': 1,
           'applicationVersion': '4.9.9',
@@ -197,17 +206,13 @@ Future<void> _capture(
   t.view.devicePixelRatio = 1.0;
   addTearDown(t.view.reset);
   if (runningVm != null) {
-    // The Manager marks a VM active when <vm>/<vm>.pid contains a live pid
-    // (kill -0). Spawning a real sleeper gives a valid pid; the file must
-    // exist before the first pump because _getVms runs in initState.
-    final sleeper = await t.runAsync(() => Process.start('sleep', ['300']));
-    if (sleeper != null) {
-      addTearDown(sleeper.kill);
-      File('${_vmDir.path}/$runningVm/$runningVm.pid')
-          .writeAsStringSync('${sleeper.pid}');
-      File('${_vmDir.path}/$runningVm/$runningVm.ports')
-          .writeAsStringSync('ssh,2222\nspice,5930\n');
-    }
+    // The Manager marks a VM active when <vm>/<vm>.pid contains a pid the
+    // HostProbe reports alive. A synthetic pid + the injected FakeHostProbe
+    // keeps the fixture host-independent (no real `sleep` process needed).
+    File('${_vmDir.path}/$runningVm/$runningVm.pid')
+        .writeAsStringSync('$runningPid');
+    File('${_vmDir.path}/$runningVm/$runningVm.ports')
+        .writeAsStringSync('ssh,2222\nspice,5930\n');
   }
   await t.pumpWidget(widget);
   // Fixed pump budget (not pumpAndSettle): the Manager's periodic 5s
@@ -232,6 +237,10 @@ Future<void> _capture(
 }
 
 const windowSize = Size(1200, 800);
+
+/// Synthetic pid the FakeHostProbe reports as alive for "running VM"
+/// captures — keeps the fixture free of real process dependencies.
+const runningPid = 42424;
 
 void main() {
   setUpAll(() async {
@@ -452,8 +461,10 @@ VM is stopped.
             probe: interactionRunningVms.containsKey(e.key)
                 ? (FakeHostProbe()
                     ..tools.add('spicy')
-                    ..terminal = 'xterm')
+                    ..terminal = 'xterm'
+                    ..alivePids = {runningPid})
                 : null,
+            runningVm: interactionRunningVms[e.key],
           ),
           '${e.key}_$theme',
           interact: e.value,

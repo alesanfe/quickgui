@@ -11,6 +11,11 @@ abstract class VmConfigStore {
   /// existing line or appending a new one.
   void write(String confPath, String key, String value);
 
+  /// Writes several `key="value"` entries in one pass — implementations
+  /// should perform a single read-modify-write so batch updates pay the
+  /// atomic commit cost once instead of per key.
+  void writeAll(String confPath, Map<String, String> entries);
+
   /// Loads the full file contents (empty string when missing).
   Future<String> loadRaw(String confPath);
 

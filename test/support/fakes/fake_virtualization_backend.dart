@@ -93,8 +93,11 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
   }
 
   @override
-  Future<ProcessResult> launchSpiceViewer(String spicePort) async =>
-      lastActionResult ?? ProcessResult(0, 0, '', '');
+  Future<ProcessResult> launchSpiceViewer(
+    String spicePort, {
+    String viewer = 'spicy',
+    bool fullscreen = false,
+  }) async => lastActionResult ?? ProcessResult(0, 0, '', '');
 
   @override
   Future<ProcessResult> forgetSshHostKey(String sshPort) async =>
@@ -110,4 +113,15 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
   @override
   Future<ProcessResult> diagnosticsReport() async =>
       lastActionResult ?? ProcessResult(0, 0, '', '');
+
+  final List<List<String>> convertCalls = [];
+
+  @override
+  Future<ProcessResult> convertDiskImage(
+    String inputPath,
+    String outputPath,
+  ) async {
+    convertCalls.add([inputPath, outputPath]);
+    return lastActionResult ?? ProcessResult(0, 0, '', '');
+  }
 }

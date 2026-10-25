@@ -59,7 +59,11 @@ abstract class VirtualizationBackend {
   Future<ProcessResult> openVmFolder(String vmName);
 
   /// Launches the SPICE viewer attached to [spicePort].
-  Future<ProcessResult> launchSpiceViewer(String spicePort);
+  Future<ProcessResult> launchSpiceViewer(
+    String spicePort, {
+    String viewer = 'spicy',
+    bool fullscreen = false,
+  });
 
   /// Removes the stale known_hosts entry for the VM's SSH port, e.g.
   /// when a new guest reuses the port of a deleted VM.
@@ -75,4 +79,8 @@ abstract class VirtualizationBackend {
 
   /// Runs the backend's diagnostics report (`quickreport`).
   Future<ProcessResult> diagnosticsReport();
+
+  /// Converts the disk image at [inputPath] to qcow2 at [outputPath]
+  /// (`qemu-img convert`). Used when importing foreign image formats.
+  Future<ProcessResult> convertDiskImage(String inputPath, String outputPath);
 }
