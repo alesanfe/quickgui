@@ -1165,3 +1165,24 @@ msgstr "Some changes were applied before the failure."
 
 msgid "Technical details"
 msgstr "Technical details"
+
+msgid "All types"
+msgstr "All types"
+
+msgid "Failed (retryable)"
+msgstr "Failed (retryable)"
+
+msgid "Filter by type"
+msgstr "Filter by type"
+
+msgid "No activity yet. Downloads and machine "
+msgstr "No activity yet. Downloads and machine "
+
+msgid "No operations match the current filters."
+msgstr "No operations match the current filters."
+
+msgid "Retryable only"
+msgstr "Retryable only"
+
+msgid "Type"
+msgstr "Type"

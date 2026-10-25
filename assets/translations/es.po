@@ -1196,3 +1196,24 @@ msgstr ""
 
 msgid "Technical details"
 msgstr ""
+
+msgid "All types"
+msgstr "Todos los tipos"
+
+msgid "Failed (retryable)"
+msgstr "Fallida (reintentable)"
+
+msgid "Filter by type"
+msgstr "Filtrar por tipo"
+
+msgid "No activity yet. Downloads and machine "
+msgstr ""
+
+msgid "No operations match the current filters."
+msgstr "Ninguna operación coincide con los filtros actuales."
+
+msgid "Retryable only"
+msgstr "Solo reintentables"
+
+msgid "Type"
+msgstr ""
