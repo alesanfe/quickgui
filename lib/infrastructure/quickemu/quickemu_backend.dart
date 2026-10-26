@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -545,4 +546,93 @@ class QuickemuBackend implements VirtualizationBackend {
     final result = await _process.quickemu(['--version']);
     return result.exitCode == 0 ? '${result.stdout}'.trim() : '';
   }
+
+  /// Streams op-state changes as JSONL (`--op-watch`). Push replaces
+  /// the --op-list polling loop for long-running ops (clone/export).
+  /// The structured runner is a bounded call — a watch needs a live
+  /// process, so we spawn quickemu directly on the same contract.
+  @override
+  Stream<Map<String, dynamic>> watchOperations(String target) async* {
+    final proc = await Process.start('quickemu', [
+      '--vm',
+      '\$target.conf',
+      '--op-watch',
+      '--format',
+      'json',
+    ]);
+    yield* proc.stdout
+        .transform(const Utf8Decoder())
+        .transform(const LineSplitter())
+        .where((l) => l.trim().isNotEmpty)
+        .map((l) => Map<String, dynamic>.from(
+            jsonDecode(l) as Map<dynamic, dynamic>));
+  }
+
+  /// Per-VM runtime metrics via `--stats` (QMP cpus/block/balloon).
+  @override
+  Future<Map<String, dynamic>?> vmStats(String target) async {
+    try {
+      final response = await _structured.run('stats', [
+        '--vm',
+        '\$target.conf',
+        '--stats',
+      ]);
+      return response.dataMap;
+    } on AppFailure catch (e) {
+      if (isBackendEnvelopeMissing(e) ||
+          e.code == 'VM_MUST_BE_RUNNING') {
+        return null;
+      }
+      rethrow;
+    }
+  }
+
+  /// Global VM inventory (`--inventory` -> vms.json shaped map).
+  @override
+  Future<Map<String, dynamic>> listInventory() async {
+    try {
+      final response = await _structured.run('inventory', ['--inventory']);
+      return response.dataMap ?? const {};
+    } on AppFailure catch (e) {
+      if (isBackendEnvelopeMissing(e)) return const {};
+      rethrow;
+    }
+  }
+
+  /// COW clone via `--linked-clone` (qcow2 backing-file).
+  @override
+  Future<void> linkedClone(String target, String destination) async {
+    await _structured.run('linked-clone', [
+      '--vm',
+      '\$target.conf',
+      '--linked-clone',
+      destination,
+    ]);
+  }
+
+  /// Boot with a reusable profile preset (`--profile`).
+  @override
+  Future<void> startWithProfile(String target, String profile) async {
+    await _structured.run('profile', [
+      '--vm',
+      '\$target.conf',
+      '--profile',
+      profile,
+    ]);
+  }
+
+  /// Plugins installed on PATH (`--plugins` -> space-separated names).
+  @override
+  Future<List<String>> listPlugins() async {
+    try {
+      final response = await _structured.run('plugins', ['--plugins']);
+      final items = response.dataMap?['plugins'] ?? response.data;
+      if (items is List) return items.map((e) => '\$e').toList();
+      return const [];
+    } on AppFailure catch (e) {
+      if (isBackendEnvelopeMissing(e)) return const [];
+      rethrow;
+    }
+  }
+
 }
