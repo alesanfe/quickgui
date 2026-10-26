@@ -250,6 +250,30 @@ class ActivityController extends Notifier<ActivityState> {
     }
   }
 
+  /// Subscribes to the backend's push stream (`--op-watch`) so live
+  /// ops update without polling op-list. Events carry the op state
+  /// file; we map them onto the matching in-flight AppOperation.
+  StreamSubscription<Map<String, dynamic>>? _watchSub;
+  void startOperationWatch(String target) {
+    _watchSub ??= backend.watchOperations(target).listen((opState) {
+      final opId = opState['operationId'];
+      final progress = opState['progress'];
+      final st = opState['state'];
+      for (final op in state.active) {
+        if (op.backendOperationId != opId) continue;
+        if (st == 'completed' || st == 'failed' || st == 'cancelled') {
+          update(op, switch (st) {
+            'completed' => const OperationSucceeded(),
+            'cancelled' => const OperationCancelled(),
+            _ => OperationFailed(
+                message: 'op failed: \${opState['error'] ?? 'unknown'}'),
+          });
+        } else if (progress is num) {
+          op.state = OperationRunning(progress: progress / 100);
+        }
+      }
+    }, onError: (_) => _watchSub = null); // stream died: polling still works
+  }
   /// Updates progress/state of an in-flight operation.
   void update(AppOperation op, OperationState<Object?> next, {String? output}) {
     if (op.isTerminal) return;
