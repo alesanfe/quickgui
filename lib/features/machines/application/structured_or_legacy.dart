@@ -47,15 +47,39 @@ Future<ProcessResult> runVmActionOrLegacy(
     }
     LegacyTelemetry.record(command, e.code);
     final result = await backend.runAction(arguments);
+    // Legacy failures reach callers as raw ProcessResult — classify the
+    // stderr text so telemetry still records a typed code.
+    final failureCode = result.exitCode == 0
+        ? null
+        : _classifyStderr('${result.stderr}');
     AppLog.event(
       AppLog.backendContract,
-      Level.FINE,
+      result.exitCode == 0 ? Level.FINE : Level.WARNING,
       'legacy command completed',
       command: command,
       durationMs: sw.elapsedMilliseconds,
       exitCode: result.exitCode,
+      failureCode: failureCode,
       legacy: true,
     );
     return result;
   }
+}
+
+/// Maps raw stderr text to the closest typed failure code — a stopgap
+/// for pre-contract backends that report errors as strings.
+String _classifyStderr(String stderr) {
+  final lower = stderr.toLowerCase();
+  if (lower.contains('address already in use') || lower.contains('port')) {
+    return 'port_busy';
+  }
+  if (lower.contains('lock')) return 'lock_busy';
+  if (lower.contains('timed out') || lower.contains('timeout')) {
+    return 'timeout';
+  }
+  if (lower.contains('permission denied')) return 'permission_denied';
+  if (lower.contains('no such file') || lower.contains('not found')) {
+    return 'not_found';
+  }
+  return 'backend.legacy_error';
 }
