@@ -35,6 +35,7 @@ class VmSnapshotsView extends ConsumerStatefulWidget {
 class _VmSnapshotsViewState extends ConsumerState<VmSnapshotsView> {
   VirtualizationBackend get _backend => ref.read(trackedBackendProvider);
   List<Map<String, dynamic>>? _snapshots;
+  List<Map<String, dynamic>> _tree = const [];
   Object? _error;
   bool _busy = false;
 
@@ -47,9 +48,11 @@ class _VmSnapshotsViewState extends ConsumerState<VmSnapshotsView> {
   Future<void> _load() async {
     try {
       final snapshots = await _backend.listSnapshots(widget.confPath);
+      final tree = await _backend.snapshotTree(widget.confPath);
       if (!mounted) return;
       setState(() {
         _snapshots = snapshots;
+        _tree = tree;
         _error = null;
       });
     } catch (e) {
@@ -150,6 +153,34 @@ class _VmSnapshotsViewState extends ConsumerState<VmSnapshotsView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (_tree.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.t('Snapshot tree'),
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                for (final node in _tree)
+                  Padding(
+                    padding: EdgeInsets.only(
+                      left: 12.0 * (node['depth'] as int? ?? 0),
+                      top: 2,
+                    ),
+                    child: Text(
+                      '${node['depth'] != null && (node['depth'] as int) > 0 ? '└─ ' : ''}${node['name'] ?? node['tag'] ?? node}',
+                      style: const TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                const Divider(),
+              ],
+            ),
+          ),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: TextField(

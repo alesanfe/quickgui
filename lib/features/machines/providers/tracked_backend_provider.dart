@@ -213,6 +213,10 @@ class _TrackedBackend implements VirtualizationBackend {
       backend.pruneBackups(target, keep: keep);
 
   @override
+  Future<List<Map<String, dynamic>>> snapshotTree(String confPath) =>
+      backend.snapshotTree(confPath);
+
+  @override
   Future<Map<String, dynamic>?> hostInfo() => backend.hostInfo();
 
   @override

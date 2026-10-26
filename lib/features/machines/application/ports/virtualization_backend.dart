@@ -88,6 +88,10 @@ abstract class VirtualizationBackend {
   /// Keeps the newest [keep] archives for the VM (`--backup-prune`).
   Future<void> pruneBackups(String target, {int keep = 5});
 
+  /// Snapshot dependency tree (`--snapshot-tree`): parents/branches so
+  /// the UI can show lineage instead of a flat list.
+  Future<List<Map<String, dynamic>>> snapshotTree(String confPath);
+
   /// Host inventory from `--host-info` (kernel, KVM, IOMMU, qemu and
   /// dependency flags in one machine-readable call). Null when the
   /// backend predates the structured contract.

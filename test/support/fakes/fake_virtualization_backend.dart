@@ -140,6 +140,12 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
   Future<void> pruneBackups(String target, {int keep = 5}) async =>
       backupItems.removeRange(0, (backupItems.length - keep).clamp(0, 1 << 30));
 
+  List<Map<String, dynamic>> snapshotTreeItems = [];
+
+  @override
+  Future<List<Map<String, dynamic>>> snapshotTree(String confPath) async =>
+      snapshotTreeItems;
+
   Map<String, dynamic>? hostInfoResponse;
 
   @override

@@ -292,6 +292,24 @@ class QuickemuBackend implements VirtualizationBackend {
   }
 
   @override
+  Future<List<Map<String, dynamic>>> snapshotTree(String confPath) async {
+    try {
+      final response = await _structured.run('snapshot-tree', [
+        '--vm',
+        confPath,
+        '--snapshot-tree',
+      ]);
+      final items = response.dataMap?['snapshots'] ?? response.dataMap?['tree'];
+      return items is List
+          ? [for (final i in items) Map<String, dynamic>.from(i as Map)]
+          : const [];
+    } on AppFailure catch (e) {
+      if (isBackendEnvelopeMissing(e)) return const [];
+      rethrow;
+    }
+  }
+
+  @override
   Future<Map<String, dynamic>?> hostInfo() async {
     try {
       final response = await _structured.run('host-info', ['--host-info']);
