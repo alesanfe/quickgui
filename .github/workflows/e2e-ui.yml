@@ -19,6 +19,8 @@ jobs:
           git clone --depth 1 https://github.com/alesanfe/quickemu.git /tmp/quickemu
           echo "/tmp/quickemu/bin" >> "$GITHUB_PATH"
       - name: widget e2e under xvfb (the app actually used, not just rendered)
-        run: xvfb-run -a flutter test test/integration/ui_uses_real_cli_test.dart
+        run: xvfb-run -a flutter test test/integration/
+      - name: navigation e2e — boots the real app and drives screens
+        run: xvfb-run -a flutter test integration_test/
       - name: golden captures
         run: xvfb-run -a flutter test test/capture/
