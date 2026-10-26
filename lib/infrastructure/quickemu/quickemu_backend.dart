@@ -162,9 +162,14 @@ class QuickemuBackend implements VirtualizationBackend {
   @override
   Future<Map<String, dynamic>> runVmJson(
     String command,
-    List<String> arguments,
-  ) async {
-    final response = await _structured.run(command, arguments);
+    List<String> arguments, {
+    Future<void>? cancelSignal,
+  }) async {
+    final response = await _structured.run(
+      command,
+      arguments,
+      cancelSignal: cancelSignal,
+    );
     final data = response.dataMap;
     if (data == null) {
       throw AppFailure(

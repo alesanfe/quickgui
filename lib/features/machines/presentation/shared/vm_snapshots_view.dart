@@ -7,7 +7,7 @@ import 'package:quickgui/features/activity/domain/app_operation.dart';
 import 'package:quickgui/features/activity/providers/activity_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
-import 'package:quickgui/features/machines/providers/backend_providers.dart';
+import 'package:quickgui/features/machines/providers/tracked_backend_provider.dart';
 import 'package:quickgui/shared/widgets/bytes_formatter.dart';
 import 'package:quickgui/features/machines/presentation/shared/process_output_dialog.dart';
 
@@ -35,7 +35,7 @@ class VmSnapshotsView extends ConsumerStatefulWidget {
 }
 
 class _VmSnapshotsViewState extends ConsumerState<VmSnapshotsView> {
-  VirtualizationBackend get _backend => ref.read(backendProvider);
+  VirtualizationBackend get _backend => ref.read(trackedBackendProvider);
   List<Map<String, dynamic>>? _snapshots;
   Object? _error;
   bool _busy = false;

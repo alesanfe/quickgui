@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,17 +11,18 @@ import 'package:quickgui/features/machines/providers/backend_providers.dart';
 final trackedBackendProvider = Provider<VirtualizationBackend>(
   (ref) => _TrackedBackend(
     ref.watch(backendProvider),
-    (kind, target, action, {retrySpec}) => ref
+    <T>(kind, target, action, {retrySpec, onCancel}) => ref
         .read(activityProvider.notifier)
-        .run(kind, target, action, retrySpec: retrySpec),
+        .run<T>(kind, target, action, retrySpec: retrySpec, onCancel: onCancel),
   ),
 );
 
-typedef _Track = Future<ProcessResult> Function(
+typedef _Track = Future<T> Function<T>(
   OperationKind,
   String,
-  Future<ProcessResult> Function(), {
+  Future<T> Function(), {
   RetrySpec? retrySpec,
+  Future<void> Function()? onCancel,
 });
 
 class _TrackedBackend implements VirtualizationBackend {
@@ -103,11 +105,67 @@ class _TrackedBackend implements VirtualizationBackend {
     );
   }
 
+  /// Commands that are unsafe to interrupt mid-flight — killing the
+  /// process could leave the VM config or disks half-modified.
+  static const _nonCancellableCommands = {
+    'delete-vm',
+    'delete-disk',
+    'delete-plan',
+    'clone',
+  };
+
   @override
   Future<Map<String, dynamic>> runVmJson(
     String command,
-    List<String> arguments,
-  ) => backend.runVmJson(command, arguments);
+    List<String> arguments, {
+    Future<void>? cancelSignal,
+  }) {
+    // Infer the activity kind/target from the quickemu arg tail — same
+    // conventions as runAction.
+    final index = arguments.indexOf('--vm');
+    final target = index >= 0 && index + 1 < arguments.length
+        ? p.basenameWithoutExtension(arguments[index + 1])
+        : 'Quickemu';
+    final kind = command.startsWith('snapshot-')
+        ? OperationKind.snapshot
+        : command == 'clone'
+        ? OperationKind.clone
+        : command == 'disk-resize'
+        ? OperationKind.resize
+        : command.startsWith('delete-')
+        ? OperationKind.delete
+        : command == 'kill' || command == 'powerdown' || command == 'stop'
+        ? OperationKind.stop
+        : command == 'start'
+        ? OperationKind.start
+        : OperationKind.command;
+    final retrySpec = RetrySpec(
+      command: command,
+      arguments: List.of(arguments),
+      regeneratesPlan: kind == OperationKind.delete,
+      requiresConfirmation: kind == OperationKind.delete,
+      idempotent:
+          kind == OperationKind.start ||
+          kind == OperationKind.stop ||
+          kind == OperationKind.command,
+    );
+    // Destructive commands get no kill switch — an interrupted delete or
+    // clone can leave disks/configs in a worse state than letting it run.
+    final cancellable =
+        cancelSignal == null && !_nonCancellableCommands.contains(command);
+    final cancel = cancellable ? Completer<void>() : null;
+    return track<Map<String, dynamic>>(
+      kind,
+      target,
+      () => backend.runVmJson(
+        command,
+        arguments,
+        cancelSignal: cancelSignal ?? cancel?.future,
+      ),
+      retrySpec: retrySpec,
+      onCancel: cancel == null ? null : () async => cancel.complete(),
+    );
+  }
 
   @override
   Future<ProcessResult> runQuickget(List<String> arguments) =>

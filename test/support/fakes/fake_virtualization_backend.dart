@@ -81,8 +81,9 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
   @override
   Future<Map<String, dynamic>> runVmJson(
     String command,
-    List<String> arguments,
-  ) async {
+    List<String> arguments, {
+    Future<void>? cancelSignal,
+  }) async {
     jsonCalls.add([command, ...arguments]);
     final response = jsonResponses[command];
     if (response == null) {

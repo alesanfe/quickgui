@@ -48,10 +48,14 @@ abstract class VirtualizationBackend {
   /// Throws `AppFailure` on contract, coherence or backend failures —
   /// callers get typed errors instead of parsing stdout themselves.
   /// `--format json` is appended by the backend; do not repeat it.
+  /// [cancelSignal] completes when the caller wants the underlying
+  /// process terminated; the executor then throws a `cancelled`
+  /// `AppFailure` after graceful-then-forced termination.
   Future<Map<String, dynamic>> runVmJson(
     String command,
-    List<String> arguments,
-  );
+    List<String> arguments, {
+    Future<void>? cancelSignal,
+  });
 
   /// Runs a quickget action (e.g. ['--create-config','name','/path.iso']).
   Future<ProcessResult> runQuickget(List<String> arguments);

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:quickgui/core/result/result.dart';
 import 'package:quickgui/features/machines/application/start_vm.dart';
-import 'package:quickgui/features/machines/providers/backend_providers.dart';
+import 'package:quickgui/features/machines/providers/tracked_backend_provider.dart';
 import 'package:quickgui/features/machines/presentation/list/manager.dart';
 
 /// Actions offered once a download completes: start the new VM directly
@@ -21,7 +21,7 @@ class ManageMachinesAfterDownloadButton extends ConsumerWidget {
   final String vmName;
 
   Future<void> _startVm(BuildContext context, WidgetRef ref) async {
-    final result = await StartVm(ref.read(backendProvider))(vmName);
+    final result = await StartVm(ref.read(trackedBackendProvider))(vmName);
     if (!context.mounted) return;
     if (result is Err) {
       showDialog<void>(

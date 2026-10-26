@@ -167,35 +167,43 @@ class ActivityController extends Notifier<ActivityState> {
     return op;
   }
 
-  Future<ProcessResult> run(
+  Future<T> run<T>(
     OperationKind kind,
     String target,
-    Future<ProcessResult> Function() action, {
+    Future<T> Function() action, {
     RetrySpec? retrySpec,
     String? retryOf,
+    Future<void> Function()? onCancel,
   }) async {
     final operation = start(
       kind,
       target,
+      onCancel: onCancel,
       retrySpec: retrySpec,
       retryOf: retryOf,
     );
     try {
       final result = await action();
-      final raw = '${result.stdout}\n${result.stderr}'.trim();
-      final output = raw.length > 65536
-          ? raw.substring(raw.length - 65536)
-          : raw;
-      update(
-        operation,
-        result.exitCode == 0
-            ? const OperationState.succeeded(null)
-            : OperationState.failed(
-                code: 'backend.exit_${result.exitCode}',
-                message: output,
-              ),
-        output: output,
-      );
+      if (result is ProcessResult) {
+        final raw = '${result.stdout}\n${result.stderr}'.trim();
+        final output = raw.length > 65536
+            ? raw.substring(raw.length - 65536)
+            : raw;
+        update(
+          operation,
+          result.exitCode == 0
+              ? const OperationState.succeeded(null)
+              : OperationState.failed(
+                  code: 'backend.exit_${result.exitCode}',
+                  message: output,
+                ),
+          output: output,
+        );
+      } else {
+        // Structured (runVmJson) results: reaching this point means the
+        // envelope said success — failures always arrive as AppFailure.
+        update(operation, const OperationState.succeeded(null));
+      }
       return result;
     } on AppFailure catch (failure) {
       // Typed failures keep their stable code and retry policy instead
