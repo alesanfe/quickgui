@@ -64,6 +64,7 @@ class _VmSettingsPageState extends ConsumerState<VmSettingsPage> {
   bool _loadFailed = false;
   bool _advanced = false;
   bool _saving = false;
+  bool _allowPop = false;
   final _form = GlobalKey<FormState>();
   static const _arrayKeys = {'port_forwards', 'usb_devices'};
 
@@ -129,6 +130,59 @@ class _VmSettingsPageState extends ConsumerState<VmSettingsPage> {
     key,
     () => TextEditingController(text: _current(key)),
   );
+
+  /// True when any field differs from the loaded configuration.
+  bool get _isDirty => _controllers.entries.any(
+    (e) => e.value.text.trim() != _current(e.key).trim(),
+  );
+
+  /// Intercepts navigation away (back button, swipe, system close)
+  /// while edits are unsaved — offers Save, Discard and Keep editing.
+  Future<void> _onPopAttempt() async {
+    if (_allowPop) return;
+    if (!_isDirty) {
+      _releaseAndPop();
+      return;
+    }
+    final choice = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.t('Discard unsaved changes?')),
+        content: Text(
+          context.t('Your edits to this configuration have not been saved.'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'cancel'),
+            child: Text(context.t('Keep editing')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'discard'),
+            child: Text(context.t('Discard')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, 'save'),
+            child: Text(context.t('Save')),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || choice == null || choice == 'cancel') return;
+    if (choice == 'discard') {
+      _releaseAndPop();
+      return;
+    }
+    await _save();
+  }
+
+  /// Releases the pop guard, then pops once PopScope has rebuilt with
+  /// `canPop: true`.
+  void _releaseAndPop() {
+    setState(() => _allowPop = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && context.canPop()) context.pop();
+    });
+  }
 
   Future<void> _save() async {
     if (_saving || !(_form.currentState?.validate() ?? false)) return;
@@ -201,6 +255,10 @@ class _VmSettingsPageState extends ConsumerState<VmSettingsPage> {
       }
       await store.saveRaw(_confPath, merged);
       if (!mounted) return;
+      // Persisted — refresh the baseline so _isDirty is false and the
+      // pop guard lets the route close.
+      _rawLines = merged.split('\n');
+      _allowPop = true;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(context.t('Configuration saved'))));
@@ -251,122 +309,128 @@ class _VmSettingsPageState extends ConsumerState<VmSettingsPage> {
   @override
   Widget build(BuildContext context) {
     final sections = _sections(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(context.t('Settings — {0}', args: [widget.vmName])),
-        actions: [
-          Tooltip(
-            message: context.t(
-              'Show all options, including ones not covered by the basic editor',
-            ),
-            child: Row(
-              children: [
-                Text(context.t('Advanced')),
-                Switch(
-                  value: _advanced,
-                  onChanged: (v) => setState(() => _advanced = v),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          IconButton(
-            tooltip: context.t('Open config documentation'),
-            icon: const Icon(Icons.help_outline),
-            onPressed: () => launchUrl(
-              Uri.parse(
-                'https://github.com/quickemu-project/quickemu/blob/master/docs/quickemu_conf.5.md',
+    return PopScope(
+      canPop: _allowPop,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _onPopAttempt();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(context.t('Settings — {0}', args: [widget.vmName])),
+          actions: [
+            Tooltip(
+              message: context.t(
+                'Show all options, including ones not covered by the basic editor',
               ),
-              mode: LaunchMode.externalApplication,
-            ),
-          ),
-        ],
-      ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _loadFailed
-          ? Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+              child: Row(
                 children: [
-                  Text(context.t('Unable to load configuration')),
-                  const SizedBox(height: 8),
-                  FilledButton(
-                    onPressed: _load,
-                    child: Text(context.t('Retry')),
+                  Text(context.t('Advanced')),
+                  Switch(
+                    value: _advanced,
+                    onChanged: (v) => setState(() => _advanced = v),
                   ),
                 ],
               ),
-            )
-          : Form(
-              key: _form,
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  Card(
-                    child: ListTile(
-                      leading: const Icon(Icons.info_outline),
-                      title: Text(
-                        context.t('Changes take effect at the next start'),
-                      ),
-                      subtitle: Text(
-                        context.t(
-                          'Stop the machine before changing disks, firmware or network configuration.',
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              tooltip: context.t('Open config documentation'),
+              icon: const Icon(Icons.help_outline),
+              onPressed: () => launchUrl(
+                Uri.parse(
+                  'https://github.com/quickemu-project/quickemu/blob/master/docs/quickemu_conf.5.md',
+                ),
+                mode: LaunchMode.externalApplication,
+              ),
+            ),
+          ],
+        ),
+        body: _loading
+            ? const Center(child: CircularProgressIndicator())
+            : _loadFailed
+            ? Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(context.t('Unable to load configuration')),
+                    const SizedBox(height: 8),
+                    FilledButton(
+                      onPressed: _load,
+                      child: Text(context.t('Retry')),
+                    ),
+                  ],
+                ),
+              )
+            : Form(
+                key: _form,
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    Card(
+                      child: ListTile(
+                        leading: const Icon(Icons.info_outline),
+                        title: Text(
+                          context.t('Changes take effect at the next start'),
+                        ),
+                        subtitle: Text(
+                          context.t(
+                            'Stop the machine before changing disks, firmware or network configuration.',
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  for (final section in sections)
-                    if (widget.section == null ||
-                        section.title == widget.section)
+                    for (final section in sections)
+                      if (widget.section == null ||
+                          section.title == widget.section)
+                        _SectionCard(
+                          title: section.title,
+                          fields: [
+                            for (final key in section.fields)
+                              (key, _controllerFor(key)),
+                          ],
+                        ),
+                    if (_advanced && _extraKeys.isNotEmpty)
                       _SectionCard(
-                        title: section.title,
+                        title: context.t('Advanced (other keys)'),
                         fields: [
-                          for (final key in section.fields)
+                          for (final key in _extraKeys)
                             (key, _controllerFor(key)),
                         ],
                       ),
-                  if (_advanced && _extraKeys.isNotEmpty)
-                    _SectionCard(
-                      title: context.t('Advanced (other keys)'),
-                      fields: [
-                        for (final key in _extraKeys)
-                          (key, _controllerFor(key)),
-                      ],
-                    ),
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-                  if (_advanced)
-                    TextButton.icon(
-                      onPressed: () => showDialog<void>(
-                        context: context,
-                        builder: (context) => VmConfigEditorDialog(
-                          vmName: widget.vmName,
-                          confPath: _confPath,
+                    if (_advanced)
+                      TextButton.icon(
+                        onPressed: () => showDialog<void>(
+                          context: context,
+                          builder: (context) => VmConfigEditorDialog(
+                            vmName: widget.vmName,
+                            confPath: _confPath,
+                          ),
                         ),
+                        icon: const Icon(Icons.code),
+                        label: Text(context.t('Edit raw configuration')),
                       ),
-                      icon: const Icon(Icons.code),
-                      label: Text(context.t('Edit raw configuration')),
-                    ),
-                ],
+                  ],
+                ),
               ),
-            ),
-      bottomNavigationBar: _loading || _loadFailed
-          ? null
-          : SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Align(
-                  heightFactor: 1,
-                  alignment: Alignment.centerRight,
-                  child: FilledButton.icon(
-                    icon: const Icon(Icons.save),
-                    label: Text(context.t('Save')),
-                    onPressed: _saving ? null : _save,
+        bottomNavigationBar: _loading || _loadFailed
+            ? null
+            : SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Align(
+                    heightFactor: 1,
+                    alignment: Alignment.centerRight,
+                    child: FilledButton.icon(
+                      icon: const Icon(Icons.save),
+                      label: Text(context.t('Save')),
+                      onPressed: _saving ? null : _save,
+                    ),
                   ),
                 ),
               ),
-            ),
+      ),
     );
   }
 }
