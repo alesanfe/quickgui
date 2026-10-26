@@ -1,4 +1,6 @@
 import 'package:quickgui/core/errors/failure.dart';
+import 'package:quickgui/core/logging/app_logging.dart';
+import 'package:quickgui/core/telemetry/legacy_telemetry.dart';
 import 'package:quickgui/core/result/result.dart';
 import 'package:quickgui/features/diagnostics/application/ports/host_probe.dart';
 import 'package:quickgui/features/diagnostics/domain/diagnostics_report.dart';
@@ -39,6 +41,14 @@ class CollectDiagnostics {
           kvmAvailable: await _host.hasKvm(),
           workingDirectory: dir,
           freeSpaceBytes: await _host.freeSpaceBytes(dir),
+          recentErrors: [
+            for (final r in LogStore.records)
+              if (r.level == 'WARNING' ||
+                  r.level == 'SEVERE' ||
+                  r.level == 'SHOUT')
+                r.toJson(),
+          ],
+          legacyFallbacks: LegacyTelemetry.toJson(),
         ),
       );
     } on Exception catch (e) {

@@ -20,6 +20,9 @@ abstract class DiagnosticsReport with _$DiagnosticsReport {
     @Default(<String, bool>{}) Map<String, bool> capabilities,
     @Default(<String, bool>{}) Map<String, bool> tools,
     int? freeSpaceBytes,
+    @Default(<Map<String, dynamic>>[]) List<Map<String, dynamic>> recentErrors,
+    @Default(<Map<String, dynamic>>[])
+    List<Map<String, dynamic>> legacyFallbacks,
   }) = _DiagnosticsReport;
 
   /// Supported contract version range of this quickgui build.
@@ -48,6 +51,18 @@ abstract class DiagnosticsReport with _$DiagnosticsReport {
     b.writeln('Capabilities:');
     for (final e in capabilities.entries) {
       b.writeln('  ${e.key}: ${e.value}');
+    }
+    if (legacyFallbacks.isNotEmpty) {
+      b.writeln('Legacy fallbacks: ${legacyFallbacks.length}');
+      for (final f in legacyFallbacks.take(5)) {
+        b.writeln('  ${f['command']}: ${f['reason']}');
+      }
+    }
+    if (recentErrors.isNotEmpty) {
+      b.writeln('Recent errors:');
+      for (final e in recentErrors.take(10)) {
+        b.writeln('  ${e['at']} ${e['logger']}: ${clean('${e['message']}')}');
+      }
     }
     return b.toString();
   }

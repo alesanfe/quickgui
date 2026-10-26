@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DiagnosticsReport {
 
- String get quickguiVersion; bool get backendAvailable; bool get kvmAvailable; String get workingDirectory; String? get backendVersion; int? get contractVersion; Map<String, bool> get capabilities; Map<String, bool> get tools; int? get freeSpaceBytes;
+ String get quickguiVersion; bool get backendAvailable; bool get kvmAvailable; String get workingDirectory; String? get backendVersion; int? get contractVersion; Map<String, bool> get capabilities; Map<String, bool> get tools; int? get freeSpaceBytes; List<Map<String, dynamic>> get recentErrors; List<Map<String, dynamic>> get legacyFallbacks;
 /// Create a copy of DiagnosticsReport
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $DiagnosticsReportCopyWith<DiagnosticsReport> get copyWith => _$DiagnosticsRepor
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DiagnosticsReport&&(identical(other.quickguiVersion, quickguiVersion) || other.quickguiVersion == quickguiVersion)&&(identical(other.backendAvailable, backendAvailable) || other.backendAvailable == backendAvailable)&&(identical(other.kvmAvailable, kvmAvailable) || other.kvmAvailable == kvmAvailable)&&(identical(other.workingDirectory, workingDirectory) || other.workingDirectory == workingDirectory)&&(identical(other.backendVersion, backendVersion) || other.backendVersion == backendVersion)&&(identical(other.contractVersion, contractVersion) || other.contractVersion == contractVersion)&&const DeepCollectionEquality().equals(other.capabilities, capabilities)&&const DeepCollectionEquality().equals(other.tools, tools)&&(identical(other.freeSpaceBytes, freeSpaceBytes) || other.freeSpaceBytes == freeSpaceBytes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DiagnosticsReport&&(identical(other.quickguiVersion, quickguiVersion) || other.quickguiVersion == quickguiVersion)&&(identical(other.backendAvailable, backendAvailable) || other.backendAvailable == backendAvailable)&&(identical(other.kvmAvailable, kvmAvailable) || other.kvmAvailable == kvmAvailable)&&(identical(other.workingDirectory, workingDirectory) || other.workingDirectory == workingDirectory)&&(identical(other.backendVersion, backendVersion) || other.backendVersion == backendVersion)&&(identical(other.contractVersion, contractVersion) || other.contractVersion == contractVersion)&&const DeepCollectionEquality().equals(other.capabilities, capabilities)&&const DeepCollectionEquality().equals(other.tools, tools)&&(identical(other.freeSpaceBytes, freeSpaceBytes) || other.freeSpaceBytes == freeSpaceBytes)&&const DeepCollectionEquality().equals(other.recentErrors, recentErrors)&&const DeepCollectionEquality().equals(other.legacyFallbacks, legacyFallbacks));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,quickguiVersion,backendAvailable,kvmAvailable,workingDirectory,backendVersion,contractVersion,const DeepCollectionEquality().hash(capabilities),const DeepCollectionEquality().hash(tools),freeSpaceBytes);
+int get hashCode => Object.hash(runtimeType,quickguiVersion,backendAvailable,kvmAvailable,workingDirectory,backendVersion,contractVersion,const DeepCollectionEquality().hash(capabilities),const DeepCollectionEquality().hash(tools),freeSpaceBytes,const DeepCollectionEquality().hash(recentErrors),const DeepCollectionEquality().hash(legacyFallbacks));
 
 @override
 String toString() {
-  return 'DiagnosticsReport(quickguiVersion: $quickguiVersion, backendAvailable: $backendAvailable, kvmAvailable: $kvmAvailable, workingDirectory: $workingDirectory, backendVersion: $backendVersion, contractVersion: $contractVersion, capabilities: $capabilities, tools: $tools, freeSpaceBytes: $freeSpaceBytes)';
+  return 'DiagnosticsReport(quickguiVersion: $quickguiVersion, backendAvailable: $backendAvailable, kvmAvailable: $kvmAvailable, workingDirectory: $workingDirectory, backendVersion: $backendVersion, contractVersion: $contractVersion, capabilities: $capabilities, tools: $tools, freeSpaceBytes: $freeSpaceBytes, recentErrors: $recentErrors, legacyFallbacks: $legacyFallbacks)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $DiagnosticsReportCopyWith<$Res>  {
   factory $DiagnosticsReportCopyWith(DiagnosticsReport value, $Res Function(DiagnosticsReport) _then) = _$DiagnosticsReportCopyWithImpl;
 @useResult
 $Res call({
- String quickguiVersion, bool backendAvailable, bool kvmAvailable, String workingDirectory, String? backendVersion, int? contractVersion, Map<String, bool> capabilities, Map<String, bool> tools, int? freeSpaceBytes
+ String quickguiVersion, bool backendAvailable, bool kvmAvailable, String workingDirectory, String? backendVersion, int? contractVersion, Map<String, bool> capabilities, Map<String, bool> tools, int? freeSpaceBytes, List<Map<String, dynamic>> recentErrors, List<Map<String, dynamic>> legacyFallbacks
 });
 
 
@@ -62,7 +62,7 @@ class _$DiagnosticsReportCopyWithImpl<$Res>
 
 /// Create a copy of DiagnosticsReport
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? quickguiVersion = null,Object? backendAvailable = null,Object? kvmAvailable = null,Object? workingDirectory = null,Object? backendVersion = freezed,Object? contractVersion = freezed,Object? capabilities = null,Object? tools = null,Object? freeSpaceBytes = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? quickguiVersion = null,Object? backendAvailable = null,Object? kvmAvailable = null,Object? workingDirectory = null,Object? backendVersion = freezed,Object? contractVersion = freezed,Object? capabilities = null,Object? tools = null,Object? freeSpaceBytes = freezed,Object? recentErrors = null,Object? legacyFallbacks = null,}) {
   return _then(_self.copyWith(
 quickguiVersion: null == quickguiVersion ? _self.quickguiVersion : quickguiVersion // ignore: cast_nullable_to_non_nullable
 as String,backendAvailable: null == backendAvailable ? _self.backendAvailable : backendAvailable // ignore: cast_nullable_to_non_nullable
@@ -73,7 +73,9 @@ as String?,contractVersion: freezed == contractVersion ? _self.contractVersion :
 as int?,capabilities: null == capabilities ? _self.capabilities : capabilities // ignore: cast_nullable_to_non_nullable
 as Map<String, bool>,tools: null == tools ? _self.tools : tools // ignore: cast_nullable_to_non_nullable
 as Map<String, bool>,freeSpaceBytes: freezed == freeSpaceBytes ? _self.freeSpaceBytes : freeSpaceBytes // ignore: cast_nullable_to_non_nullable
-as int?,
+as int?,recentErrors: null == recentErrors ? _self.recentErrors : recentErrors // ignore: cast_nullable_to_non_nullable
+as List<Map<String, dynamic>>,legacyFallbacks: null == legacyFallbacks ? _self.legacyFallbacks : legacyFallbacks // ignore: cast_nullable_to_non_nullable
+as List<Map<String, dynamic>>,
   ));
 }
 
@@ -158,10 +160,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String quickguiVersion,  bool backendAvailable,  bool kvmAvailable,  String workingDirectory,  String? backendVersion,  int? contractVersion,  Map<String, bool> capabilities,  Map<String, bool> tools,  int? freeSpaceBytes)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String quickguiVersion,  bool backendAvailable,  bool kvmAvailable,  String workingDirectory,  String? backendVersion,  int? contractVersion,  Map<String, bool> capabilities,  Map<String, bool> tools,  int? freeSpaceBytes,  List<Map<String, dynamic>> recentErrors,  List<Map<String, dynamic>> legacyFallbacks)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DiagnosticsReport() when $default != null:
-return $default(_that.quickguiVersion,_that.backendAvailable,_that.kvmAvailable,_that.workingDirectory,_that.backendVersion,_that.contractVersion,_that.capabilities,_that.tools,_that.freeSpaceBytes);case _:
+return $default(_that.quickguiVersion,_that.backendAvailable,_that.kvmAvailable,_that.workingDirectory,_that.backendVersion,_that.contractVersion,_that.capabilities,_that.tools,_that.freeSpaceBytes,_that.recentErrors,_that.legacyFallbacks);case _:
   return orElse();
 
 }
@@ -179,10 +181,10 @@ return $default(_that.quickguiVersion,_that.backendAvailable,_that.kvmAvailable,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String quickguiVersion,  bool backendAvailable,  bool kvmAvailable,  String workingDirectory,  String? backendVersion,  int? contractVersion,  Map<String, bool> capabilities,  Map<String, bool> tools,  int? freeSpaceBytes)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String quickguiVersion,  bool backendAvailable,  bool kvmAvailable,  String workingDirectory,  String? backendVersion,  int? contractVersion,  Map<String, bool> capabilities,  Map<String, bool> tools,  int? freeSpaceBytes,  List<Map<String, dynamic>> recentErrors,  List<Map<String, dynamic>> legacyFallbacks)  $default,) {final _that = this;
 switch (_that) {
 case _DiagnosticsReport():
-return $default(_that.quickguiVersion,_that.backendAvailable,_that.kvmAvailable,_that.workingDirectory,_that.backendVersion,_that.contractVersion,_that.capabilities,_that.tools,_that.freeSpaceBytes);case _:
+return $default(_that.quickguiVersion,_that.backendAvailable,_that.kvmAvailable,_that.workingDirectory,_that.backendVersion,_that.contractVersion,_that.capabilities,_that.tools,_that.freeSpaceBytes,_that.recentErrors,_that.legacyFallbacks);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +201,10 @@ return $default(_that.quickguiVersion,_that.backendAvailable,_that.kvmAvailable,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String quickguiVersion,  bool backendAvailable,  bool kvmAvailable,  String workingDirectory,  String? backendVersion,  int? contractVersion,  Map<String, bool> capabilities,  Map<String, bool> tools,  int? freeSpaceBytes)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String quickguiVersion,  bool backendAvailable,  bool kvmAvailable,  String workingDirectory,  String? backendVersion,  int? contractVersion,  Map<String, bool> capabilities,  Map<String, bool> tools,  int? freeSpaceBytes,  List<Map<String, dynamic>> recentErrors,  List<Map<String, dynamic>> legacyFallbacks)?  $default,) {final _that = this;
 switch (_that) {
 case _DiagnosticsReport() when $default != null:
-return $default(_that.quickguiVersion,_that.backendAvailable,_that.kvmAvailable,_that.workingDirectory,_that.backendVersion,_that.contractVersion,_that.capabilities,_that.tools,_that.freeSpaceBytes);case _:
+return $default(_that.quickguiVersion,_that.backendAvailable,_that.kvmAvailable,_that.workingDirectory,_that.backendVersion,_that.contractVersion,_that.capabilities,_that.tools,_that.freeSpaceBytes,_that.recentErrors,_that.legacyFallbacks);case _:
   return null;
 
 }
@@ -214,7 +216,7 @@ return $default(_that.quickguiVersion,_that.backendAvailable,_that.kvmAvailable,
 
 
 class _DiagnosticsReport extends DiagnosticsReport {
-  const _DiagnosticsReport({required this.quickguiVersion, required this.backendAvailable, required this.kvmAvailable, required this.workingDirectory, this.backendVersion, this.contractVersion, this.capabilities = const <String, bool>{}, this.tools = const <String, bool>{}, this.freeSpaceBytes}): super._();
+  const _DiagnosticsReport({required this.quickguiVersion, required this.backendAvailable, required this.kvmAvailable, required this.workingDirectory, this.backendVersion, this.contractVersion, this.capabilities = const <String, bool>{}, this.tools = const <String, bool>{}, this.freeSpaceBytes, this.recentErrors = const <Map<String, dynamic>>[], this.legacyFallbacks = const <Map<String, dynamic>>[]}): super._();
   
 
 @override final  String quickguiVersion;
@@ -226,6 +228,8 @@ class _DiagnosticsReport extends DiagnosticsReport {
 @override@JsonKey() final  Map<String, bool> capabilities;
 @override@JsonKey() final  Map<String, bool> tools;
 @override final  int? freeSpaceBytes;
+@override@JsonKey() final  List<Map<String, dynamic>> recentErrors;
+@override@JsonKey() final  List<Map<String, dynamic>> legacyFallbacks;
 
 /// Create a copy of DiagnosticsReport
 /// with the given fields replaced by the non-null parameter values.
@@ -237,16 +241,16 @@ _$DiagnosticsReportCopyWith<_DiagnosticsReport> get copyWith => __$DiagnosticsRe
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DiagnosticsReport&&(identical(other.quickguiVersion, quickguiVersion) || other.quickguiVersion == quickguiVersion)&&(identical(other.backendAvailable, backendAvailable) || other.backendAvailable == backendAvailable)&&(identical(other.kvmAvailable, kvmAvailable) || other.kvmAvailable == kvmAvailable)&&(identical(other.workingDirectory, workingDirectory) || other.workingDirectory == workingDirectory)&&(identical(other.backendVersion, backendVersion) || other.backendVersion == backendVersion)&&(identical(other.contractVersion, contractVersion) || other.contractVersion == contractVersion)&&const DeepCollectionEquality().equals(other.capabilities, capabilities)&&const DeepCollectionEquality().equals(other.tools, tools)&&(identical(other.freeSpaceBytes, freeSpaceBytes) || other.freeSpaceBytes == freeSpaceBytes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DiagnosticsReport&&(identical(other.quickguiVersion, quickguiVersion) || other.quickguiVersion == quickguiVersion)&&(identical(other.backendAvailable, backendAvailable) || other.backendAvailable == backendAvailable)&&(identical(other.kvmAvailable, kvmAvailable) || other.kvmAvailable == kvmAvailable)&&(identical(other.workingDirectory, workingDirectory) || other.workingDirectory == workingDirectory)&&(identical(other.backendVersion, backendVersion) || other.backendVersion == backendVersion)&&(identical(other.contractVersion, contractVersion) || other.contractVersion == contractVersion)&&const DeepCollectionEquality().equals(other.capabilities, capabilities)&&const DeepCollectionEquality().equals(other.tools, tools)&&(identical(other.freeSpaceBytes, freeSpaceBytes) || other.freeSpaceBytes == freeSpaceBytes)&&const DeepCollectionEquality().equals(other.recentErrors, recentErrors)&&const DeepCollectionEquality().equals(other.legacyFallbacks, legacyFallbacks));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,quickguiVersion,backendAvailable,kvmAvailable,workingDirectory,backendVersion,contractVersion,const DeepCollectionEquality().hash(capabilities),const DeepCollectionEquality().hash(tools),freeSpaceBytes);
+int get hashCode => Object.hash(runtimeType,quickguiVersion,backendAvailable,kvmAvailable,workingDirectory,backendVersion,contractVersion,const DeepCollectionEquality().hash(capabilities),const DeepCollectionEquality().hash(tools),freeSpaceBytes,const DeepCollectionEquality().hash(recentErrors),const DeepCollectionEquality().hash(legacyFallbacks));
 
 @override
 String toString() {
-  return 'DiagnosticsReport(quickguiVersion: $quickguiVersion, backendAvailable: $backendAvailable, kvmAvailable: $kvmAvailable, workingDirectory: $workingDirectory, backendVersion: $backendVersion, contractVersion: $contractVersion, capabilities: $capabilities, tools: $tools, freeSpaceBytes: $freeSpaceBytes)';
+  return 'DiagnosticsReport(quickguiVersion: $quickguiVersion, backendAvailable: $backendAvailable, kvmAvailable: $kvmAvailable, workingDirectory: $workingDirectory, backendVersion: $backendVersion, contractVersion: $contractVersion, capabilities: $capabilities, tools: $tools, freeSpaceBytes: $freeSpaceBytes, recentErrors: $recentErrors, legacyFallbacks: $legacyFallbacks)';
 }
 
 
@@ -257,7 +261,7 @@ abstract mixin class _$DiagnosticsReportCopyWith<$Res> implements $DiagnosticsRe
   factory _$DiagnosticsReportCopyWith(_DiagnosticsReport value, $Res Function(_DiagnosticsReport) _then) = __$DiagnosticsReportCopyWithImpl;
 @override @useResult
 $Res call({
- String quickguiVersion, bool backendAvailable, bool kvmAvailable, String workingDirectory, String? backendVersion, int? contractVersion, Map<String, bool> capabilities, Map<String, bool> tools, int? freeSpaceBytes
+ String quickguiVersion, bool backendAvailable, bool kvmAvailable, String workingDirectory, String? backendVersion, int? contractVersion, Map<String, bool> capabilities, Map<String, bool> tools, int? freeSpaceBytes, List<Map<String, dynamic>> recentErrors, List<Map<String, dynamic>> legacyFallbacks
 });
 
 
@@ -274,7 +278,7 @@ class __$DiagnosticsReportCopyWithImpl<$Res>
 
 /// Create a copy of DiagnosticsReport
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? quickguiVersion = null,Object? backendAvailable = null,Object? kvmAvailable = null,Object? workingDirectory = null,Object? backendVersion = freezed,Object? contractVersion = freezed,Object? capabilities = null,Object? tools = null,Object? freeSpaceBytes = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? quickguiVersion = null,Object? backendAvailable = null,Object? kvmAvailable = null,Object? workingDirectory = null,Object? backendVersion = freezed,Object? contractVersion = freezed,Object? capabilities = null,Object? tools = null,Object? freeSpaceBytes = freezed,Object? recentErrors = null,Object? legacyFallbacks = null,}) {
   return _then(_DiagnosticsReport(
 quickguiVersion: null == quickguiVersion ? _self.quickguiVersion : quickguiVersion // ignore: cast_nullable_to_non_nullable
 as String,backendAvailable: null == backendAvailable ? _self.backendAvailable : backendAvailable // ignore: cast_nullable_to_non_nullable
@@ -285,7 +289,9 @@ as String?,contractVersion: freezed == contractVersion ? _self.contractVersion :
 as int?,capabilities: null == capabilities ? _self.capabilities : capabilities // ignore: cast_nullable_to_non_nullable
 as Map<String, bool>,tools: null == tools ? _self.tools : tools // ignore: cast_nullable_to_non_nullable
 as Map<String, bool>,freeSpaceBytes: freezed == freeSpaceBytes ? _self.freeSpaceBytes : freeSpaceBytes // ignore: cast_nullable_to_non_nullable
-as int?,
+as int?,recentErrors: null == recentErrors ? _self.recentErrors : recentErrors // ignore: cast_nullable_to_non_nullable
+as List<Map<String, dynamic>>,legacyFallbacks: null == legacyFallbacks ? _self.legacyFallbacks : legacyFallbacks // ignore: cast_nullable_to_non_nullable
+as List<Map<String, dynamic>>,
   ));
 }
 
