@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
+import 'package:quickgui/app/app_version.dart';
 import 'package:quickgui/core/telemetry/legacy_telemetry.dart';
 import 'package:quickgui/features/diagnostics/domain/diagnostics_report.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
@@ -40,6 +41,19 @@ class DiagnosticsPage extends ConsumerWidget {
                       SnackBar(content: Text(context.t('Report copied'))),
                     );
                   },
+          ),
+          IconButton(
+            tooltip: context.t('About QuickGUI'),
+            icon: const Icon(Icons.info_outline),
+            onPressed: () => showAboutDialog(
+              context: context,
+              applicationName: context.t('QuickGUI'),
+              applicationVersion:
+                  '${AppVersion.packageInfo?.version ?? 'dev'} (${AppVersion.packageInfo?.buildNumber ?? '?'})',
+              applicationLegalese: context.t(
+                'A frontend for quickemu — discover, download and manage VMs.',
+              ),
+            ),
           ),
         ],
       ),

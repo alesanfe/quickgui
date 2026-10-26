@@ -1429,3 +1429,9 @@ msgstr "Migrate to TOML"
 
 msgid "Migrated to TOML"
 msgstr "Migrated to TOML"
+
+msgid "About QuickGUI"
+msgstr "About QuickGUI"
+
+msgid "A frontend for quickemu - discover, download and manage VMs."
+msgstr "A frontend for quickemu - discover, download and manage VMs."
