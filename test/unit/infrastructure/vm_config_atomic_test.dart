@@ -82,7 +82,10 @@ void main() {
       File(target).writeAsStringSync('guest_os="linux"\n');
       Link(link).createSync(target);
       store.write(link, 'ram', '4G');
-      expect(FileSystemEntity.typeSync(link), FileSystemEntityType.link);
+      expect(
+        FileSystemEntity.typeSync(link, followLinks: false),
+        FileSystemEntityType.link,
+      );
       expect(File(target).readAsStringSync(), contains('ram="4G"'));
     },
     // Creating symlinks on Windows requires Developer Mode/admin.

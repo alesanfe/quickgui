@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
+
 import 'package:quickgui/features/machines/domain/vm_config_value.dart';
 
 import 'package:quickgui/features/machines/application/ports/vm_config_store.dart';
@@ -84,7 +86,13 @@ class VmConfigFileStore implements VmConfigStore {
   static File _resolve(File file) {
     final type = FileSystemEntity.typeSync(file.path, followLinks: false);
     if (type != FileSystemEntityType.link) return file;
-    return File(Link(file.path).targetSync());
+    if (file.existsSync()) return File(file.resolveSymbolicLinksSync());
+    // Dangling link: resolveSymbolicLinksSync throws, so read the raw
+    // target — relative targets are relative to the link's directory.
+    final target = Link(file.path).targetSync();
+    return File(
+      p.isAbsolute(target) ? target : p.join(p.dirname(file.path), target),
+    );
   }
 
   /// Atomically replaces [confPath] with [content] (async facade over the
