@@ -7,7 +7,8 @@ class LeftMenuPage {
   const LeftMenuPage(this.t);
   final WidgetTester t;
 
-  Finder get machines => find.textContaining('Machines');
+  Finder get machines => find.byKey(const ValueKey('nav.machines'));
+  Finder get machinesText => find.textContaining('Machines');
   Finder get diagnostics =>
       find.byKey(const ValueKey('nav.diagnostics'));
   Finder get diagnosticsText => find.textContaining('Diagnostics');
@@ -51,4 +52,18 @@ class DiagnosticsPageObject {
   Finder get inventorySection => find.textContaining('Inventory');
 
   bool get backendOk => backendFound.evaluate().isNotEmpty;
+}
+
+
+/// Machines page actions are per-state dynamic (Start/Stop/Delete)
+/// — they live on the VM row, so the stable locator is the row card,
+/// not the button text (which changes with allowedOps).
+class MachinesPageActions {
+  const MachinesPageActions(this.t);
+  final WidgetTester t;
+
+  Finder vmRow(String vmName) =>
+      find.textContaining(vmName);
+  Finder get stateChip => find.byType(Chip);
+  Finder get deleteButton => find.textContaining('Delete');
 }
