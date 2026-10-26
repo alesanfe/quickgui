@@ -1314,3 +1314,105 @@ msgstr ""
 
 msgid "You will pick the disk image at the end."
 msgstr ""
+
+msgid "Trash"
+msgstr ""
+
+msgid "The trash is empty."
+msgstr ""
+
+msgid "Restore"
+msgstr ""
+
+msgid "Restore backup"
+msgstr ""
+
+msgid "Backup restored"
+msgstr ""
+
+msgid "Backups"
+msgstr ""
+
+msgid "Backups for {0}"
+msgstr ""
+
+msgid "No backups for this machine."
+msgstr ""
+
+msgid "Create backup"
+msgstr ""
+
+msgid "Prune old"
+msgstr ""
+
+msgid "Hotplug devices"
+msgstr ""
+
+msgid "Hotplug - {0}"
+msgstr ""
+
+msgid "USB device (id or path)"
+msgstr ""
+
+msgid "Disk image path"
+msgstr ""
+
+msgid "Attach USB"
+msgstr ""
+
+msgid "Attach disk"
+msgstr ""
+
+msgid "Compact disk"
+msgstr ""
+
+msgid "Move / Rename"
+msgstr ""
+
+msgid "Move / Rename - {0}"
+msgstr ""
+
+msgid "Move to directory"
+msgstr ""
+
+msgid "Rename to"
+msgstr ""
+
+msgid "Move"
+msgstr ""
+
+msgid "Rename"
+msgstr ""
+
+msgid "Operations"
+msgstr ""
+
+msgid "Events"
+msgstr ""
+
+msgid "No backend operations for this machine."
+msgstr ""
+
+msgid "Cancel operation"
+msgstr ""
+
+msgid "Snapshot tree"
+msgstr ""
+
+msgid "VFIO scan"
+msgstr ""
+
+msgid "Scan passthrough devices"
+msgstr ""
+
+msgid "Scan again"
+msgstr ""
+
+msgid "No passthrough candidates"
+msgstr ""
+
+msgid "Host info"
+msgstr ""
+
+msgid "Device"
+msgstr ""

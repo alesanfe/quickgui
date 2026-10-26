@@ -1352,3 +1352,105 @@ msgstr "Sistema"
 
 msgid "You will pick the disk image at the end."
 msgstr "Elegirás la imagen de disco al final."
+
+msgid "Trash"
+msgstr "Papelera"
+
+msgid "The trash is empty."
+msgstr "La papelera est� vac�a."
+
+msgid "Restore"
+msgstr "Restaurar"
+
+msgid "Restore backup"
+msgstr "Restaurar copia"
+
+msgid "Backup restored"
+msgstr "Copia restaurada"
+
+msgid "Backups"
+msgstr "Copias de seguridad"
+
+msgid "Backups for {0}"
+msgstr "Copias de seguridad de {0}"
+
+msgid "No backups for this machine."
+msgstr "No hay copias para esta m�quina."
+
+msgid "Create backup"
+msgstr "Crear copia"
+
+msgid "Prune old"
+msgstr "Eliminar antiguas"
+
+msgid "Hotplug devices"
+msgstr "Dispositivos hotplug"
+
+msgid "Hotplug - {0}"
+msgstr "Hotplug - {0}"
+
+msgid "USB device (id or path)"
+msgstr "Dispositivo USB (id o ruta)"
+
+msgid "Disk image path"
+msgstr "Ruta de la imagen de disco"
+
+msgid "Attach USB"
+msgstr "Conectar USB"
+
+msgid "Attach disk"
+msgstr "Conectar disco"
+
+msgid "Compact disk"
+msgstr "Compactar disco"
+
+msgid "Move / Rename"
+msgstr "Mover / Renombrar"
+
+msgid "Move / Rename - {0}"
+msgstr "Mover / Renombrar - {0}"
+
+msgid "Move to directory"
+msgstr "Mover al directorio"
+
+msgid "Rename to"
+msgstr "Renombrar a"
+
+msgid "Move"
+msgstr "Mover"
+
+msgid "Rename"
+msgstr "Renombrar"
+
+msgid "Operations"
+msgstr "Operaciones"
+
+msgid "Events"
+msgstr "Eventos"
+
+msgid "No backend operations for this machine."
+msgstr "Sin operaciones de backend para esta m�quina."
+
+msgid "Cancel operation"
+msgstr "Cancelar operaci�n"
+
+msgid "Snapshot tree"
+msgstr "�rbol de instant�neas"
+
+msgid "VFIO scan"
+msgstr "Escaneo VFIO"
+
+msgid "Scan passthrough devices"
+msgstr "Escanear dispositivos passthrough"
+
+msgid "Scan again"
+msgstr "Escanear de nuevo"
+
+msgid "No passthrough candidates"
+msgstr "Sin candidatos passthrough"
+
+msgid "Host info"
+msgstr "Info del host"
+
+msgid "Device"
+msgstr "Dispositivo"
