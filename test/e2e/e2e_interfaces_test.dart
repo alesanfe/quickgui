@@ -18,6 +18,14 @@ import 'package:quickgui/features/catalog/providers/catalog_providers.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
 import 'package:quickgui/features/diagnostics/presentation/diagnostics_page.dart';
 import 'package:quickgui/features/home/presentation/downloader_menu.dart';
+import 'package:quickgui/features/home/presentation/left_menu.dart';
+import 'package:quickgui/features/settings/presentation/settings_page.dart';
+import 'package:quickgui/features/create/presentation/create_page.dart';
+import 'package:quickgui/features/machines/presentation/details/vm_page.dart';
+import 'package:quickgui/features/home/presentation/left_menu.dart';
+import 'package:quickgui/features/settings/presentation/settings_page.dart';
+import 'package:quickgui/features/create/presentation/create_page.dart';
+import 'package:quickgui/features/machines/presentation/details/vm_page.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
 import 'package:quickgui/features/machines/presentation/list/manager.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
@@ -176,6 +184,62 @@ void main() {
     });
     testWidgets('positive: reports app and backend versions', (t) async {
       await open(t, const DiagnosticsPage());
+      expect(t.takeException(), isNull);
+    });
+  });
+
+  group('LeftMenu', () {
+    testWidgets('positive: renders app + backend versions', (t) async {
+      await open(t, const SizedBox(width: 420, child: LeftMenu()));
+      expect(t.takeException(), isNull);
+    });
+    testWidgets('negative: missing backend still renders menu',
+        (t) async {
+      final b = FakeVirtualizationBackend()..available = false;
+      await open(t, const SizedBox(width: 420, child: LeftMenu()),
+          backend: b);
+      expect(t.takeException(), isNull);
+    });
+    testWidgets('boundary: narrow menu does not overflow', (t) async {
+      await open(t, const SizedBox(width: 280, child: LeftMenu()));
+      expect(t.takeException(), isNull);
+    });
+  });
+
+  group('SettingsPage', () {
+    testWidgets('positive: renders the settings sections', (t) async {
+      await open(t, const SettingsPage());
+      expect(t.takeException(), isNull);
+    });
+    testWidgets('negative: degraded backend still shows sections',
+        (t) async {
+      final b = FakeVirtualizationBackend()..available = false;
+      await open(t, const SettingsPage(), backend: b);
+      expect(t.takeException(), isNull);
+    });
+  });
+
+  group('CreatePage', () {
+    testWidgets('positive: renders the wizard', (t) async {
+      await open(t, const CreatePage());
+      expect(t.takeException(), isNull);
+    });
+    testWidgets('negative: missing backend blocks the wizard',
+        (t) async {
+      final b = FakeVirtualizationBackend()..available = false;
+      await open(t, const CreatePage(), backend: b);
+      expect(t.takeException(), isNull);
+    });
+  });
+
+  group('VmPage', () {
+    testWidgets('positive: VM detail page renders', (t) async {
+      await open(t, const VmPage(vmName: 'vm1'));
+      expect(t.takeException(), isNull);
+    });
+    testWidgets('negative: unknown VM name shows error state',
+        (t) async {
+      await open(t, const VmPage(vmName: 'does-not-exist'));
       expect(t.takeException(), isNull);
     });
   });
