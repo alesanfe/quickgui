@@ -180,6 +180,9 @@ class ActivityController extends Notifier<ActivityState> {
       history: state.history,
     );
     unawaited(_persistActive());
+    // Push stream: op-state events keep this op's progress live
+    // without any --op-list polling.
+    startOperationWatch(target);
     return op;
   }
 

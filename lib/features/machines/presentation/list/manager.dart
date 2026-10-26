@@ -2046,11 +2046,25 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    // Ctrl+F focuses the library search field (keyboard a11y).
+    // Keyboard shortcuts: Ctrl+F focuses search, Ctrl+N goes to the
+    // creation wizard, Ctrl+R refreshes the library, Esc leaves
+    // multi-select mode (keyboard a11y).
     return CallbackShortcuts(
       bindings: {
         const SingleActivator(LogicalKeyboardKey.keyF, control: true):
             _searchFocus.requestFocus,
+        const SingleActivator(LogicalKeyboardKey.keyN, control: true): () {
+          if (GoRouter.maybeOf(context) != null) context.go('/create');
+        },
+        const SingleActivator(LogicalKeyboardKey.keyR, control: true): _getVms,
+        const SingleActivator(LogicalKeyboardKey.escape): () {
+          if (_selectionMode) {
+            setState(() {
+              _selectionMode = false;
+              _selection.clear();
+            });
+          }
+        },
       },
       child: Scaffold(
         appBar: AppBar(
