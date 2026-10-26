@@ -1454,3 +1454,9 @@ msgstr "Info del host"
 
 msgid "Device"
 msgstr "Dispositivo"
+
+msgid "Migrate to TOML"
+msgstr "Migrar a TOML"
+
+msgid "Migrated to TOML"
+msgstr "Migrado a TOML"

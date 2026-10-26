@@ -255,6 +255,13 @@ class _TrackedBackend implements VirtualizationBackend {
   );
 
   @override
+  Future<Map<String, dynamic>> migrateConfToToml(String confPath) => track(
+    OperationKind.convert,
+    '${p.basename(confPath)} → toml',
+    (op) => backend.migrateConfToToml(confPath),
+  );
+
+  @override
   Future<Map<String, dynamic>?> hostInfo() => backend.hostInfo();
 
   @override

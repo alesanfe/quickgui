@@ -170,6 +170,12 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
   Future<void> renameVm(String confPath, String newName) async =>
       moveCalls.add('rename:$newName');
 
+  Map<String, dynamic>? migrateResult;
+
+  @override
+  Future<Map<String, dynamic>> migrateConfToToml(String confPath) async =>
+      migrateResult ?? {'toml': confPath.replaceAll('.conf', '.toml')};
+
   List<Map<String, dynamic>> vfioDevices = [];
 
   @override

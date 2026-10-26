@@ -111,6 +111,10 @@ abstract class VirtualizationBackend {
   /// Renames the VM (`--rename <newName>`).
   Future<void> renameVm(String confPath, String newName);
 
+  /// Writes `<vm>.toml` next to the `.conf` (`--migrate-conf`, original
+  /// kept). Once the .toml exists the backend consumes it instead.
+  Future<Map<String, dynamic>> migrateConfToToml(String confPath);
+
   /// Host inventory from `--host-info` (kernel, KVM, IOMMU, qemu and
   /// dependency flags in one machine-readable call). Null when the
   /// backend predates the structured contract.

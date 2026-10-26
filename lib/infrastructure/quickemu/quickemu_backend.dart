@@ -331,19 +331,14 @@ class QuickemuBackend implements VirtualizationBackend {
 
   @override
   Future<void> diskCompact(String confPath) async {
-    await _structured.run('disk-compact', [
-      '--vm',
-      confPath,
-      '--disk-compact',
-    ]);
+    await _structured.run('disk-compact', ['--vm', confPath, '--disk-compact']);
   }
 
   @override
   Future<List<Map<String, dynamic>>> vfioScan() async {
     try {
       final response = await _structured.run('vfio-scan', ['--vfio-scan']);
-      final items =
-          response.dataMap?['devices'] ?? response.dataMap?['gpus'];
+      final items = response.dataMap?['devices'] ?? response.dataMap?['gpus'];
       return items is List
           ? [for (final i in items) Map<String, dynamic>.from(i as Map)]
           : const [];
@@ -355,22 +350,22 @@ class QuickemuBackend implements VirtualizationBackend {
 
   @override
   Future<void> moveVm(String confPath, String destination) async {
-    await _structured.run('move', [
-      '--vm',
-      confPath,
-      '--move',
-      destination,
-    ]);
+    await _structured.run('move', ['--vm', confPath, '--move', destination]);
   }
 
   @override
   Future<void> renameVm(String confPath, String newName) async {
-    await _structured.run('rename', [
+    await _structured.run('rename', ['--vm', confPath, '--rename', newName]);
+  }
+
+  @override
+  Future<Map<String, dynamic>> migrateConfToToml(String confPath) async {
+    final response = await _structured.run('migrate-conf', [
       '--vm',
       confPath,
-      '--rename',
-      newName,
+      '--migrate-conf',
     ]);
+    return response.dataMap ?? const {};
   }
 
   @override

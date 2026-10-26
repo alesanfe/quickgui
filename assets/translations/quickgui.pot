@@ -1416,3 +1416,9 @@ msgstr ""
 
 msgid "Device"
 msgstr ""
+
+msgid "Migrate to TOML"
+msgstr ""
+
+msgid "Migrated to TOML"
+msgstr ""

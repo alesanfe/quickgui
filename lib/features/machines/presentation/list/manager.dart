@@ -346,7 +346,13 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
     required String title,
     Map<String, List<String>>? options,
   }) async {
-    final confPath = _vmConfFiles[currentVm] ?? '$currentVm.conf';
+    // The editor speaks key="value" .conf syntax - a migrated VM may
+    // expose its .toml as the backend path, so always edit the .conf
+    // and re-migrate afterwards to keep TOML in sync.
+    final confPath = (_vmConfFiles[currentVm] ?? '$currentVm.conf').replaceAll(
+      RegExp(r'\.toml$'),
+      '.conf',
+    );
     final file = File(confPath);
     final lines = file.existsSync() ? await file.readAsLines() : <String>[];
     final controllers = <String, TextEditingController>{};
@@ -429,6 +435,14 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
     // Atomic commit (temp + verify + .bak + rename) — a torn write must
     // never corrupt the VM configuration.
     VmConfigFileStore.unawaitedWrite(confPath, '${lines.join('\n')}\n');
+    // Keep a migrated .toml in sync — the backend prefers it over .conf.
+    if (File(confPath.replaceAll(RegExp(r'\.conf$'), '.toml')).existsSync()) {
+      try {
+        await _backend.migrateConfToToml(confPath);
+      } catch (_) {
+        // Legacy backend without --migrate-conf: the .conf still applies.
+      }
+    }
   }
 
   /// 'YYYY-MM-DD HH:MM' from the contract's unix timestamp; '' when
@@ -697,6 +711,26 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
         );
       }
     });
+  }
+
+  /// `--migrate-conf`: writes `<vm>.toml` next to the `.conf`; the
+  /// scanner then prefers the TOML so every backend call uses it.
+  Future<void> _migrateToToml(String vm) async {
+    final confPath = _vmConfFiles[vm] ?? '$vm.conf';
+    try {
+      await _backend.migrateConfToToml(confPath);
+      _getVms();
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(context.t('Migrated to TOML'))));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('${context.t('Error')}: $e')));
+      }
+    }
   }
 
   /// Backend trash (`--trash-list`) — VMs deleted via the structured
@@ -1020,6 +1054,12 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
         vmConfFiles[name] = '$name.conf';
         activeVms[name] = _parseVmInfo(name);
       }
+    }
+    // A migrated VM prefers its .toml - the backend consumes it when
+    // both files exist, so every call must point at the newer format.
+    for (final name in vmConfFiles.keys.toList()) {
+      final toml = '$name.toml';
+      if (File(toml).existsSync()) vmConfFiles[name] = toml;
     }
     currentVms.sort();
     if (!mounted) return;
@@ -1421,6 +1461,8 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
               constraints: const BoxConstraints(maxHeight: 560),
               onSelected: (choice) async {
                 switch (choice) {
+                  case 'migrate-toml':
+                    _migrateToToml(currentVm);
                   case 'move':
                     showDialog<void>(
                       context: context,
@@ -1812,6 +1854,17 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                     child: ListTile(
                       leading: const Icon(Icons.archive),
                       title: Text(context.t('Export')),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                if (_cap('tomlConfig') &&
+                    !_vmConfFiles[currentVm]!.endsWith('.toml'))
+                  PopupMenuItem(
+                    value: 'migrate-toml',
+                    child: ListTile(
+                      leading: const Icon(Icons.transform),
+                      title: Text(context.t('Migrate to TOML')),
                       dense: true,
                       contentPadding: EdgeInsets.zero,
                     ),
