@@ -14,6 +14,9 @@ final trackedBackendProvider = Provider<VirtualizationBackend>(
     <T>(kind, target, action, {retrySpec, onCancel}) => ref
         .read(activityProvider.notifier)
         .run<T>(kind, target, action, retrySpec: retrySpec, onCancel: onCancel),
+    onOperationRegistered: ref
+        .read(activityProvider.notifier)
+        .startOperationWatch,
   ),
 );
 
@@ -26,9 +29,13 @@ typedef _Track = Future<T> Function<T>(
 });
 
 class _TrackedBackend implements VirtualizationBackend {
-  _TrackedBackend(this.backend, this.track);
+  _TrackedBackend(this.backend, this.track, {this.onOperationRegistered});
   final VirtualizationBackend backend;
   final _Track track;
+
+  /// Called once a backend `operationId` arrives — subscribes the
+  /// activity centre to the live `--op-watch` stream for the VM.
+  final void Function(String target)? onOperationRegistered;
 
   @override
   Future<bool> checkAvailability() => backend.checkAvailability();
@@ -164,6 +171,7 @@ class _TrackedBackend implements VirtualizationBackend {
         cancelSignal: cancelSignal ?? cancel?.future,
         onMeta: (id) {
           op.backendOperationId = id;
+          if (id != null) onOperationRegistered?.call(target);
           onMeta?.call(id);
         },
       ),
