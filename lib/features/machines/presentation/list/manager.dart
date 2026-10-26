@@ -1809,6 +1809,7 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                       },
               ),
               IconButton(
+                tooltip: context.t('Connect with SSH'),
                 icon: SvgPicture.asset(
                   'assets/images/console.svg',
                   semanticsLabel: 'Connect with SSH',
