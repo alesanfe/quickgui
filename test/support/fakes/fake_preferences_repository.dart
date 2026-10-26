@@ -10,4 +10,7 @@ class FakePreferencesRepository implements PreferencesRepository {
   Future<void> set(String key, Object? value) async {
     store[key] = value;
   }
+
+  @override
+  Future<T?> getAs<T>(String key) async => store[key] as T?;
 }
