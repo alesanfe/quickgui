@@ -1,12 +1,10 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
-import 'package:quickgui/core/errors/app_failure.dart';
 import 'package:quickgui/features/activity/domain/app_operation.dart';
 import 'package:quickgui/features/activity/providers/activity_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
+import 'package:quickgui/features/machines/application/structured_or_legacy.dart';
 import 'package:quickgui/features/machines/providers/tracked_backend_provider.dart';
 import 'package:quickgui/shared/widgets/bytes_formatter.dart';
 import 'package:quickgui/features/machines/presentation/shared/process_output_dialog.dart';
@@ -75,7 +73,7 @@ class _VmSnapshotsViewState extends ConsumerState<VmSnapshotsView> {
       final results = await ref.read(activityProvider.notifier).run(
         OperationKind.snapshot,
         widget.vm,
-        () async {
+        () {
           final args = [
             '--vm',
             widget.confPath,
@@ -83,13 +81,7 @@ class _VmSnapshotsViewState extends ConsumerState<VmSnapshotsView> {
             action,
             if (tag.isNotEmpty) tag,
           ];
-          try {
-            await _backend.runVmJson('snapshot-$action', args);
-            return ProcessResult(0, 0, '', '');
-          } on AppFailure catch (e) {
-            if (!isBackendEnvelopeMissing(e)) rethrow;
-            return await _backend.runAction(args);
-          }
+          return runVmActionOrLegacy(_backend, 'snapshot-$action', args);
         },
       );
       if (!mounted) return;

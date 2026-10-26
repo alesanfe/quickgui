@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
-import 'package:quickgui/core/errors/app_failure.dart';
 import 'package:quickgui/core/result/result.dart';
 import 'package:quickgui/features/machines/application/delete_vm.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
+import 'package:quickgui/features/machines/application/structured_or_legacy.dart';
 
 /// Safe delete flow: previews the backend's delete plan (or the file
 /// list as a fallback), then offers "delete disk only" vs "delete the
@@ -91,11 +91,6 @@ Future<bool> showDeleteVmDialog(
   );
   if (result == null || result == 'cancel') return false;
   final args = ['--vm', '$vm.conf', '--delete-$result'];
-  try {
-    await backend.runVmJson('delete-$result', args);
-  } on AppFailure catch (e) {
-    if (!isBackendEnvelopeMissing(e)) rethrow;
-    await backend.runAction(args);
-  }
+  await runVmActionOrLegacy(backend, 'delete-$result', args);
   return true;
 }

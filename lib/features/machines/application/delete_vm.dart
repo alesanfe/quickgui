@@ -1,7 +1,9 @@
 import 'package:quickgui/core/errors/app_failure.dart';
 import 'package:quickgui/core/errors/failure.dart';
 import 'package:quickgui/core/result/result.dart';
+import 'package:quickgui/core/telemetry/legacy_telemetry.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
+import 'package:quickgui/features/machines/application/structured_or_legacy.dart';
 
 /// Use case: safe delete — the plan is shown BEFORE anything is removed.
 class DeleteVm {
@@ -32,6 +34,7 @@ class DeleteVm {
       if (!isBackendEnvelopeMissing(e)) {
         return Err(Failure('vm.delete_plan_failed', e.userMessage));
       }
+      LegacyTelemetry.record('delete-plan', e.code);
       final r = await _backend.runAction([
         '--vm',
         '$vm.conf',
@@ -60,19 +63,19 @@ class DeleteVm {
       if (diskOnly) '--delete-disk' else '--delete-vm',
     ];
     try {
-      await _backend.runVmJson(diskOnly ? 'delete-disk' : 'delete-vm', args);
-      return const Ok(null);
-    } on AppFailure catch (e) {
-      if (!isBackendEnvelopeMissing(e)) {
-        return Err(Failure('vm.delete_failed', e.userMessage));
-      }
-      final r = await _backend.runAction(args);
+      final r = await runVmActionOrLegacy(
+        _backend,
+        diskOnly ? 'delete-disk' : 'delete-vm',
+        args,
+      );
       if (r.exitCode != 0) {
         return Err(
           Failure('vm.delete_failed', '${r.stderr}${r.stdout}'.trim()),
         );
       }
       return const Ok(null);
+    } on AppFailure catch (e) {
+      return Err(Failure('vm.delete_failed', e.userMessage));
     }
   }
 }
