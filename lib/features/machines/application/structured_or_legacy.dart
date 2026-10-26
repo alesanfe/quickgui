@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:logging/logging.dart';
 import 'package:quickgui/core/errors/app_failure.dart';
+import 'package:quickgui/core/logging/app_logging.dart';
 import 'package:quickgui/core/telemetry/legacy_telemetry.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
 
@@ -17,12 +19,43 @@ Future<ProcessResult> runVmActionOrLegacy(
   String command,
   List<String> arguments,
 ) async {
+  final sw = Stopwatch()..start();
   try {
     await backend.runVmJson(command, arguments);
+    AppLog.event(
+      AppLog.backendContract,
+      Level.FINE,
+      'structured command completed',
+      command: command,
+      durationMs: sw.elapsedMilliseconds,
+      exitCode: 0,
+      legacy: false,
+    );
     return ProcessResult(0, 0, '', '');
   } on AppFailure catch (e) {
-    if (!isBackendEnvelopeMissing(e)) rethrow;
+    if (!isBackendEnvelopeMissing(e)) {
+      AppLog.event(
+        AppLog.backendContract,
+        Level.WARNING,
+        'structured command failed',
+        command: command,
+        durationMs: sw.elapsedMilliseconds,
+        failureCode: e.code,
+        legacy: false,
+      );
+      rethrow;
+    }
     LegacyTelemetry.record(command, e.code);
-    return await backend.runAction(arguments);
+    final result = await backend.runAction(arguments);
+    AppLog.event(
+      AppLog.backendContract,
+      Level.FINE,
+      'legacy command completed',
+      command: command,
+      durationMs: sw.elapsedMilliseconds,
+      exitCode: result.exitCode,
+      legacy: true,
+    );
+    return result;
   }
 }
