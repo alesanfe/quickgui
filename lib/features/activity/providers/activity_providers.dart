@@ -100,8 +100,7 @@ class ActivityController extends Notifier<ActivityState> {
         final resolved = switch (entry.kind) {
           OperationKind.start when vmState == 'running' =>
             OperationStatus.succeeded,
-          OperationKind.stop
-          || OperationKind.delete
+          OperationKind.stop || OperationKind.delete
               when vmState == 'stopped' || vmState == 'missing' =>
             OperationStatus.succeeded,
           _ => null,
@@ -200,14 +199,17 @@ class ActivityController extends Notifier<ActivityState> {
       return result;
     } on AppFailure catch (failure) {
       // Typed failures keep their stable code and retry policy instead
-      // of being flattened into an opaque exception string.
+      // of being flattened into an opaque exception string. A user
+      // cancellation is not a failure — record it as cancelled.
       update(
         operation,
-        OperationState.failed(
-          code: failure.code,
-          message: failure.userMessage,
-          retryable: failure.retryable,
-        ),
+        failure.kind == AppFailureKind.cancelled
+            ? const OperationState.cancelled()
+            : OperationState.failed(
+                code: failure.code,
+                message: failure.userMessage,
+                retryable: failure.retryable,
+              ),
       );
       rethrow;
     } catch (error) {

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:quickgui/core/errors/app_failure.dart';
@@ -83,7 +84,22 @@ class StructuredQuickemu {
     String? vm,
     String? operation,
     Duration? timeout,
+    Future<void>? cancelSignal,
+    void Function(Process process)? onStarted,
   }) async {
+    if (cancelSignal != null || onStarted != null) {
+      // Live-process path: keeps a handle so the caller can observe or
+      // terminate it. Streams are drained with a byte bound.
+      return await _runCancellable(
+        command,
+        arguments,
+        vm: vm,
+        operation: operation,
+        timeout: timeout,
+        cancelSignal: cancelSignal,
+        onStarted: onStarted,
+      );
+    }
     final ProcessResult result;
     try {
       result = await _process
@@ -117,6 +133,102 @@ class StructuredQuickemu {
       );
     }
     return resolve(command, result, vm: vm, operation: operation);
+  }
+
+  /// Live-process path used when the caller needs cancellation or the
+  /// process handle. Drains stdout/stderr with the same byte bound,
+  /// terminates gracefully first and escalates to a hard kill when the
+  /// process ignores it.
+  Future<QuickemuResponse> _runCancellable(
+    String command,
+    List<String> arguments, {
+    String? vm,
+    String? operation,
+    Duration? timeout,
+    Future<void>? cancelSignal,
+    void Function(Process process)? onStarted,
+  }) async {
+    final effective = timeout ?? this.timeout ?? timeoutFor(command);
+    final Process process;
+    try {
+      process = await _process.startQuickemu([...arguments, ...formatJsonArgs]);
+    } on ProcessException catch (e) {
+      throw AppFailure(
+        AppFailureKind.dependencyMissing,
+        'SPAWN_FAILED',
+        'The quickemu executable could not be started.',
+        technical: 'command=$command error=${e.message}',
+        vm: vm,
+        operation: operation,
+        suggestion: 'Verify that quickemu is installed and executable.',
+        cause: e,
+      );
+    }
+    onStarted?.call(process);
+
+    final out = StringBuffer();
+    final err = StringBuffer();
+    final outDone = process.stdout
+        .transform(utf8.decoder)
+        .listen((s) {
+          if (out.length < maxStdoutBytes) out.write(s);
+        })
+        .asFuture<void>()
+        .catchError((_) => null);
+    final errDone = process.stderr
+        .transform(utf8.decoder)
+        .listen((s) {
+          if (err.length < maxStdoutBytes) err.write(s);
+        })
+        .asFuture<void>()
+        .catchError((_) => null);
+
+    final outcome = await Future.any<int>([
+      process.exitCode,
+      Future<int>.delayed(effective, () => -3),
+      if (cancelSignal != null) cancelSignal.then((_) => -2),
+    ]);
+
+    if (outcome == -2 || outcome == -3) {
+      // Graceful SIGTERM first, escalated to SIGKILL after 3s.
+      process.kill();
+      try {
+        await process.exitCode.timeout(const Duration(seconds: 3));
+      } catch (_) {
+        process.kill(ProcessSignal.sigkill);
+        await process.exitCode.catchError((_) => -1);
+      }
+      await Future.wait([outDone, errDone]);
+      if (outcome == -2) {
+        throw AppFailure(
+          AppFailureKind.cancelled,
+          'CANCELLED',
+          'The operation was cancelled by the user.',
+          technical: 'command=$command args=${_redact(arguments)}',
+          vm: vm,
+          operation: operation,
+        );
+      }
+      throw AppFailure(
+        AppFailureKind.timeout,
+        'BACKEND_TIMEOUT',
+        'The backend did not answer in time.',
+        technical:
+            'command=$command args=${_redact(arguments)} '
+            'timeout=${effective.inSeconds}s',
+        vm: vm,
+        operation: operation,
+        retryable: true,
+      );
+    }
+
+    await Future.wait([outDone, errDone]);
+    return resolve(
+      command,
+      ProcessResult(process.pid, outcome, out.toString(), err.toString()),
+      vm: vm,
+      operation: operation,
+    );
   }
 
   /// Parses and validates a completed process result. Exposed so callers

@@ -22,4 +22,9 @@ class QuickemuProcess {
 
   Future<Process> startQuickget(List<String> arguments) =>
       _runner.start(quickgetBinary, arguments);
+
+  /// Starts a live quickemu process — needed for cancellable and
+  /// progress-reporting structured operations.
+  Future<Process> startQuickemu(List<String> arguments) =>
+      _runner.start(quickemuBinary, arguments);
 }
