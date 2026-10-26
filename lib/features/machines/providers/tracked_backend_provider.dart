@@ -10,16 +10,18 @@ import 'package:quickgui/features/machines/providers/backend_providers.dart';
 final trackedBackendProvider = Provider<VirtualizationBackend>(
   (ref) => _TrackedBackend(
     ref.watch(backendProvider),
-    (kind, target, action) =>
-        ref.read(activityProvider.notifier).run(kind, target, action),
+    (kind, target, action, {retrySpec}) => ref
+        .read(activityProvider.notifier)
+        .run(kind, target, action, retrySpec: retrySpec),
   ),
 );
 
 typedef _Track = Future<ProcessResult> Function(
   OperationKind,
   String,
-  Future<ProcessResult> Function(),
-);
+  Future<ProcessResult> Function(), {
+  RetrySpec? retrySpec,
+});
 
 class _TrackedBackend implements VirtualizationBackend {
   _TrackedBackend(this.backend, this.track);
@@ -73,7 +75,32 @@ class _TrackedBackend implements VirtualizationBackend {
     if (arguments.contains('--delete-plan') || arguments.contains('--status')) {
       return backend.runAction(arguments);
     }
-    return track(kind, target, () => backend.runAction(arguments));
+    // Derive the logical command name for the retry descriptor: the
+    // first action flag after --vm, plus the snapshot sub-action.
+    String command(String flag) => flag.replaceFirst('--', '');
+    final flag = arguments
+        .where((a) => a.startsWith('--') && a != '--vm')
+        .firstOrNull;
+    final retrySpec = flag == null
+        ? null
+        : RetrySpec(
+            command: flag == '--snapshot'
+                ? 'snapshot-${arguments[arguments.indexOf('--snapshot') + 1]}'
+                : command(flag),
+            arguments: List.of(arguments),
+            regeneratesPlan: kind == OperationKind.delete,
+            requiresConfirmation: kind == OperationKind.delete,
+            idempotent:
+                kind == OperationKind.start ||
+                kind == OperationKind.stop ||
+                kind == OperationKind.command,
+          );
+    return track(
+      kind,
+      target,
+      () => backend.runAction(arguments),
+      retrySpec: retrySpec,
+    );
   }
 
   @override
