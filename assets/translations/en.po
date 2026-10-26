@@ -1285,3 +1285,39 @@ msgstr "Not found"
 
 msgid "Quickemu"
 msgstr "Quickemu"
+
+msgid "Download with quickget"
+msgstr "Download with quickget"
+
+msgid "Guided creation"
+msgstr "Guided creation"
+
+msgid "ISO, qcow2, vdi, vmdk, vhdx or raw"
+msgstr "ISO, qcow2, vdi, vmdk, vhdx or raw"
+
+msgid "Image imported — continue to review."
+msgstr "Image imported — continue to review."
+
+msgid "Integration"
+msgstr "Integration"
+
+msgid "Only {0} is free in the working directory."
+msgstr "Only {0} is free in the working directory."
+
+msgid "Origin"
+msgstr "Origin"
+
+msgid "Pick an image from the catalogue"
+msgstr "Pick an image from the catalogue"
+
+msgid "Review"
+msgstr "Review"
+
+msgid "Start the machine after creation"
+msgstr "Start the machine after creation"
+
+msgid "System"
+msgstr "System"
+
+msgid "You will pick the disk image at the end."
+msgstr "You will pick the disk image at the end."

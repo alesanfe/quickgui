@@ -1278,3 +1278,39 @@ msgstr ""
 
 msgid "Quickemu"
 msgstr ""
+
+msgid "Download with quickget"
+msgstr ""
+
+msgid "Guided creation"
+msgstr ""
+
+msgid "ISO, qcow2, vdi, vmdk, vhdx or raw"
+msgstr ""
+
+msgid "Image imported — continue to review."
+msgstr ""
+
+msgid "Integration"
+msgstr ""
+
+msgid "Only {0} is free in the working directory."
+msgstr ""
+
+msgid "Origin"
+msgstr ""
+
+msgid "Pick an image from the catalogue"
+msgstr ""
+
+msgid "Review"
+msgstr ""
+
+msgid "Start the machine after creation"
+msgstr ""
+
+msgid "System"
+msgstr ""
+
+msgid "You will pick the disk image at the end."
+msgstr ""
