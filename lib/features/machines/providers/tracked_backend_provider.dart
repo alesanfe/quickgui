@@ -181,6 +181,14 @@ class _TrackedBackend implements VirtualizationBackend {
   ) => backend.operationStatus(target, operationId);
 
   @override
+  Future<List<Map<String, dynamic>>> listOperations(String target) =>
+      backend.listOperations(target);
+
+  @override
+  Future<void> cancelOperation(String target, String operationId) =>
+      backend.cancelOperation(target, operationId);
+
+  @override
   Future<ProcessResult> runQuickget(List<String> arguments) =>
       arguments.contains('--create-config')
       ? track(

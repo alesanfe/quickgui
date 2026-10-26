@@ -207,6 +207,34 @@ class QuickemuBackend implements VirtualizationBackend {
   }
 
   @override
+  Future<List<Map<String, dynamic>>> listOperations(String target) async {
+    try {
+      final response = await _structured.run('op-list', [
+        '--vm',
+        '$target.conf',
+        '--op-list',
+      ]);
+      final ops = response.dataMap?['operations'];
+      return ops is List
+          ? [for (final o in ops) Map<String, dynamic>.from(o as Map)]
+          : const [];
+    } on AppFailure catch (e) {
+      if (isBackendEnvelopeMissing(e)) return const [];
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> cancelOperation(String target, String operationId) async {
+    await _structured.run('op-cancel', [
+      '--vm',
+      '$target.conf',
+      '--op-cancel',
+      operationId,
+    ]);
+  }
+
+  @override
   Future<ProcessResult> runQuickget(List<String> arguments) =>
       _process.quickget(arguments);
 

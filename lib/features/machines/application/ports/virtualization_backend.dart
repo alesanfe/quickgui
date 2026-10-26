@@ -68,6 +68,15 @@ abstract class VirtualizationBackend {
     String operationId,
   );
 
+  /// Lists every async operation the backend registry holds for
+  /// [target] (`{operationId,type,state,progress,startedAt}` entries).
+  /// Empty when the backend has no registry.
+  Future<List<Map<String, dynamic>>> listOperations(String target);
+
+  /// Cancels a registered async operation — the backend marks it
+  /// cancelled and terminates its worker when possible.
+  Future<void> cancelOperation(String target, String operationId);
+
   /// Runs a quickget action (e.g. ['--create-config','name','/path.iso']).
   Future<ProcessResult> runQuickget(List<String> arguments);
 

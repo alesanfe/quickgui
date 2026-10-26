@@ -34,6 +34,7 @@ class VmPage extends ConsumerStatefulWidget {
 class _VmPageState extends ConsumerState<VmPage> {
   String get _confPath => '${widget.vmName}.conf';
   Map<String, dynamic> _status = const {};
+  List<Map<String, dynamic>> _ops = const [];
   bool _busy = false;
   String _logFilter = '';
 
@@ -45,10 +46,15 @@ class _VmPageState extends ConsumerState<VmPage> {
 
   Future<void> _refresh() async {
     try {
-      final status = await ref
-          .read(backendProvider)
-          .inspectVirtualMachine(widget.vmName);
-      if (mounted) setState(() => _status = status);
+      final backend = ref.read(backendProvider);
+      final status = await backend.inspectVirtualMachine(widget.vmName);
+      final ops = await backend.listOperations(widget.vmName);
+      if (mounted) {
+        setState(() {
+          _status = status;
+          _ops = ops;
+        });
+      }
     } catch (error) {
       if (mounted) {
         setState(() => _status = {'state': 'unknown', 'error': '$error'});
@@ -229,7 +235,7 @@ class _VmPageState extends ConsumerState<VmPage> {
         !widget.vmName.contains(r'\') &&
         File(_confPath).existsSync();
     return DefaultTabController(
-      length: 7,
+      length: 8,
       child: Scaffold(
         appBar: AppBar(
           title: Text(widget.vmName),
@@ -262,6 +268,7 @@ class _VmPageState extends ConsumerState<VmPage> {
               Tab(text: context.t('Disks')),
               Tab(text: context.t('Network')),
               Tab(text: context.t('Snapshots')),
+              Tab(text: context.t('Operations')),
               Tab(text: context.t('Logs')),
             ],
           ),
@@ -299,6 +306,7 @@ class _VmPageState extends ConsumerState<VmPage> {
                             confPath: _confPath,
                           ),
                         ),
+                        _buildOps(),
                         _buildActivity(),
                       ],
                     ),
@@ -501,6 +509,68 @@ class _VmPageState extends ConsumerState<VmPage> {
           .read(trackedBackendProvider)
           .exportVm(widget.vmName);
       if (mounted) showProcessOutputDialog(context, [result]);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$error')));
+      }
+    }
+  }
+
+  /// Backend async-operation registry for this VM (`--op-list`) —
+  /// distinct from local Activity: these ops live in quickemu itself
+  /// and can still be running after the app restarted.
+  Widget _buildOps() {
+    if (_ops.isEmpty) {
+      return Center(
+        child: Text(context.t('No backend operations for this machine.')),
+      );
+    }
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        for (final op in _ops)
+          Card(
+            child: ListTile(
+              leading: Icon(switch ('${op['state']}') {
+                'completed' || 'succeeded' => Icons.check_circle,
+                'failed' => Icons.error_outline,
+                'cancelled' => Icons.cancel_outlined,
+                _ => Icons.autorenew,
+              }),
+              title: Text('${op['type'] ?? op['operationId']}'),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('${op['state']} · ${op['operationId']}'),
+                  if (op['progress'] is num && op['progress'] != 0)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: LinearProgressIndicator(
+                        value: ((op['progress'] as num) / 100).clamp(0.0, 1.0),
+                      ),
+                    ),
+                ],
+              ),
+              trailing: op['state'] == 'running' || op['state'] == 'queued'
+                  ? IconButton(
+                      tooltip: context.t('Cancel operation'),
+                      icon: const Icon(Icons.stop_circle_outlined),
+                      onPressed: () => _cancelOp('${op['operationId']}'),
+                    )
+                  : null,
+            ),
+          ),
+      ],
+    );
+  }
+
+  Future<void> _cancelOp(String operationId) async {
+    try {
+      await ref
+          .read(backendProvider)
+          .cancelOperation(widget.vmName, operationId);
+      await _refresh();
     } catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(context)

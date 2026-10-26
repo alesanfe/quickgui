@@ -108,6 +108,20 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
   ) async => operationStates[operationId];
 
   @override
+  Future<List<Map<String, dynamic>>> listOperations(String target) async => [
+    for (final e in operationStates.entries) {'operationId': e.key, ...e.value},
+  ];
+
+  final List<String> cancelledOperations = [];
+
+  @override
+  Future<void> cancelOperation(String target, String operationId) async {
+    cancelledOperations.add(operationId);
+    final op = operationStates[operationId];
+    if (op != null) op['state'] = 'cancelled';
+  }
+
+  @override
   Future<ProcessResult> runQuickget(List<String> arguments) async {
     quickgetCalls.add(List.of(arguments));
     return lastActionResult ?? ProcessResult(0, 0, '', '');
