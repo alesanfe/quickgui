@@ -20,15 +20,51 @@ import 'package:quickgui/infrastructure/quickemu/quickemu_response.dart';
 class StructuredQuickemu {
   const StructuredQuickemu(
     this._process, {
-    this.timeout = const Duration(seconds: 30),
+    this.timeout,
     this.maxStdoutBytes = 4 * 1024 * 1024,
   });
 
   final QuickemuProcess _process;
 
   /// Default bound for a structured call; long-running commands must
-  /// pass an explicit [timeout] per call.
-  final Duration timeout;
+  /// pass an explicit [timeout] per call, or an instance-wide default
+  /// at construction; otherwise [timeoutFor] picks by command.
+  final Duration? timeout;
+
+  /// Per-category default timeout for [command]. Short for state
+  /// queries, medium for bounded actions, long for disk-hungry work.
+  /// An explicit `timeout:` argument always wins.
+  static Duration timeoutFor(String command) {
+    const short = {
+      'status',
+      'capabilities',
+      'list-vms',
+      'pause',
+      'resume',
+      'reset',
+      'send-keys',
+      'monitor-cmd',
+      'powerdown',
+      'kill',
+      'start',
+      'stop',
+    };
+    const medium = {
+      'doctor',
+      'screenshot',
+      'delete-plan',
+      'snapshot-list',
+      'snapshot-create',
+      'snapshot-apply',
+      'snapshot-delete',
+      'shutdown',
+    };
+    if (short.contains(command)) return const Duration(seconds: 30);
+    if (medium.contains(command)) return const Duration(minutes: 2);
+    // Long: clone, disk-resize, compact, import, export, backup and any
+    // unknown command — disk-hungry operations must not be cut early.
+    return const Duration(minutes: 10);
+  }
 
   /// Safety cap for captured stdout — a malformed or hostile backend
   /// cannot exhaust memory through an unbounded response.
@@ -52,7 +88,7 @@ class StructuredQuickemu {
     try {
       result = await _process
           .quickemu([...arguments, ...formatJsonArgs])
-          .timeout(timeout ?? this.timeout);
+          .timeout(timeout ?? this.timeout ?? timeoutFor(command));
     } on TimeoutException {
       throw AppFailure(
         AppFailureKind.timeout,
@@ -60,7 +96,7 @@ class StructuredQuickemu {
         'The backend did not answer in time.',
         technical:
             'command=$command args=${_redact(arguments)} '
-            'timeout=${(timeout ?? this.timeout).inSeconds}s',
+            'timeout=${(timeout ?? this.timeout ?? timeoutFor(command)).inSeconds}s',
         vm: vm,
         operation: operation,
         retryable: true,
