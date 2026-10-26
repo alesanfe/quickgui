@@ -247,6 +247,13 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
   bool _spicy = false;
   bool _hasKvm = true;
   Map<String, dynamic>? _backendCaps;
+
+  /// Feature-flag from `--capabilities` — a missing backend or an
+  /// absent key means "assume supported" (legacy behaviour), an
+  /// explicit `false` hides the action.
+  bool _cap(String name) =>
+      _backendCaps?['capabilities'] is! Map ||
+      _backendCaps!['capabilities'][name] != false;
   final List<String> _sshVms = [];
   String? _terminalEmulator;
   Timer? refreshTimer;
@@ -1614,15 +1621,16 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                   ),
                 ),
                 const PopupMenuDivider(),
-                PopupMenuItem(
-                  value: 'snapshot',
-                  child: ListTile(
-                    leading: const Icon(Icons.photo_camera),
-                    title: Text(context.t('Snapshots')),
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
+                if (_cap('snapshots'))
+                  PopupMenuItem(
+                    value: 'snapshot',
+                    child: ListTile(
+                      leading: const Icon(Icons.photo_camera),
+                      title: Text(context.t('Snapshots')),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
                   ),
-                ),
                 PopupMenuItem(
                   value: 'shared',
                   child: ListTile(
@@ -1668,15 +1676,16 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
-                PopupMenuItem(
-                  value: 'verify',
-                  child: ListTile(
-                    leading: const Icon(Icons.verified),
-                    title: Text(context.t('Verify image')),
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
+                if (_cap('verifiedArchives'))
+                  PopupMenuItem(
+                    value: 'verify',
+                    child: ListTile(
+                      leading: const Icon(Icons.verified),
+                      title: Text(context.t('Verify image')),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
                   ),
-                ),
                 if (active)
                   PopupMenuItem(
                     value: 'pause',
@@ -1697,7 +1706,7 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),
-                if (active)
+                if (active && _cap('screenshot'))
                   PopupMenuItem(
                     value: 'screenshot',
                     child: ListTile(
@@ -1707,7 +1716,7 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),
-                if (active)
+                if (active && _cap('sendKeys'))
                   PopupMenuItem(
                     value: 'send-keys',
                     child: ListTile(
@@ -1717,7 +1726,7 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),
-                if (active)
+                if (active && _cap('monitorCommands'))
                   PopupMenuItem(
                     value: 'reset',
                     child: ListTile(
@@ -1736,33 +1745,36 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
-                PopupMenuItem(
-                  value: 'resize',
-                  child: ListTile(
-                    leading: const Icon(Icons.expand),
-                    title: Text(context.t('Resize disk')),
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
+                if (_cap('diskOps'))
+                  PopupMenuItem(
+                    value: 'resize',
+                    child: ListTile(
+                      leading: const Icon(Icons.expand),
+                      title: Text(context.t('Resize disk')),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
                   ),
-                ),
-                PopupMenuItem(
-                  value: 'clone',
-                  child: ListTile(
-                    leading: const Icon(Icons.content_copy),
-                    title: Text(context.t('Clone')),
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
+                if (_cap('clone'))
+                  PopupMenuItem(
+                    value: 'clone',
+                    child: ListTile(
+                      leading: const Icon(Icons.content_copy),
+                      title: Text(context.t('Clone')),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
                   ),
-                ),
-                PopupMenuItem(
-                  value: 'export',
-                  child: ListTile(
-                    leading: const Icon(Icons.archive),
-                    title: Text(context.t('Export')),
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
+                if (_cap('exportImport'))
+                  PopupMenuItem(
+                    value: 'export',
+                    child: ListTile(
+                      leading: const Icon(Icons.archive),
+                      title: Text(context.t('Export')),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
                   ),
-                ),
                 PopupMenuItem(
                   value: 'settings',
                   child: ListTile(
@@ -1773,23 +1785,24 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                   ),
                 ),
                 const PopupMenuDivider(),
-                PopupMenuItem(
-                  value: 'delete',
-                  child: ListTile(
-                    leading: Icon(
-                      Icons.delete,
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                    title: Text(
-                      context.t('Delete'),
-                      style: TextStyle(
+                if (_cap('safeDeletePlan'))
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: ListTile(
+                      leading: Icon(
+                        Icons.delete,
                         color: Theme.of(context).colorScheme.error,
                       ),
+                      title: Text(
+                        context.t('Delete'),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
                     ),
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
                   ),
-                ),
               ],
             ),
           ],
