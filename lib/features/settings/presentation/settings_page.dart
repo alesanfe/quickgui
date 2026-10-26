@@ -5,6 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:quickgui/app/app_version.dart';
@@ -128,6 +129,32 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             ),
             value: prefs.advancedConfig,
             onChanged: prefsCtl.setAdvancedConfig,
+          ),
+          const Divider(),
+          _header(context.t('Quickemu')),
+          ListTile(
+            leading: const Icon(Icons.terminal),
+            title: Text(context.t('Backend version')),
+            subtitle: Text(context.t('Detected Quickemu installation')),
+            trailing: ref
+                .watch(backendVersionProvider)
+                .when(
+                  data: (v) => Text(v.isEmpty ? context.t('Not found') : v),
+                  loading: () => const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  error: (_, _) => Text(context.t('Unknown')),
+                ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.handyman_outlined),
+            title: Text(context.t('Diagnostics')),
+            subtitle: Text(
+              context.t('Contract, dependencies and legacy fallback status'),
+            ),
+            onTap: () => context.go('/diagnostics'),
           ),
           const Divider(),
           _header(context.t('Behaviour')),

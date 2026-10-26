@@ -1301,3 +1301,18 @@ msgstr "Validando"
 
 msgid "Waiting for confirmation"
 msgstr "Esperando confirmación"
+
+msgid "Backend version"
+msgstr "Versión del backend"
+
+msgid "Contract, dependencies and legacy fallback status"
+msgstr "Contrato, dependencias y estado del fallback heredado"
+
+msgid "Detected Quickemu installation"
+msgstr "Instalación de Quickemu detectada"
+
+msgid "Not found"
+msgstr "No encontrado"
+
+msgid "Quickemu"
+msgstr ""

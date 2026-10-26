@@ -1263,3 +1263,18 @@ msgstr ""
 
 msgid "Waiting for confirmation"
 msgstr ""
+
+msgid "Backend version"
+msgstr ""
+
+msgid "Contract, dependencies and legacy fallback status"
+msgstr ""
+
+msgid "Detected Quickemu installation"
+msgstr ""
+
+msgid "Not found"
+msgstr ""
+
+msgid "Quickemu"
+msgstr ""

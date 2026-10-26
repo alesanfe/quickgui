@@ -16,6 +16,11 @@ final backendAvailableProvider = FutureProvider<bool>(
   (ref) => ref.watch(backendProvider).checkAvailability(),
 );
 
+/// Detected backend version string, empty when unavailable.
+final backendVersionProvider = FutureProvider<String>(
+  (ref) => ref.watch(backendProvider).version(),
+);
+
 /// Backend capabilities map (schema v1), null on older releases.
 final backendCapabilitiesProvider = FutureProvider<Map<String, dynamic>?>((
   ref,
