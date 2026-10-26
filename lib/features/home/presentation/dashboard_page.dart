@@ -48,16 +48,19 @@ class DashboardPage extends ConsumerWidget {
             runSpacing: 12,
             children: [
               FilledButton.icon(
+                key: const ValueKey('nav.create-machine'),
                 onPressed: () => context.go('/create'),
                 icon: const Icon(Icons.add),
                 label: Text(context.t('Create a machine')),
               ),
               OutlinedButton.icon(
+                key: const ValueKey('nav.import-disk'),
                 onPressed: () => context.go('/create'),
                 icon: const Icon(Icons.upload_file),
                 label: Text(context.t('Import a disk image')),
               ),
               OutlinedButton.icon(
+                key: const ValueKey('nav.machines'),
                 onPressed: () => context.go('/machines'),
                 icon: const Icon(Icons.computer),
                 label: Text(context.t('Machines')),
