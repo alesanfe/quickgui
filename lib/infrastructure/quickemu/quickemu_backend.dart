@@ -354,6 +354,26 @@ class QuickemuBackend implements VirtualizationBackend {
   }
 
   @override
+  Future<void> moveVm(String confPath, String destination) async {
+    await _structured.run('move', [
+      '--vm',
+      confPath,
+      '--move',
+      destination,
+    ]);
+  }
+
+  @override
+  Future<void> renameVm(String confPath, String newName) async {
+    await _structured.run('rename', [
+      '--vm',
+      confPath,
+      '--rename',
+      newName,
+    ]);
+  }
+
+  @override
   Future<Map<String, dynamic>?> hostInfo() async {
     try {
       final response = await _structured.run('host-info', ['--host-info']);

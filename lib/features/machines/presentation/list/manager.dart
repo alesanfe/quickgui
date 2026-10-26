@@ -1421,6 +1421,16 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
               constraints: const BoxConstraints(maxHeight: 560),
               onSelected: (choice) async {
                 switch (choice) {
+                  case 'move':
+                    showDialog<void>(
+                      context: context,
+                      builder: (dialogContext) => _MoveRenameDialog(
+                        backend: _backend,
+                        vm: currentVm,
+                        confPath: _vmConfFiles[currentVm]!,
+                        onChanged: _getVms,
+                      ),
+                    );
                   case 'hotplug':
                     showDialog<void>(
                       context: context,
@@ -1806,6 +1816,15 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),
+                PopupMenuItem(
+                  value: 'move',
+                  child: ListTile(
+                    leading: const Icon(Icons.drive_file_move),
+                    title: Text(context.t('Move / Rename')),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
                 if (_cap('hotplug'))
                   PopupMenuItem(
                     value: 'hotplug',
@@ -2427,6 +2446,108 @@ class _HotplugDialogState extends State<_HotplugDialog> {
             ? null
             : () => _run(() => widget.backend.diskCompact(widget.confPath)),
         child: Text(context.t('Compact disk')),
+      ),
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: Text(context.t('Close')),
+      ),
+    ],
+  );
+}
+
+/// Move (`--move <dir>`) or rename (`--rename <name>`) the VM — the
+/// backend performs the filesystem surgery safely.
+class _MoveRenameDialog extends StatefulWidget {
+  const _MoveRenameDialog({
+    required this.backend,
+    required this.vm,
+    required this.confPath,
+    required this.onChanged,
+  });
+  final VirtualizationBackend backend;
+  final String vm;
+  final String confPath;
+  final VoidCallback onChanged;
+
+  @override
+  State<_MoveRenameDialog> createState() => _MoveRenameDialogState();
+}
+
+class _MoveRenameDialogState extends State<_MoveRenameDialog> {
+  final _dirCtrl = TextEditingController();
+  final _nameCtrl = TextEditingController();
+  bool _busy = false;
+  String? _error;
+
+  Future<void> _run(Future<void> Function() action) async {
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await action();
+      widget.onChanged();
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      if (mounted) setState(() => _error = '$e');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: Text(context.t('Move / Rename — {0}', args: [widget.vm])),
+    content: SizedBox(
+      width: 420,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (_error != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text('${context.t('Error')}: $_error'),
+            ),
+          TextField(
+            controller: _dirCtrl,
+            decoration: InputDecoration(
+              labelText: context.t('Move to directory'),
+              isDense: true,
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _nameCtrl,
+            decoration: InputDecoration(
+              labelText: context.t('Rename to'),
+              isDense: true,
+            ),
+          ),
+        ],
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: _busy || _dirCtrl.text.trim().isEmpty
+            ? null
+            : () => _run(
+                () => widget.backend.moveVm(
+                  widget.confPath,
+                  _dirCtrl.text.trim(),
+                ),
+              ),
+        child: Text(context.t('Move')),
+      ),
+      TextButton(
+        onPressed: _busy || _nameCtrl.text.trim().isEmpty
+            ? null
+            : () => _run(
+                () => widget.backend.renameVm(
+                  widget.confPath,
+                  _nameCtrl.text.trim(),
+                ),
+              ),
+        child: Text(context.t('Rename')),
       ),
       TextButton(
         onPressed: () => Navigator.pop(context),

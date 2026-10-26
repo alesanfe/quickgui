@@ -241,6 +241,20 @@ class _TrackedBackend implements VirtualizationBackend {
   Future<List<Map<String, dynamic>>> vfioScan() => backend.vfioScan();
 
   @override
+  Future<void> moveVm(String confPath, String destination) => track<void>(
+    OperationKind.command,
+    'move ${p.basename(confPath)}',
+    (op) => backend.moveVm(confPath, destination),
+  );
+
+  @override
+  Future<void> renameVm(String confPath, String newName) => track<void>(
+    OperationKind.command,
+    'rename ${p.basename(confPath)}',
+    (op) => backend.renameVm(confPath, newName),
+  );
+
+  @override
   Future<Map<String, dynamic>?> hostInfo() => backend.hostInfo();
 
   @override

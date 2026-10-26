@@ -105,6 +105,12 @@ abstract class VirtualizationBackend {
   /// scan lists candidates the user could assign to a VM.
   Future<List<Map<String, dynamic>>> vfioScan();
 
+  /// Moves the VM directory to [destination] (`--move <dir>`).
+  Future<void> moveVm(String confPath, String destination);
+
+  /// Renames the VM (`--rename <newName>`).
+  Future<void> renameVm(String confPath, String newName);
+
   /// Host inventory from `--host-info` (kernel, KVM, IOMMU, qemu and
   /// dependency flags in one machine-readable call). Null when the
   /// backend predates the structured contract.
