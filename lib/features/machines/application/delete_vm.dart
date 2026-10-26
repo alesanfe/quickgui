@@ -5,12 +5,16 @@ import 'package:quickgui/core/telemetry/legacy_telemetry.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
 import 'package:quickgui/features/machines/application/structured_or_legacy.dart';
 
+/// Result of `--delete-plan`: the files that would be removed plus the
+/// `planId` the backend expects to verify the follow-up `--delete-vm`.
+typedef DeletePlan = ({List<String> files, String? planId});
+
 /// Use case: safe delete — the plan is shown BEFORE anything is removed.
 class DeleteVm {
   DeleteVm(this._backend);
   final VirtualizationBackend _backend;
 
-  Future<Result<List<String>>> plan(String vm) async {
+  Future<Result<DeletePlan>> plan(String vm) async {
     if (!await _backend.checkAvailability()) {
       return const Err(
         Failure('backend.unavailable', 'Virtualization backend not found'),
@@ -22,8 +26,13 @@ class DeleteVm {
         '$vm.conf',
         '--delete-plan',
       ]);
-      final files = data['plan'] ?? data['files'];
-      if (files is List) return Ok([for (final f in files) '$f']);
+      final files = data['delete'] ?? data['plan'] ?? data['files'];
+      if (files is List) {
+        return Ok((
+          files: [for (final f in files) '$f'],
+          planId: data['planId'] as String?,
+        ));
+      }
       return const Err(
         Failure('vm.delete_plan_failed', 'Unexpected delete-plan payload'),
       );
@@ -47,11 +56,18 @@ class DeleteVm {
           Failure('vm.delete_plan_failed', '${r.stderr}${r.stdout}'.trim()),
         );
       }
-      return Ok([...'${r.stdout}'.split('\n')..removeWhere((f) => f.isEmpty)]);
+      return Ok((
+        files: [...'${r.stdout}'.split('\n')..removeWhere((f) => f.isEmpty)],
+        planId: null,
+      ));
     }
   }
 
-  Future<Result<void>> call(String vm, {bool diskOnly = false}) async {
+  Future<Result<void>> call(
+    String vm, {
+    bool diskOnly = false,
+    String? planId,
+  }) async {
     if (!await _backend.checkAvailability()) {
       return const Err(
         Failure('backend.unavailable', 'Virtualization backend not found'),
@@ -61,6 +77,9 @@ class DeleteVm {
       '--vm',
       '$vm.conf',
       if (diskOnly) '--delete-disk' else '--delete-vm',
+      // A planId from --delete-plan makes the backend verify the file
+      // set has not changed since the plan was shown to the user.
+      if (planId != null && planId.isNotEmpty) ...['--plan-id', planId],
     ];
     try {
       final r = await runVmActionOrLegacy(

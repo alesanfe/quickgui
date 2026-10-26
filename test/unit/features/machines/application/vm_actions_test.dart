@@ -102,7 +102,7 @@ void main() {
     final fake = FakeVirtualizationBackend()
       ..lastActionResult = ProcessResult(0, 0, '{"schemaVersion":1}\n', '');
     final result = await DeleteVm(fake).plan('vm');
-    expect(result, isA<Ok<List<String>>>());
+    expect(result, isA<Ok<DeletePlan>>());
     expect(fake.actionCalls, [
       ['--vm', 'vm.conf', '--delete-plan', '--format', 'json'],
     ]);
@@ -112,7 +112,7 @@ void main() {
     final fake = FakeVirtualizationBackend()
       ..lastActionResult = ProcessResult(0, 1, '', 'invalid config');
     final result = await DeleteVm(fake).plan('vm');
-    expect((result as Err<List<String>>).failure.code, 'vm.delete_plan_failed');
+    expect((result as Err<DeletePlan>).failure.code, 'vm.delete_plan_failed');
   });
 
   for (final display in <String?>[null, '', 'spice', 'none']) {
@@ -170,6 +170,6 @@ void main() {
   test('delete plan returns typed failure when backend missing', () async {
     final fake = FakeVirtualizationBackend()..available = false;
     final r = await DeleteVm(fake).plan('vm1');
-    expect((r as Err<List<String>>).failure.code, 'backend.unavailable');
+    expect((r as Err<DeletePlan>).failure.code, 'backend.unavailable');
   });
 }

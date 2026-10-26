@@ -591,8 +591,14 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
     // Preview what will be deleted via the backend's safe delete plan.
     final planResult = await DeleteVm(_backend).plan(currentVm);
     var planText = switch (planResult) {
-      Ok<List<String>>(value: final v) when v.isNotEmpty => v.join('\n'),
+      Ok<DeletePlan>(value: final v) when v.files.isNotEmpty => v.files.join(
+        '\n',
+      ),
       _ => '',
+    };
+    final planId = switch (planResult) {
+      Ok<DeletePlan>(value: final v) => v.planId,
+      _ => null,
     };
     if (planText.isEmpty) {
       // Backends without a delete plan still need to show exactly what is
@@ -671,6 +677,9 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
           '--vm',
           '$currentVm.conf',
           '--delete-$result',
+          // The planId proves the file set did not change since the
+          // plan preview — the backend refuses stale plans.
+          if (planId != null) ...['--plan-id', planId],
         ];
         await runVmActionOrLegacy(
           _backend,

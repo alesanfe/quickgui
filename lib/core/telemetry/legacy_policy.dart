@@ -13,8 +13,9 @@
 class LegacyPolicy {
   LegacyPolicy._();
 
-  /// First Quickemu version that speaks the v1 structured contract.
-  static const minStructuredQuickemuVersion = '4.9.7';
+  /// First Quickemu version that speaks the v1 structured contract —
+  /// the Go-migrated backend published 4.9.9 with schemas/v1.
+  static const minStructuredQuickemuVersion = '4.9.9';
 
   /// Commands where a legacy fallback is still permitted. Contract-only
   /// operations (delete-plan, list-vms, capabilities...) already lack

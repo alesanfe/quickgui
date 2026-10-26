@@ -19,8 +19,14 @@ Future<bool> showDeleteVmDialog(
   // Preview what will be deleted via the backend's safe delete plan.
   final planResult = await DeleteVm(backend).plan(vm);
   var planText = switch (planResult) {
-    Ok<List<String>>(value: final v) when v.isNotEmpty => v.join('\n'),
+    Ok<DeletePlan>(value: final v) when v.files.isNotEmpty => v.files.join(
+      '\n',
+    ),
     _ => '',
+  };
+  final planId = switch (planResult) {
+    Ok<DeletePlan>(value: final v) => v.planId,
+    _ => null,
   };
   if (planText.isEmpty) {
     // Backends without a delete plan still need to show exactly what is
@@ -90,7 +96,12 @@ Future<bool> showDeleteVmDialog(
     },
   );
   if (result == null || result == 'cancel') return false;
-  final args = ['--vm', '$vm.conf', '--delete-$result'];
+  final args = [
+    '--vm',
+    '$vm.conf',
+    '--delete-$result',
+    if (planId != null) ...['--plan-id', planId],
+  ];
   await runVmActionOrLegacy(backend, 'delete-$result', args);
   return true;
 }
