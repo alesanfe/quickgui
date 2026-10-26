@@ -164,6 +164,7 @@ class ActivityController extends Notifier<ActivityState> {
         OperationSucceeded() => OperationStatus.succeeded,
         OperationCancelled() => OperationStatus.cancelled,
         OperationFailed() => OperationStatus.failed,
+        OperationInterrupted() => OperationStatus.interrupted,
         _ => OperationStatus.failed,
       };
       final message = switch (next) {
@@ -227,6 +228,14 @@ class ActivityController extends Notifier<ActivityState> {
       ].take(_historyLimit).toList(),
     );
     unawaited(_persist());
+  }
+
+  /// Marks an in-flight operation as interrupted — the outcome could
+  /// not be confirmed (backend lost, process orphaned, app closing).
+  /// Distinct from `failed`: reconciliation or a safe retry may still
+  /// determine the real result.
+  void markInterrupted(AppOperation op) {
+    update(op, const OperationState.interrupted());
   }
 
   /// Removes a finished op from the active list without recording it.

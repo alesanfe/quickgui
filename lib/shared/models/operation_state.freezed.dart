@@ -55,18 +55,21 @@ extension OperationStatePatterns<T> on OperationState<T> {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( OperationIdle<T> value)?  idle,TResult Function( OperationValidating<T> value)?  validating,TResult Function( OperationWaitingForConfirmation<T> value)?  waitingForConfirmation,TResult Function( OperationRunning<T> value)?  running,TResult Function( OperationCancelling<T> value)?  cancelling,TResult Function( OperationCancelled<T> value)?  cancelled,TResult Function( OperationSucceeded<T> value)?  succeeded,TResult Function( OperationFailed<T> value)?  failed,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( OperationIdle<T> value)?  idle,TResult Function( OperationValidating<T> value)?  validating,TResult Function( OperationWaitingForConfirmation<T> value)?  waitingForConfirmation,TResult Function( OperationQueued<T> value)?  queued,TResult Function( OperationRunning<T> value)?  running,TResult Function( OperationPaused<T> value)?  paused,TResult Function( OperationCancelling<T> value)?  cancelling,TResult Function( OperationCancelled<T> value)?  cancelled,TResult Function( OperationSucceeded<T> value)?  succeeded,TResult Function( OperationFailed<T> value)?  failed,TResult Function( OperationInterrupted<T> value)?  interrupted,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case OperationIdle() when idle != null:
 return idle(_that);case OperationValidating() when validating != null:
 return validating(_that);case OperationWaitingForConfirmation() when waitingForConfirmation != null:
-return waitingForConfirmation(_that);case OperationRunning() when running != null:
-return running(_that);case OperationCancelling() when cancelling != null:
+return waitingForConfirmation(_that);case OperationQueued() when queued != null:
+return queued(_that);case OperationRunning() when running != null:
+return running(_that);case OperationPaused() when paused != null:
+return paused(_that);case OperationCancelling() when cancelling != null:
 return cancelling(_that);case OperationCancelled() when cancelled != null:
 return cancelled(_that);case OperationSucceeded() when succeeded != null:
 return succeeded(_that);case OperationFailed() when failed != null:
-return failed(_that);case _:
+return failed(_that);case OperationInterrupted() when interrupted != null:
+return interrupted(_that);case _:
   return orElse();
 
 }
@@ -84,18 +87,21 @@ return failed(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( OperationIdle<T> value)  idle,required TResult Function( OperationValidating<T> value)  validating,required TResult Function( OperationWaitingForConfirmation<T> value)  waitingForConfirmation,required TResult Function( OperationRunning<T> value)  running,required TResult Function( OperationCancelling<T> value)  cancelling,required TResult Function( OperationCancelled<T> value)  cancelled,required TResult Function( OperationSucceeded<T> value)  succeeded,required TResult Function( OperationFailed<T> value)  failed,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( OperationIdle<T> value)  idle,required TResult Function( OperationValidating<T> value)  validating,required TResult Function( OperationWaitingForConfirmation<T> value)  waitingForConfirmation,required TResult Function( OperationQueued<T> value)  queued,required TResult Function( OperationRunning<T> value)  running,required TResult Function( OperationPaused<T> value)  paused,required TResult Function( OperationCancelling<T> value)  cancelling,required TResult Function( OperationCancelled<T> value)  cancelled,required TResult Function( OperationSucceeded<T> value)  succeeded,required TResult Function( OperationFailed<T> value)  failed,required TResult Function( OperationInterrupted<T> value)  interrupted,}){
 final _that = this;
 switch (_that) {
 case OperationIdle():
 return idle(_that);case OperationValidating():
 return validating(_that);case OperationWaitingForConfirmation():
-return waitingForConfirmation(_that);case OperationRunning():
-return running(_that);case OperationCancelling():
+return waitingForConfirmation(_that);case OperationQueued():
+return queued(_that);case OperationRunning():
+return running(_that);case OperationPaused():
+return paused(_that);case OperationCancelling():
 return cancelling(_that);case OperationCancelled():
 return cancelled(_that);case OperationSucceeded():
 return succeeded(_that);case OperationFailed():
-return failed(_that);}
+return failed(_that);case OperationInterrupted():
+return interrupted(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -109,18 +115,21 @@ return failed(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( OperationIdle<T> value)?  idle,TResult? Function( OperationValidating<T> value)?  validating,TResult? Function( OperationWaitingForConfirmation<T> value)?  waitingForConfirmation,TResult? Function( OperationRunning<T> value)?  running,TResult? Function( OperationCancelling<T> value)?  cancelling,TResult? Function( OperationCancelled<T> value)?  cancelled,TResult? Function( OperationSucceeded<T> value)?  succeeded,TResult? Function( OperationFailed<T> value)?  failed,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( OperationIdle<T> value)?  idle,TResult? Function( OperationValidating<T> value)?  validating,TResult? Function( OperationWaitingForConfirmation<T> value)?  waitingForConfirmation,TResult? Function( OperationQueued<T> value)?  queued,TResult? Function( OperationRunning<T> value)?  running,TResult? Function( OperationPaused<T> value)?  paused,TResult? Function( OperationCancelling<T> value)?  cancelling,TResult? Function( OperationCancelled<T> value)?  cancelled,TResult? Function( OperationSucceeded<T> value)?  succeeded,TResult? Function( OperationFailed<T> value)?  failed,TResult? Function( OperationInterrupted<T> value)?  interrupted,}){
 final _that = this;
 switch (_that) {
 case OperationIdle() when idle != null:
 return idle(_that);case OperationValidating() when validating != null:
 return validating(_that);case OperationWaitingForConfirmation() when waitingForConfirmation != null:
-return waitingForConfirmation(_that);case OperationRunning() when running != null:
-return running(_that);case OperationCancelling() when cancelling != null:
+return waitingForConfirmation(_that);case OperationQueued() when queued != null:
+return queued(_that);case OperationRunning() when running != null:
+return running(_that);case OperationPaused() when paused != null:
+return paused(_that);case OperationCancelling() when cancelling != null:
 return cancelling(_that);case OperationCancelled() when cancelled != null:
 return cancelled(_that);case OperationSucceeded() when succeeded != null:
 return succeeded(_that);case OperationFailed() when failed != null:
-return failed(_that);case _:
+return failed(_that);case OperationInterrupted() when interrupted != null:
+return interrupted(_that);case _:
   return null;
 
 }
@@ -137,17 +146,20 @@ return failed(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  idle,TResult Function()?  validating,TResult Function()?  waitingForConfirmation,TResult Function( double? progress,  String? line)?  running,TResult Function()?  cancelling,TResult Function()?  cancelled,TResult Function( T value)?  succeeded,TResult Function( String code,  String message,  bool retryable)?  failed,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function()?  idle,TResult Function()?  validating,TResult Function()?  waitingForConfirmation,TResult Function()?  queued,TResult Function( double? progress,  String? line)?  running,TResult Function( double? progress,  String? line)?  paused,TResult Function()?  cancelling,TResult Function()?  cancelled,TResult Function( T value)?  succeeded,TResult Function( String code,  String message,  bool retryable)?  failed,TResult Function()?  interrupted,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case OperationIdle() when idle != null:
 return idle();case OperationValidating() when validating != null:
 return validating();case OperationWaitingForConfirmation() when waitingForConfirmation != null:
-return waitingForConfirmation();case OperationRunning() when running != null:
-return running(_that.progress,_that.line);case OperationCancelling() when cancelling != null:
+return waitingForConfirmation();case OperationQueued() when queued != null:
+return queued();case OperationRunning() when running != null:
+return running(_that.progress,_that.line);case OperationPaused() when paused != null:
+return paused(_that.progress,_that.line);case OperationCancelling() when cancelling != null:
 return cancelling();case OperationCancelled() when cancelled != null:
 return cancelled();case OperationSucceeded() when succeeded != null:
 return succeeded(_that.value);case OperationFailed() when failed != null:
-return failed(_that.code,_that.message,_that.retryable);case _:
+return failed(_that.code,_that.message,_that.retryable);case OperationInterrupted() when interrupted != null:
+return interrupted();case _:
   return orElse();
 
 }
@@ -165,17 +177,20 @@ return failed(_that.code,_that.message,_that.retryable);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  idle,required TResult Function()  validating,required TResult Function()  waitingForConfirmation,required TResult Function( double? progress,  String? line)  running,required TResult Function()  cancelling,required TResult Function()  cancelled,required TResult Function( T value)  succeeded,required TResult Function( String code,  String message,  bool retryable)  failed,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function()  idle,required TResult Function()  validating,required TResult Function()  waitingForConfirmation,required TResult Function()  queued,required TResult Function( double? progress,  String? line)  running,required TResult Function( double? progress,  String? line)  paused,required TResult Function()  cancelling,required TResult Function()  cancelled,required TResult Function( T value)  succeeded,required TResult Function( String code,  String message,  bool retryable)  failed,required TResult Function()  interrupted,}) {final _that = this;
 switch (_that) {
 case OperationIdle():
 return idle();case OperationValidating():
 return validating();case OperationWaitingForConfirmation():
-return waitingForConfirmation();case OperationRunning():
-return running(_that.progress,_that.line);case OperationCancelling():
+return waitingForConfirmation();case OperationQueued():
+return queued();case OperationRunning():
+return running(_that.progress,_that.line);case OperationPaused():
+return paused(_that.progress,_that.line);case OperationCancelling():
 return cancelling();case OperationCancelled():
 return cancelled();case OperationSucceeded():
 return succeeded(_that.value);case OperationFailed():
-return failed(_that.code,_that.message,_that.retryable);}
+return failed(_that.code,_that.message,_that.retryable);case OperationInterrupted():
+return interrupted();}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -189,17 +204,20 @@ return failed(_that.code,_that.message,_that.retryable);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  idle,TResult? Function()?  validating,TResult? Function()?  waitingForConfirmation,TResult? Function( double? progress,  String? line)?  running,TResult? Function()?  cancelling,TResult? Function()?  cancelled,TResult? Function( T value)?  succeeded,TResult? Function( String code,  String message,  bool retryable)?  failed,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function()?  idle,TResult? Function()?  validating,TResult? Function()?  waitingForConfirmation,TResult? Function()?  queued,TResult? Function( double? progress,  String? line)?  running,TResult? Function( double? progress,  String? line)?  paused,TResult? Function()?  cancelling,TResult? Function()?  cancelled,TResult? Function( T value)?  succeeded,TResult? Function( String code,  String message,  bool retryable)?  failed,TResult? Function()?  interrupted,}) {final _that = this;
 switch (_that) {
 case OperationIdle() when idle != null:
 return idle();case OperationValidating() when validating != null:
 return validating();case OperationWaitingForConfirmation() when waitingForConfirmation != null:
-return waitingForConfirmation();case OperationRunning() when running != null:
-return running(_that.progress,_that.line);case OperationCancelling() when cancelling != null:
+return waitingForConfirmation();case OperationQueued() when queued != null:
+return queued();case OperationRunning() when running != null:
+return running(_that.progress,_that.line);case OperationPaused() when paused != null:
+return paused(_that.progress,_that.line);case OperationCancelling() when cancelling != null:
 return cancelling();case OperationCancelled() when cancelled != null:
 return cancelled();case OperationSucceeded() when succeeded != null:
 return succeeded(_that.value);case OperationFailed() when failed != null:
-return failed(_that.code,_that.message,_that.retryable);case _:
+return failed(_that.code,_that.message,_that.retryable);case OperationInterrupted() when interrupted != null:
+return interrupted();case _:
   return null;
 
 }
@@ -306,6 +324,38 @@ String toString() {
 /// @nodoc
 
 
+class OperationQueued<T> extends OperationState<T> {
+  const OperationQueued(): super._();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is OperationQueued<T>);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'OperationState<$T>.queued()';
+}
+
+
+}
+
+
+
+
+/// @nodoc
+
+
 class OperationRunning<T> extends OperationState<T> {
   const OperationRunning({this.progress, this.line}): super._();
   
@@ -362,6 +412,74 @@ class _$OperationRunningCopyWithImpl<T,$Res>
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') $Res call({Object? progress = freezed,Object? line = freezed,}) {
   return _then(OperationRunning<T>(
+progress: freezed == progress ? _self.progress : progress // ignore: cast_nullable_to_non_nullable
+as double?,line: freezed == line ? _self.line : line // ignore: cast_nullable_to_non_nullable
+as String?,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class OperationPaused<T> extends OperationState<T> {
+  const OperationPaused({this.progress, this.line}): super._();
+  
+
+ final  double? progress;
+ final  String? line;
+
+/// Create a copy of OperationState
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$OperationPausedCopyWith<T, OperationPaused<T>> get copyWith => _$OperationPausedCopyWithImpl<T, OperationPaused<T>>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is OperationPaused<T>&&(identical(other.progress, progress) || other.progress == progress)&&(identical(other.line, line) || other.line == line));
+}
+
+
+@override
+int get hashCode => Object.hash(runtimeType,progress,line);
+
+@override
+String toString() {
+  return 'OperationState<$T>.paused(progress: $progress, line: $line)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $OperationPausedCopyWith<T,$Res> implements $OperationStateCopyWith<T, $Res> {
+  factory $OperationPausedCopyWith(OperationPaused<T> value, $Res Function(OperationPaused<T>) _then) = _$OperationPausedCopyWithImpl;
+@useResult
+$Res call({
+ double? progress, String? line
+});
+
+
+
+
+}
+/// @nodoc
+class _$OperationPausedCopyWithImpl<T,$Res>
+    implements $OperationPausedCopyWith<T, $Res> {
+  _$OperationPausedCopyWithImpl(this._self, this._then);
+
+  final OperationPaused<T> _self;
+  final $Res Function(OperationPaused<T>) _then;
+
+/// Create a copy of OperationState
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? progress = freezed,Object? line = freezed,}) {
+  return _then(OperationPaused<T>(
 progress: freezed == progress ? _self.progress : progress // ignore: cast_nullable_to_non_nullable
 as double?,line: freezed == line ? _self.line : line // ignore: cast_nullable_to_non_nullable
 as String?,
@@ -570,5 +688,37 @@ as bool,
 
 
 }
+
+/// @nodoc
+
+
+class OperationInterrupted<T> extends OperationState<T> {
+  const OperationInterrupted(): super._();
+  
+
+
+
+
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is OperationInterrupted<T>);
+}
+
+
+@override
+int get hashCode => runtimeType.hashCode;
+
+@override
+String toString() {
+  return 'OperationState<$T>.interrupted()';
+}
+
+
+}
+
+
+
 
 // dart format on

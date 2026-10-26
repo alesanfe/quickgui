@@ -107,4 +107,50 @@ void main() {
     expect(decoded?.failureCode, 'VM_NOT_FOUND');
     expect(decoded?.retryable, isFalse);
   });
+
+  group('extended states', () {
+    test('queued and paused are busy but not terminal', () {
+      const queued = OperationState<void>.queued();
+      const paused = OperationState<void>.paused(progress: 0.5);
+      expect(queued.isBusy, isTrue);
+      expect(queued.isTerminal, isFalse);
+      expect(paused.isBusy, isTrue);
+      expect(paused.isTerminal, isFalse);
+    });
+
+    test('interrupted is terminal but not failed', () {
+      const interrupted = OperationState<void>.interrupted();
+      expect(interrupted.isBusy, isFalse);
+      expect(interrupted.isTerminal, isTrue);
+    });
+
+    test('markInterrupted records interrupted history, not failed', () {
+      final prefs = FakePreferencesRepository();
+      final c = _container(prefs);
+      addTearDown(c.dispose);
+      final ctrl = c.read(activityProvider.notifier);
+
+      final op = ctrl.start(OperationKind.export, 'vm1');
+      ctrl.markInterrupted(op);
+
+      final entry = c.read(activityProvider).history.single;
+      expect(entry.status, OperationStatus.interrupted);
+      expect(c.read(activityProvider).active, isEmpty);
+    });
+
+    test('interrupted op rejects further transitions', () {
+      final prefs = FakePreferencesRepository();
+      final c = _container(prefs);
+      addTearDown(c.dispose);
+      final ctrl = c.read(activityProvider.notifier);
+
+      final op = ctrl.start(OperationKind.resize, 'vm1');
+      ctrl.markInterrupted(op);
+      ctrl.update(op, const OperationState.succeeded(null));
+      expect(
+        c.read(activityProvider).history.single.status,
+        OperationStatus.interrupted,
+      );
+    });
+  });
 }
