@@ -207,6 +207,25 @@ class QuickemuBackend implements VirtualizationBackend {
   }
 
   @override
+  Future<List<Map<String, dynamic>>> listTrash() async {
+    try {
+      final response = await _structured.run('trash-list', ['--trash-list']);
+      final items = response.dataMap?['items'] ?? response.dataMap?['trash'];
+      return items is List
+          ? [for (final i in items) Map<String, dynamic>.from(i as Map)]
+          : const [];
+    } on AppFailure catch (e) {
+      if (isBackendEnvelopeMissing(e)) return const [];
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> restoreFromTrash(String vm) async {
+    await _structured.run('trash-restore', ['--trash-restore', vm]);
+  }
+
+  @override
   Future<Map<String, dynamic>?> hostInfo() async {
     try {
       final response = await _structured.run('host-info', ['--host-info']);

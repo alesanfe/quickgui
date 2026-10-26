@@ -697,6 +697,16 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
     });
   }
 
+  /// Backend trash (`--trash-list`) — VMs deleted via the structured
+  /// path land here and can be restored instead of lost.
+  void _showTrash() {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) =>
+          _TrashDialog(backend: _backend, onRestored: _getVms),
+    );
+  }
+
   void _cloneVm(BuildContext context, String currentVm) async {
     final name = await showValidatedTextDialog<VmNameError>(
       context: context,
@@ -1959,6 +1969,11 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
             icon: const Icon(Icons.refresh),
             onPressed: _getVms,
           ),
+          IconButton(
+            tooltip: context.t('Trash'),
+            icon: const Icon(Icons.delete_outline),
+            onPressed: _showTrash,
+          ),
           // At narrow widths or large text scales the labelled button
           // cannot fit next to the title and the other actions — fall
           // back to an icon with the same action and a tooltip.
@@ -2044,4 +2059,95 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
       ),
     );
   }
+}
+
+/// Dialog listing the backend trash (`--trash-list`) with per-VM
+/// restore via `--trash-restore`.
+class _TrashDialog extends StatefulWidget {
+  const _TrashDialog({required this.backend, required this.onRestored});
+  final VirtualizationBackend backend;
+  final VoidCallback onRestored;
+
+  @override
+  State<_TrashDialog> createState() => _TrashDialogState();
+}
+
+class _TrashDialogState extends State<_TrashDialog> {
+  List<Map<String, dynamic>> _items = const [];
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final items = await widget.backend.listTrash();
+      if (mounted) {
+        setState(() {
+          _items = items;
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = '$e';
+          _loading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _restore(String vm) async {
+    try {
+      await widget.backend.restoreFromTrash(vm);
+      widget.onRestored();
+      await _load();
+    } catch (e) {
+      if (mounted) setState(() => _error = '$e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: Text(context.t('Trash')),
+    content: SizedBox(
+      width: 420,
+      child: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+          ? Text('${context.t('Error')}: $_error')
+          : _items.isEmpty
+          ? Text(context.t('The trash is empty.'))
+          : ListView(
+              shrinkWrap: true,
+              children: [
+                for (final item in _items)
+                  ListTile(
+                    dense: true,
+                    leading: const Icon(Icons.restore),
+                    title: Text('${item['name'] ?? item['vm'] ?? '?'}'),
+                    subtitle: item['deletedAt'] != null
+                        ? Text('${item['deletedAt']}')
+                        : null,
+                    trailing: TextButton(
+                      onPressed: () =>
+                          _restore('${item['name'] ?? item['vm']}'),
+                      child: Text(context.t('Restore')),
+                    ),
+                  ),
+              ],
+            ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: Text(context.t('Close')),
+      ),
+    ],
+  );
 }

@@ -112,6 +112,15 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
     for (final e in operationStates.entries) {'operationId': e.key, ...e.value},
   ];
 
+  List<Map<String, dynamic>> trashItems = [];
+
+  @override
+  Future<List<Map<String, dynamic>>> listTrash() async => trashItems;
+
+  @override
+  Future<void> restoreFromTrash(String vm) async =>
+      trashItems.removeWhere((i) => i['vm'] == vm || i['name'] == vm);
+
   Map<String, dynamic>? hostInfoResponse;
 
   @override

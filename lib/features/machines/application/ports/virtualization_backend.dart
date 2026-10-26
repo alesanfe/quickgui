@@ -68,6 +68,13 @@ abstract class VirtualizationBackend {
     String operationId,
   );
 
+  /// VMs currently in the backend trash (`--trash-list`) — the
+  /// structured delete path moves VMs there instead of unlinking.
+  Future<List<Map<String, dynamic>>> listTrash();
+
+  /// Restores a VM from the backend trash (`--trash-restore <vm>`).
+  Future<void> restoreFromTrash(String vm);
+
   /// Host inventory from `--host-info` (kernel, KVM, IOMMU, qemu and
   /// dependency flags in one machine-readable call). Null when the
   /// backend predates the structured contract.

@@ -185,6 +185,7 @@ IconData operationKindIcon(OperationKind kind) => switch (kind) {
   OperationKind.delete => Icons.delete,
   OperationKind.import => Icons.upload_file,
   OperationKind.convert => Icons.transform,
+  OperationKind.restore => Icons.restore,
   OperationKind.command => Icons.terminal,
 };
 
@@ -202,6 +203,7 @@ String operationKindLabel(BuildContext context, OperationKind kind) =>
       OperationKind.delete => context.t('Delete'),
       OperationKind.import => context.t('Import'),
       OperationKind.convert => context.t('Convert'),
+      OperationKind.restore => context.t('Restore'),
       OperationKind.command => context.t('Command'),
     };
 

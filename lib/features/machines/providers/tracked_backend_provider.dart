@@ -181,6 +181,16 @@ class _TrackedBackend implements VirtualizationBackend {
   ) => backend.operationStatus(target, operationId);
 
   @override
+  Future<List<Map<String, dynamic>>> listTrash() => backend.listTrash();
+
+  @override
+  Future<void> restoreFromTrash(String vm) => track<void>(
+    OperationKind.restore,
+    vm,
+    (op) => backend.restoreFromTrash(vm),
+  );
+
+  @override
   Future<Map<String, dynamic>?> hostInfo() => backend.hostInfo();
 
   @override

@@ -14,6 +14,7 @@ enum OperationKind {
   delete,
   import,
   convert,
+  restore,
   command;
 
   /// Stable wire name for persistence.
