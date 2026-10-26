@@ -6,6 +6,7 @@ import 'package:quickgui/app/app_version.dart';
 import 'package:quickgui/core/telemetry/legacy_telemetry.dart';
 import 'package:quickgui/features/diagnostics/domain/diagnostics_report.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
+import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/features/machines/providers/tracked_backend_provider.dart';
 import 'package:quickgui/shared/widgets/bytes_formatter.dart';
 
@@ -131,6 +132,8 @@ class _ReportView extends StatelessWidget {
                 _Info(e.key, '${e.value}'),
           ]),
         if (r.backendAvailable) const _VfioScanSection(),
+        if (r.backendAvailable) const _InventorySection(),
+        if (r.backendAvailable) const _PluginsSection(),
       ],
     );
   }
@@ -260,4 +263,47 @@ class _VfioScanSectionState extends ConsumerState<_VfioScanSection> {
       onTap: _busy ? null : _scan,
     ),
   ]);
+}
+
+
+/// The global VM inventory the backend keeps (vms.json).
+class _InventorySection extends ConsumerWidget {
+  const _InventorySection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final inv = ref.watch(backendInventoryProvider);
+    return inv.when(
+      data: (vms) => vms.isEmpty
+          ? const SizedBox.shrink()
+          : _Section(context.t('Inventory'), [
+              for (final e in vms.entries)
+                _Info(
+                  '${(e.value as Map)['vm'] ?? e.key}',
+                  '${(e.value as Map)['state']} — ${(e.value as Map)['dir']}',
+                ),
+            ]),
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+    );
+  }
+}
+
+/// quickemu-plugin-* found on PATH.
+class _PluginsSection extends ConsumerWidget {
+  const _PluginsSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final plugins = ref.watch(backendPluginsProvider);
+    return plugins.when(
+      data: (list) => list.isEmpty
+          ? const SizedBox.shrink()
+          : _Section(context.t('Plugins'), [
+              for (final p in list) _Info(p, ''),
+            ]),
+      loading: () => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
+    );
+  }
 }
