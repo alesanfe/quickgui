@@ -217,4 +217,34 @@ void main() {
       expect(r.success, isTrue);
     });
   });
+
+  group('schema parity (schemas/v1/response.schema.json)', () {
+    test('minimal envelope — only required fields — parses', () async {
+      // response.schema.json requires schemaVersion/command/success/
+      // data/warnings/errors/meta{quickemuVersion,timestamp}; the ids
+      // are optional and must not be demanded.
+      const minimal =
+          '{"schemaVersion":1,"command":"status","success":true,'
+          '"data":{},"warnings":[],"errors":[],'
+          '"meta":{"quickemuVersion":"4.9.9",'
+          '"timestamp":"2026-01-01T00:00:00Z"}}';
+      final r = await _exec(ProcessResult(1, 0, minimal, '')).run('status', []);
+      expect(r.success, isTrue);
+      expect(r.operationId, isNull);
+      expect(r.requestId, isNull);
+      expect(r.quickemuVersion, '4.9.9');
+    });
+
+    test('full meta ids surface for correlation', () async {
+      const full =
+          '{"schemaVersion":1,"command":"status","success":true,'
+          '"data":{},"warnings":[],"errors":[],'
+          '"meta":{"quickemuVersion":"4.9.9",'
+          '"timestamp":"2026-01-01T00:00:00Z",'
+          '"operationId":"op-42","requestId":"req-7"}}';
+      final r = await _exec(ProcessResult(1, 0, full, '')).run('status', []);
+      expect(r.operationId, 'op-42');
+      expect(r.requestId, 'req-7');
+    });
+  });
 }
