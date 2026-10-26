@@ -35,6 +35,8 @@ class AppOperation {
     required this.startedAt,
     this.state = const OperationState.running(),
     this.onCancel,
+    this.retrySpec,
+    this.retryOf,
   });
 
   final String id;
@@ -44,6 +46,13 @@ class AppOperation {
   DateTime? completedAt;
   OperationState<Object?> state;
   String output = '';
+
+  /// Typed retry descriptor forwarded to the history entry on
+  /// completion — null means the operation cannot be re-run.
+  final RetrySpec? retrySpec;
+
+  /// Id of the original operation when this one is itself a retry.
+  final String? retryOf;
 
   /// Cancellation hook wired by the owner of the process (e.g. the
   /// downloader kills its process). Null = not cancellable.
@@ -55,6 +64,57 @@ class AppOperation {
 /// Terminal status persisted in the activity history.
 enum OperationStatus { succeeded, failed, cancelled, interrupted }
 
+/// Typed description of how to re-run an operation — never a raw
+/// command-line string. Arguments are the normalised quickemu tail
+/// (flags and paths only; no secrets are ever stored).
+class RetrySpec {
+  const RetrySpec({
+    required this.command,
+    required this.arguments,
+    this.requiresConfirmation = false,
+    this.regeneratesPlan = false,
+    this.idempotent = false,
+  });
+
+  /// Structured command name the envelope must declare, e.g. 'start'.
+  final String command;
+
+  /// Normalised argument tail, e.g. ['--vm', 'x.conf', '--pause'].
+  final List<String> arguments;
+
+  /// Destructive operations must be confirmed again before retrying.
+  final bool requiresConfirmation;
+
+  /// True when the retry must regenerate a fresh plan (e.g. delete)
+  /// instead of reusing arguments that embed an expired planId.
+  final bool regeneratesPlan;
+
+  /// True when repeating the operation has no additional side effects.
+  final bool idempotent;
+
+  Map<String, dynamic> toJson() => {
+    'command': command,
+    'arguments': arguments,
+    if (requiresConfirmation) 'requiresConfirmation': true,
+    if (regeneratesPlan) 'regeneratesPlan': true,
+    if (idempotent) 'idempotent': true,
+  };
+
+  static RetrySpec? fromJson(Object? json) {
+    if (json is! Map) return null;
+    final command = json['command'];
+    final arguments = json['arguments'];
+    if (command is! String || arguments is! List) return null;
+    return RetrySpec(
+      command: command,
+      arguments: [for (final a in arguments) '$a'],
+      requiresConfirmation: json['requiresConfirmation'] == true,
+      regeneratesPlan: json['regeneratesPlan'] == true,
+      idempotent: json['idempotent'] == true,
+    );
+  }
+}
+
 /// A finished operation, serialisable for the persisted history.
 class OperationHistoryEntry {
   const OperationHistoryEntry({
@@ -63,9 +123,12 @@ class OperationHistoryEntry {
     required this.startedAt,
     required this.completedAt,
     required this.status,
+    this.id,
     this.message = '',
     this.failureCode,
     this.retryable = false,
+    this.retrySpec,
+    this.retryOf,
   });
 
   final OperationKind kind;
@@ -73,6 +136,11 @@ class OperationHistoryEntry {
   final DateTime startedAt;
   final DateTime completedAt;
   final OperationStatus status;
+
+  /// Id of the originating [AppOperation] — persisted so retries can
+  /// link back to the attempt they re-ran. Null for records written
+  /// before correlation existed.
+  final String? id;
   final String message;
 
   /// Stable `AppFailure` code when the operation failed — preserved so
@@ -83,7 +151,21 @@ class OperationHistoryEntry {
   /// only — never retries for validation/contract/permission errors).
   final bool retryable;
 
+  /// Typed retry descriptor persisted with the entry — null means the
+  /// operation cannot be re-run automatically.
+  final RetrySpec? retrySpec;
+
+  /// Id of the original operation when this entry is itself a retry.
+  final String? retryOf;
+
+  /// True when the entry can be re-dispatched directly (typed args and
+  /// no plan regeneration required). Destructive retries that need a
+  /// fresh plan stay retryable but must go through the plan flow first.
+  bool get canRetry =>
+      retryable && retrySpec != null && !retrySpec!.regeneratesPlan;
+
   Map<String, dynamic> toJson() => {
+    if (id != null) 'id': id,
     'kind': kind.wire,
     'target': target,
     'startedAt': startedAt.toIso8601String(),
@@ -92,6 +174,8 @@ class OperationHistoryEntry {
     'message': message,
     if (failureCode != null) 'failureCode': failureCode,
     if (retryable) 'retryable': true,
+    if (retrySpec != null) 'retrySpec': retrySpec!.toJson(),
+    if (retryOf != null) 'retryOf': retryOf,
   };
 
   static OperationHistoryEntry? fromJson(Map<String, dynamic> json) {
@@ -99,6 +183,7 @@ class OperationHistoryEntry {
     final completedAt = DateTime.tryParse('${json['completedAt']}');
     if (startedAt == null) return null;
     return OperationHistoryEntry(
+      id: json['id'] is String ? json['id'] as String : null,
       kind: OperationKind.fromWire(json['kind']),
       target: '${json['target']}',
       startedAt: startedAt,
@@ -113,6 +198,8 @@ class OperationHistoryEntry {
           ? json['failureCode'] as String
           : null,
       retryable: json['retryable'] == true,
+      retrySpec: RetrySpec.fromJson(json['retrySpec']),
+      retryOf: json['retryOf'] is String ? json['retryOf'] as String : null,
     );
   }
 }

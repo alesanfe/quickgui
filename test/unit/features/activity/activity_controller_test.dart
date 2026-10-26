@@ -153,4 +153,64 @@ void main() {
       );
     });
   });
+
+  group('retry', () {
+    test('retrySpec round-trips through history json', () {
+      const spec = RetrySpec(
+        command: 'pause',
+        arguments: ['--vm', 'vm1.conf', '--pause'],
+        idempotent: true,
+      );
+      final entry = OperationHistoryEntry(
+        id: 'op1',
+        kind: OperationKind.command,
+        target: 'vm1',
+        startedAt: DateTime.fromMillisecondsSinceEpoch(0),
+        completedAt: DateTime.fromMillisecondsSinceEpoch(1),
+        status: OperationStatus.failed,
+        failureCode: 'BACKEND_TIMEOUT',
+        retryable: true,
+        retrySpec: spec,
+      );
+      final decoded = OperationHistoryEntry.fromJson(entry.toJson())!;
+      expect(decoded.retrySpec?.command, 'pause');
+      expect(decoded.retrySpec?.arguments, contains('--pause'));
+      expect(decoded.retrySpec?.idempotent, isTrue);
+      expect(decoded.canRetry, isTrue);
+    });
+
+    test('entries without a spec cannot be retried', () {
+      final entry = OperationHistoryEntry(
+        kind: OperationKind.delete,
+        target: 'vm1',
+        startedAt: DateTime.fromMillisecondsSinceEpoch(0),
+        completedAt: DateTime.fromMillisecondsSinceEpoch(1),
+        status: OperationStatus.failed,
+        failureCode: 'VM_NOT_FOUND',
+        retryable: true,
+      );
+      expect(entry.canRetry, isFalse);
+    });
+
+    test('plan-regenerating specs are refused by retry()', () async {
+      final prefs = FakePreferencesRepository();
+      final c = _container(prefs);
+      addTearDown(c.dispose);
+      final ctrl = c.read(activityProvider.notifier);
+      final entry = OperationHistoryEntry(
+        kind: OperationKind.delete,
+        target: 'vm1',
+        startedAt: DateTime.fromMillisecondsSinceEpoch(0),
+        completedAt: DateTime.fromMillisecondsSinceEpoch(1),
+        status: OperationStatus.failed,
+        retryable: true,
+        retrySpec: const RetrySpec(
+          command: 'delete-vm',
+          arguments: ['--vm', 'vm1.conf', '--delete-vm'],
+          regeneratesPlan: true,
+        ),
+      );
+      await expectLater(ctrl.retry(entry), throwsStateError);
+    });
+  });
 }

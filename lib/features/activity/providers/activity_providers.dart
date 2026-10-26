@@ -7,6 +7,8 @@ import 'package:quickgui/core/constants/preference_keys.dart';
 import 'package:quickgui/core/errors/app_failure.dart';
 import 'package:quickgui/core/extensions/preferences_repository_x.dart';
 import 'package:quickgui/features/activity/domain/app_operation.dart';
+import 'package:quickgui/features/machines/application/structured_or_legacy.dart';
+import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/shared/models/operation_state.dart';
 import 'package:quickgui/shared/providers/preferences_providers.dart';
 
@@ -93,6 +95,8 @@ class ActivityController extends Notifier<ActivityState> {
     OperationKind kind,
     String target, {
     Future<void> Function()? onCancel,
+    RetrySpec? retrySpec,
+    String? retryOf,
   }) {
     final op = AppOperation(
       id: '${DateTime.now().microsecondsSinceEpoch}-${_seq++}',
@@ -100,6 +104,8 @@ class ActivityController extends Notifier<ActivityState> {
       target: target,
       startedAt: DateTime.now(),
       onCancel: onCancel,
+      retrySpec: retrySpec,
+      retryOf: retryOf,
     );
     state = ActivityState(
       active: [op, ...state.active],
@@ -112,9 +118,16 @@ class ActivityController extends Notifier<ActivityState> {
   Future<ProcessResult> run(
     OperationKind kind,
     String target,
-    Future<ProcessResult> Function() action,
-  ) async {
-    final operation = start(kind, target);
+    Future<ProcessResult> Function() action, {
+    RetrySpec? retrySpec,
+    String? retryOf,
+  }) async {
+    final operation = start(
+      kind,
+      target,
+      retrySpec: retrySpec,
+      retryOf: retryOf,
+    );
     try {
       final result = await action();
       final raw = '${result.stdout}\n${result.stderr}'.trim();
@@ -175,6 +188,7 @@ class ActivityController extends Notifier<ActivityState> {
         active: state.active.where((o) => o.id != op.id).toList(),
         history: [
           OperationHistoryEntry(
+            id: op.id,
             kind: op.kind,
             target: op.target,
             startedAt: op.startedAt,
@@ -189,6 +203,8 @@ class ActivityController extends Notifier<ActivityState> {
               OperationFailed(:final retryable) => retryable,
               _ => false,
             },
+            retrySpec: op.retrySpec,
+            retryOf: op.retryOf,
           ),
           ...state.history,
         ].take(_historyLimit).toList(),
@@ -209,12 +225,15 @@ class ActivityController extends Notifier<ActivityState> {
     String message = '',
     String? failureCode,
     bool retryable = false,
+    RetrySpec? retrySpec,
+    String? retryOf,
   }) {
     final now = DateTime.now();
     state = ActivityState(
       active: state.active,
       history: [
         OperationHistoryEntry(
+          id: '${now.microsecondsSinceEpoch}-${_seq++}',
           kind: kind,
           target: target,
           startedAt: now,
@@ -223,6 +242,8 @@ class ActivityController extends Notifier<ActivityState> {
           message: message,
           failureCode: failureCode,
           retryable: retryable,
+          retrySpec: retrySpec,
+          retryOf: retryOf,
         ),
         ...state.history,
       ].take(_historyLimit).toList(),
@@ -236,6 +257,30 @@ class ActivityController extends Notifier<ActivityState> {
   /// determine the real result.
   void markInterrupted(AppOperation op) {
     update(op, const OperationState.interrupted());
+  }
+
+  /// Re-dispatches a failed operation from its typed [RetrySpec],
+  /// linking the new attempt to the original entry.
+  ///
+  /// Specs with `regeneratesPlan` are refused here — destructive
+  /// retries must rebuild a fresh plan (e.g. `DeleteVm.plan`) and be
+  /// confirmed again before a spec without `planId` can run.
+  Future<ProcessResult> retry(OperationHistoryEntry entry) async {
+    final spec = entry.retrySpec;
+    if (spec == null || !entry.retryable || spec.regeneratesPlan) {
+      throw StateError('${entry.kind.wire} ${entry.target} is not retryable');
+    }
+    return await run(
+      entry.kind,
+      entry.target,
+      () => runVmActionOrLegacy(
+        ref.read(backendProvider),
+        spec.command,
+        spec.arguments,
+      ),
+      retrySpec: spec,
+      retryOf: entry.id,
+    );
   }
 
   /// Removes a finished op from the active list without recording it.
