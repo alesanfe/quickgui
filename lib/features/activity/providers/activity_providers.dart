@@ -76,6 +76,59 @@ class ActivityController extends Notifier<ActivityState> {
       active: state.active,
       history: [...state.history, ...history].take(_historyLimit).toList(),
     );
+    unawaited(reconcile());
+  }
+
+  /// Re-checks interrupted history entries against the backend: an op
+  /// whose result could not be confirmed at shutdown is promoted to
+  /// `succeeded` when there is evidence (e.g. a `start` whose VM is now
+  /// running, a `stop` whose VM is stopped). Entries without evidence
+  /// stay `interrupted` — they are never silently marked failed.
+  Future<void> reconcile() async {
+    final pending = [
+      for (final e in state.history)
+        if (e.status == OperationStatus.interrupted) e,
+    ];
+    if (pending.isEmpty) return;
+    final backend = ref.read(backendProvider);
+    var changed = false;
+    final history = [...state.history];
+    for (final entry in pending) {
+      try {
+        final vm = await backend.inspectVirtualMachine(entry.target);
+        final vmState = '${vm['state']}';
+        final resolved = switch (entry.kind) {
+          OperationKind.start when vmState == 'running' =>
+            OperationStatus.succeeded,
+          OperationKind.stop
+          || OperationKind.delete
+              when vmState == 'stopped' || vmState == 'missing' =>
+            OperationStatus.succeeded,
+          _ => null,
+        };
+        if (resolved != null) {
+          history[history.indexOf(entry)] = OperationHistoryEntry(
+            id: entry.id,
+            kind: entry.kind,
+            target: entry.target,
+            startedAt: entry.startedAt,
+            completedAt: entry.completedAt,
+            status: resolved,
+            message: entry.message,
+            failureCode: entry.failureCode,
+            retryable: entry.retryable,
+            retrySpec: entry.retrySpec,
+            retryOf: entry.retryOf,
+          );
+          changed = true;
+        }
+      } catch (_) {
+        // Backend unavailable or VM gone: keep interrupted.
+      }
+    }
+    if (!changed || !ref.mounted) return;
+    state = ActivityState(active: state.active, history: history);
+    unawaited(_persist());
   }
 
   OperationHistoryEntry? _decode(String raw) {

@@ -8,12 +8,20 @@ import 'package:quickgui/features/activity/providers/activity_providers.dart';
 import 'package:quickgui/shared/models/operation_state.dart';
 import 'package:quickgui/shared/providers/preferences_providers.dart';
 
-import '../../../support/fakes/fake_preferences_repository.dart';
+import 'package:quickgui/features/machines/providers/backend_providers.dart';
 
-ProviderContainer _container(FakePreferencesRepository prefs) =>
-    ProviderContainer(
-      overrides: [preferencesRepositoryProvider.overrideWithValue(prefs)],
-    );
+import '../../../support/fakes/fake_preferences_repository.dart';
+import '../../../support/fakes/fake_virtualization_backend.dart';
+
+ProviderContainer _container(
+  FakePreferencesRepository prefs, {
+  FakeVirtualizationBackend? backend,
+}) => ProviderContainer(
+  overrides: [
+    preferencesRepositoryProvider.overrideWithValue(prefs),
+    if (backend != null) backendProvider.overrideWithValue(backend),
+  ],
+);
 
 void main() {
   test('AppFailure maps to typed failed state and history entry', () async {
@@ -211,6 +219,51 @@ void main() {
         ),
       );
       await expectLater(ctrl.retry(entry), throwsStateError);
+    });
+  });
+
+  group('reconcile', () {
+    test(
+      'interrupted start resolves to succeeded when VM is running',
+      () async {
+        final prefs = FakePreferencesRepository();
+        final backend = FakeVirtualizationBackend()
+          ..states = {
+            'vm1': {'name': 'vm1', 'state': 'running', 'pid': 42},
+          };
+        final c = _container(prefs, backend: backend);
+        addTearDown(c.dispose);
+        final ctrl = c.read(activityProvider.notifier);
+        final op = ctrl.start(OperationKind.start, 'vm1');
+        ctrl.markInterrupted(op);
+
+        await ctrl.reconcile();
+
+        expect(
+          c.read(activityProvider).history.single.status,
+          OperationStatus.succeeded,
+        );
+      },
+    );
+
+    test('interrupted op without evidence stays interrupted', () async {
+      final prefs = FakePreferencesRepository();
+      final backend = FakeVirtualizationBackend()
+        ..states = {
+          'vm1': {'name': 'vm1', 'state': 'stopped', 'pid': null},
+        };
+      final c = _container(prefs, backend: backend);
+      addTearDown(c.dispose);
+      final ctrl = c.read(activityProvider.notifier);
+      final op = ctrl.start(OperationKind.start, 'vm1');
+      ctrl.markInterrupted(op);
+
+      await ctrl.reconcile();
+
+      expect(
+        c.read(activityProvider).history.single.status,
+        OperationStatus.interrupted,
+      );
     });
   });
 }
