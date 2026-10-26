@@ -32,3 +32,19 @@ final backendCapabilitiesProvider = FutureProvider<Map<String, dynamic>?>((
 final vmConfigStoreProvider = Provider<VmConfigStore>(
   (ref) => const VmConfigFileStore(),
 );
+
+/// Global VM inventory (`--inventory` -> vms.json): the local DB of
+/// every VM the backend knows about, keyed by instanceId.
+final FutureProvider<Map<String, dynamic>> backendInventoryProvider =
+    FutureProvider<Map<String, dynamic>>((ref) =>
+        ref.watch(backendProvider).listInventory());
+
+/// Installed plugins (`--plugins` -> quickemu-plugin-* on PATH).
+final FutureProvider<List<String>> backendPluginsProvider =
+    FutureProvider<List<String>>((ref) =>
+        ref.watch(backendProvider).listPlugins());
+
+/// Per-VM QMP metrics (`--stats`). Null when the VM isn't running.
+final vmStatsProvider =
+    FutureProvider.family<Map<String, dynamic>?, String>(
+        (ref, vm) => ref.watch(backendProvider).vmStats(vm));
