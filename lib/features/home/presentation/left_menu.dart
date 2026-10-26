@@ -101,6 +101,7 @@ class _LeftMenuState extends ConsumerState<LeftMenu> {
               const SettingsSection(),
               Container(height: 32.0),
               ListTile(
+                key: const ValueKey('nav.diagnostics'),
                 leading: const Icon(Icons.health_and_safety),
                 title: Text(context.t('Diagnostics')),
                 dense: true,
@@ -109,6 +110,7 @@ class _LeftMenuState extends ConsumerState<LeftMenu> {
                         .push(appRoute<void>(const DiagnosticsPage())),
               ),
               ListTile(
+                key: const ValueKey('nav.download-history'),
                 leading: const Icon(Icons.history),
                 title: Text(context.t('Download history')),
                 dense: true,

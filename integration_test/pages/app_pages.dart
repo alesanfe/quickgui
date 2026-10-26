@@ -8,7 +8,9 @@ class LeftMenuPage {
   final WidgetTester t;
 
   Finder get machines => find.textContaining('Machines');
-  Finder get diagnostics => find.textContaining('Diagnostics');
+  Finder get diagnostics =>
+      find.byKey(const ValueKey('nav.diagnostics'));
+  Finder get diagnosticsText => find.textContaining('Diagnostics');
   Finder get activity => find.textContaining('Activity');
   Finder get settings => find.textContaining('Settings');
   Finder get downloader => find.textContaining('Downloader');
