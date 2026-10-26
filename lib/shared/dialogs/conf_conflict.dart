@@ -322,8 +322,7 @@ Future<String?> pickAndSaveConfCopy(
   );
   final path = uri?.toFilePath();
   if (path == null || path.isEmpty || !context.mounted) return null;
-  if (File(path).existsSync() &&
-      File(path).readAsStringSync() != content) {
+  if (File(path).existsSync() && File(path).readAsStringSync() != content) {
     final overwrite = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(

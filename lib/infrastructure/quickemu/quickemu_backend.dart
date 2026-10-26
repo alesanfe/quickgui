@@ -185,6 +185,28 @@ class QuickemuBackend implements VirtualizationBackend {
   }
 
   @override
+  Future<Map<String, dynamic>?> operationStatus(
+    String target,
+    String operationId,
+  ) async {
+    try {
+      final response = await _structured.run('op-status', [
+        '--vm',
+        '$target.conf',
+        '--op-status',
+        operationId,
+      ]);
+      return response.dataMap;
+    } on AppFailure catch (e) {
+      // Registry absent or op unknown — caller falls back to heuristics.
+      if (isBackendEnvelopeMissing(e) || e.code == 'OPERATION_NOT_FOUND') {
+        return null;
+      }
+      rethrow;
+    }
+  }
+
+  @override
   Future<ProcessResult> runQuickget(List<String> arguments) =>
       _process.quickget(arguments);
 

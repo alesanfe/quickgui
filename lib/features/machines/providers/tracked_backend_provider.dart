@@ -172,6 +172,14 @@ class _TrackedBackend implements VirtualizationBackend {
     );
   }
 
+  /// Read-only registry query — not a mutating action, so it is
+  /// deliberately NOT tracked as an activity operation.
+  @override
+  Future<Map<String, dynamic>?> operationStatus(
+    String target,
+    String operationId,
+  ) => backend.operationStatus(target, operationId);
+
   @override
   Future<ProcessResult> runQuickget(List<String> arguments) =>
       arguments.contains('--create-config')

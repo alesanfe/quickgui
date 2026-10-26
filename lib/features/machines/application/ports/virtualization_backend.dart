@@ -60,6 +60,14 @@ abstract class VirtualizationBackend {
     void Function(String? operationId)? onMeta,
   });
 
+  /// Queries the backend async-operation registry for [operationId].
+  /// Returns the op state map (`state`, `progress`, `type`…) or null
+  /// when the backend does not expose the registry / knows no such op.
+  Future<Map<String, dynamic>?> operationStatus(
+    String target,
+    String operationId,
+  );
+
   /// Runs a quickget action (e.g. ['--create-config','name','/path.iso']).
   Future<ProcessResult> runQuickget(List<String> arguments);
 

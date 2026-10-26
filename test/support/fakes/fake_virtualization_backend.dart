@@ -97,6 +97,16 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
     return response;
   }
 
+  /// Per-operationId states returned by [operationStatus] — absent ids
+  /// resolve to null like an out-of-registry backend.
+  final Map<String, Map<String, dynamic>> operationStates = {};
+
+  @override
+  Future<Map<String, dynamic>?> operationStatus(
+    String target,
+    String operationId,
+  ) async => operationStates[operationId];
+
   @override
   Future<ProcessResult> runQuickget(List<String> arguments) async {
     quickgetCalls.add(List.of(arguments));

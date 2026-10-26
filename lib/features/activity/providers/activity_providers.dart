@@ -95,16 +95,31 @@ class ActivityController extends Notifier<ActivityState> {
     final history = [...state.history];
     for (final entry in pending) {
       try {
-        final vm = await backend.inspectVirtualMachine(entry.target);
-        final vmState = '${vm['state']}';
-        final resolved = switch (entry.kind) {
-          OperationKind.start when vmState == 'running' =>
-            OperationStatus.succeeded,
-          OperationKind.stop || OperationKind.delete
-              when vmState == 'stopped' || vmState == 'missing' =>
-            OperationStatus.succeeded,
-          _ => null,
-        };
+        // Definitive path: the backend async-operation registry knows
+        // the real outcome for ops whose operationId we recorded.
+        OperationStatus? resolved;
+        final opId = entry.backendOperationId;
+        if (opId != null) {
+          final op = await backend.operationStatus(entry.target, opId);
+          resolved = switch ('${op?['state']}') {
+            'completed' || 'succeeded' => OperationStatus.succeeded,
+            'failed' => OperationStatus.failed,
+            'cancelled' => OperationStatus.cancelled,
+            _ => null, // running/queued/unknown: keep interrupted
+          };
+        }
+        if (resolved == null) {
+          final vm = await backend.inspectVirtualMachine(entry.target);
+          final vmState = '${vm['state']}';
+          resolved = switch (entry.kind) {
+            OperationKind.start when vmState == 'running' =>
+              OperationStatus.succeeded,
+            OperationKind.stop || OperationKind.delete
+                when vmState == 'stopped' || vmState == 'missing' =>
+              OperationStatus.succeeded,
+            _ => null,
+          };
+        }
         if (resolved != null) {
           history[history.indexOf(entry)] = OperationHistoryEntry(
             id: entry.id,
@@ -118,6 +133,7 @@ class ActivityController extends Notifier<ActivityState> {
             retryable: entry.retryable,
             retrySpec: entry.retrySpec,
             retryOf: entry.retryOf,
+            backendOperationId: entry.backendOperationId,
           );
           changed = true;
         }
