@@ -195,6 +195,14 @@ class QuickemuResponse {
     'DEPENDENCY_MISSING' => AppFailureKind.dependencyMissing,
     'PERMISSION_DENIED' => AppFailureKind.permission,
     'PORT_BUSY' => AppFailureKind.portBusy,
+    // Registry/lock/plan codes the Go-migrated backend can emit —
+    // a busy lock is a busy-port sibling, stale plans are contract
+    // state violations, a missing op is an interrupted-operation gap.
+    'LOCK_BUSY' => AppFailureKind.portBusy,
+    'LOCK_TIMEOUT' => AppFailureKind.timeout,
+    'PLAN_EXPIRED' => AppFailureKind.stateIncompatible,
+    'PLAN_MISMATCH' => AppFailureKind.backendContract,
+    'OPERATION_NOT_FOUND' => AppFailureKind.internal,
     'CONNECTION_FAILED' => AppFailureKind.connection,
     'TIMEOUT' => AppFailureKind.timeout,
     'DOWNLOAD_FAILED' => AppFailureKind.download,
