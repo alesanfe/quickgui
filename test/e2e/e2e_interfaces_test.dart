@@ -50,6 +50,11 @@ Future<void> open(WidgetTester tester, Widget home,
   }
 }
 
+Future<void> unmount(WidgetTester t) async {
+  await t.pumpWidget(const SizedBox.shrink());
+  await t.pump();
+}
+
 void writeVm(Directory dir, String name) {
   File('${dir.path}/$name.conf')
       .writeAsStringSync('guest_os="linux"\ndisk_img="disk.qcow2"\n');
@@ -58,7 +63,7 @@ void writeVm(Directory dir, String name) {
 void main() {
   group('Manager — machines list', () {
     testWidgets('positive: VMs on disk render without exception',
-        skip: true, // Manager 5s periodic refresh — xvfb CI only
+        skip: true, // uncancelable Timer.periodic — CI/xvfb only
         (t) async {
       final dir = Directory.systemTemp.createTempSync('vmlib-');
       addTearDown(dir.deleteSync);
@@ -66,6 +71,7 @@ void main() {
         writeVm(dir, vm);
       }
       await open(t, const Manager());
+      await unmount(t);
       expect(t.takeException(), isNull);
     });
     testWidgets('negative: backend unavailable renders degraded state',
@@ -74,14 +80,13 @@ void main() {
       await open(t, const Manager(), backend: b);
       expect(t.takeException(), isNull);
     });
-    testWidgets('boundary: empty VM dir renders without crash',
-        skip: true, // Manager 5s periodic refresh — xvfb CI only
-        (t) async {
+    testWidgets('boundary: empty VM dir renders without crash', (t) async {
       await open(t, const Manager());
+      await unmount(t);
       expect(t.takeException(), isNull);
     });
     testWidgets('boundary: 60 VMs list scrolls without overflow',
-        skip: true, // Manager 5s periodic refresh — xvfb CI only
+        skip: true, // uncancelable Timer.periodic — CI/xvfb only
         (t) async {
       final dir = Directory.systemTemp.createTempSync('vmlib-');
       addTearDown(dir.deleteSync);
@@ -89,25 +94,28 @@ void main() {
         writeVm(dir, 'vm-${i.toString().padLeft(2, '0')}');
       }
       await open(t, const Manager());
+      await unmount(t);
       expect(t.takeException(), isNull);
     });
     testWidgets('boundary: unicode/long VM names render',
-        skip: true, // Manager 5s periodic refresh — xvfb CI only
+        skip: true, // uncancelable Timer.periodic — CI/xvfb only
         (t) async {
       final dir = Directory.systemTemp.createTempSync('vmlib-');
       addTearDown(dir.deleteSync);
       writeVm(dir, 'vm-ñ');
       writeVm(dir, 'a-very-long-vm-name-that-must-truncate-${'x' * 40}');
       await open(t, const Manager());
+      await unmount(t);
       expect(t.takeException(), isNull);
     });
     testWidgets('positive: stopped VM row exists',
-        skip: true, // Manager 5s periodic refresh — xvfb CI only
+        skip: true, // uncancelable Timer.periodic — CI/xvfb only
         (t) async {
       final dir = Directory.systemTemp.createTempSync('vmlib-');
       addTearDown(dir.deleteSync);
       writeVm(dir, 'vm1');
       await open(t, const Manager());
+      await unmount(t);
       expect(t.takeException(), isNull);
     });
   });
@@ -129,15 +137,17 @@ void main() {
 
   group('DownloaderMenu', () {
     testWidgets('positive: honours the stored working directory',
-        skip: true, // DownloaderMenu 5s periodic refresh — xvfb CI only
+        skip: true, // uncancelable Timer.periodic — CI/xvfb only
         (t) async {
       await open(t, const DownloaderMenu());
+      await unmount(t);
       expect(t.takeException(), isNull);
     });
     testWidgets('boundary: empty catalogue still renders the menu',
-        skip: true, // DownloaderMenu 5s periodic refresh — xvfb CI only
+        skip: true, // uncancelable Timer.periodic — CI/xvfb only
         (t) async {
       await open(t, const DownloaderMenu());
+      await unmount(t);
       expect(t.takeException(), isNull);
     });
   });
@@ -151,6 +161,22 @@ void main() {
         (t) async {
       await open(t, const ActivityPage());
       expect(find.textContaining('activity'), findsWidgets);
+    });
+    testWidgets('positive: activity renders filter chips', (t) async {
+      await open(t, const ActivityPage());
+      expect(t.takeException(), isNull);
+    });
+  });
+
+  group('Diagnostics — degraded tools', () {
+    testWidgets('negative: unavailable backend degrades tools', (t) async {
+      final b = FakeVirtualizationBackend()..available = false;
+      await open(t, const DiagnosticsPage(), backend: b);
+      expect(t.takeException(), isNull);
+    });
+    testWidgets('positive: reports app and backend versions', (t) async {
+      await open(t, const DiagnosticsPage());
+      expect(t.takeException(), isNull);
     });
   });
 }
