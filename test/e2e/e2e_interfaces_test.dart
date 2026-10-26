@@ -63,10 +63,10 @@ void writeVm(Directory dir, String name) {
 void main() {
   group('Manager — machines list', () {
     testWidgets('positive: VMs on disk render without exception',
-        skip: true, // uncancelable Timer.periodic — CI/xvfb only
+        // unskipped: real fix was recursive teardown, not the timer
         (t) async {
       final dir = Directory.systemTemp.createTempSync('vmlib-');
-      addTearDown(dir.deleteSync);
+      addTearDown(() => dir.deleteSync(recursive: true));
       for (final vm in ['debian-12', 'ubuntu-24.04']) {
         writeVm(dir, vm);
       }
@@ -86,10 +86,10 @@ void main() {
       expect(t.takeException(), isNull);
     });
     testWidgets('boundary: 60 VMs list scrolls without overflow',
-        skip: true, // uncancelable Timer.periodic — CI/xvfb only
+        // unskipped: real fix was recursive teardown, not the timer
         (t) async {
       final dir = Directory.systemTemp.createTempSync('vmlib-');
-      addTearDown(dir.deleteSync);
+      addTearDown(() => dir.deleteSync(recursive: true));
       for (var i = 0; i < 60; i++) {
         writeVm(dir, 'vm-${i.toString().padLeft(2, '0')}');
       }
@@ -98,10 +98,10 @@ void main() {
       expect(t.takeException(), isNull);
     });
     testWidgets('boundary: unicode/long VM names render',
-        skip: true, // uncancelable Timer.periodic — CI/xvfb only
+        // unskipped: real fix was recursive teardown, not the timer
         (t) async {
       final dir = Directory.systemTemp.createTempSync('vmlib-');
-      addTearDown(dir.deleteSync);
+      addTearDown(() => dir.deleteSync(recursive: true));
       writeVm(dir, 'vm-ñ');
       writeVm(dir, 'a-very-long-vm-name-that-must-truncate-${'x' * 40}');
       await open(t, const Manager());
@@ -109,10 +109,10 @@ void main() {
       expect(t.takeException(), isNull);
     });
     testWidgets('positive: stopped VM row exists',
-        skip: true, // uncancelable Timer.periodic — CI/xvfb only
+        // unskipped: real fix was recursive teardown, not the timer
         (t) async {
       final dir = Directory.systemTemp.createTempSync('vmlib-');
-      addTearDown(dir.deleteSync);
+      addTearDown(() => dir.deleteSync(recursive: true));
       writeVm(dir, 'vm1');
       await open(t, const Manager());
       await unmount(t);
@@ -137,14 +137,14 @@ void main() {
 
   group('DownloaderMenu', () {
     testWidgets('positive: honours the stored working directory',
-        skip: true, // uncancelable Timer.periodic — CI/xvfb only
+        skip: true, // needs prefs repo + catalog wiring — CI/xvfb only
         (t) async {
       await open(t, const DownloaderMenu());
       await unmount(t);
       expect(t.takeException(), isNull);
     });
     testWidgets('boundary: empty catalogue still renders the menu',
-        skip: true, // uncancelable Timer.periodic — CI/xvfb only
+        skip: true, // needs prefs repo + catalog wiring — CI/xvfb only
         (t) async {
       await open(t, const DownloaderMenu());
       await unmount(t);
