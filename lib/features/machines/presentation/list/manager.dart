@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:go_router/go_router.dart';
@@ -58,6 +59,7 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
   List<String> _currentVms = [];
   String _vmFilter = '';
   Timer? _searchDebounce;
+  final _searchFocus = FocusNode(debugLabel: 'vm-search');
   String _vmSort = 'name';
   String _statusFilter = 'all';
   String? _tagFilter;
@@ -1093,6 +1095,7 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
       Padding(
         padding: const EdgeInsets.only(bottom: 8.0),
         child: TextField(
+          focusNode: _searchFocus,
           decoration: InputDecoration(
             hintText: context.t('Search virtual machine'),
             prefixIcon: const Icon(Icons.search),
@@ -1933,129 +1936,136 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(context.t('Machines')),
-        actions: [
-          IconButton(
-            tooltip: context.t('Select multiple'),
-            icon: const Icon(Icons.checklist),
-            onPressed: () => setState(() {
-              _selectionMode = !_selectionMode;
-              if (!_selectionMode) _selection.clear();
-            }),
-          ),
-          IconButton(
-            tooltip: context.t('Switch view'),
-            icon: Icon(_cards ? Icons.view_list : Icons.grid_view),
-            onPressed: () => setState(() => _cards = !_cards),
-          ),
-          IconButton(
-            tooltip: context.t('Edit tags'),
-            icon: const Icon(Icons.label_outline),
-            onPressed: _selectedVm == null
-                ? null
-                : () => _editTags([_selectedVm!]),
-          ),
-          IconButton(
-            tooltip: _refreshedAt == null
-                ? context.t('Refresh')
-                : context.t(
-                    'Last refreshed: {0}',
-                    args: [
-                      _refreshedAt!.toLocal().toString().substring(11, 19),
-                    ],
-                  ),
-            icon: const Icon(Icons.refresh),
-            onPressed: _getVms,
-          ),
-          IconButton(
-            tooltip: context.t('Trash'),
-            icon: const Icon(Icons.delete_outline),
-            onPressed: _showTrash,
-          ),
-          // At narrow widths or large text scales the labelled button
-          // cannot fit next to the title and the other actions — fall
-          // back to an icon with the same action and a tooltip.
-          if (GoRouter.maybeOf(context) != null)
-            if (MediaQuery.sizeOf(context).width < 850 ||
-                MediaQuery.textScalerOf(context).scale(1) > 1.5)
-              IconButton(
-                tooltip: context.t('New machine'),
-                icon: const Icon(Icons.add),
-                onPressed: () => context.go('/create'),
-              )
-            else
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: FilledButton.icon(
-                  onPressed: () => context.go('/create'),
+    // Ctrl+F focuses the library search field (keyboard a11y).
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.keyF, control: true):
+            _searchFocus.requestFocus,
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(context.t('Machines')),
+          actions: [
+            IconButton(
+              tooltip: context.t('Select multiple'),
+              icon: const Icon(Icons.checklist),
+              onPressed: () => setState(() {
+                _selectionMode = !_selectionMode;
+                if (!_selectionMode) _selection.clear();
+              }),
+            ),
+            IconButton(
+              tooltip: context.t('Switch view'),
+              icon: Icon(_cards ? Icons.view_list : Icons.grid_view),
+              onPressed: () => setState(() => _cards = !_cards),
+            ),
+            IconButton(
+              tooltip: context.t('Edit tags'),
+              icon: const Icon(Icons.label_outline),
+              onPressed: _selectedVm == null
+                  ? null
+                  : () => _editTags([_selectedVm!]),
+            ),
+            IconButton(
+              tooltip: _refreshedAt == null
+                  ? context.t('Refresh')
+                  : context.t(
+                      'Last refreshed: {0}',
+                      args: [
+                        _refreshedAt!.toLocal().toString().substring(11, 19),
+                      ],
+                    ),
+              icon: const Icon(Icons.refresh),
+              onPressed: _getVms,
+            ),
+            IconButton(
+              tooltip: context.t('Trash'),
+              icon: const Icon(Icons.delete_outline),
+              onPressed: _showTrash,
+            ),
+            // At narrow widths or large text scales the labelled button
+            // cannot fit next to the title and the other actions — fall
+            // back to an icon with the same action and a tooltip.
+            if (GoRouter.maybeOf(context) != null)
+              if (MediaQuery.sizeOf(context).width < 850 ||
+                  MediaQuery.textScalerOf(context).scale(1) > 1.5)
+                IconButton(
+                  tooltip: context.t('New machine'),
                   icon: const Icon(Icons.add),
-                  label: Text(context.t('New machine')),
+                  onPressed: () => context.go('/create'),
+                )
+              else
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: FilledButton.icon(
+                    onPressed: () => context.go('/create'),
+                    icon: const Icon(Icons.add),
+                    label: Text(context.t('New machine')),
+                  ),
                 ),
-              ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.sort),
-            tooltip: context.t('Sort'),
-            onSelected: (v) => setState(() => _vmSort = v),
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'name',
-                child: Text(context.t('Sort by name')),
-              ),
-              PopupMenuItem(
-                value: 'running',
-                child: Text(context.t('Running first')),
-              ),
-            ],
-          ),
-        ],
-      ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final vm = _selectedVm;
-          // Persistent details pane (VISTA S-01): at desktop widths it
-          // shows the selected VM summary like VirtualBox/virt-manager;
-          // under ~1000px the list keeps the full width as before.
-          if (constraints.maxWidth < 1000 || vm == null) {
-            return _buildVmList();
-          }
-          final state = _vmStates[vm] ?? 'stopped';
-          final active = state == 'running' || state == 'paused';
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(flex: 5, child: _buildVmList()),
-              const VerticalDivider(width: 1),
-              Expanded(
-                flex: 6,
-                child: VmDetailsPane(
-                  name: vm,
-                  state: state,
-                  conf: _vmDetails[vm] ?? const {},
-                  onStart: active ? null : () => _startVm(vm),
-                  onStop: active ? () => _stopVm(vm) : null,
-                  onOpenDetails: GoRouter.maybeOf(context) == null
-                      ? null
-                      : () => context.push(
-                          '/machines/${Uri.encodeComponent(vm)}',
-                        ),
-                  onConfigure: () {
-                    if (GoRouter.maybeOf(context) != null) {
-                      context.push(
-                        '/machines/${Uri.encodeComponent(vm)}/settings',
-                      );
-                    } else {
-                      _editVmSettings(vm);
-                    }
-                  },
-                  onSnapshots: () => _manageSnapshot(context, vm),
-                  onDelete: () => _confirmDeleteVm(context, vm),
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.sort),
+              tooltip: context.t('Sort'),
+              onSelected: (v) => setState(() => _vmSort = v),
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'name',
+                  child: Text(context.t('Sort by name')),
                 ),
-              ),
-            ],
-          );
-        },
+                PopupMenuItem(
+                  value: 'running',
+                  child: Text(context.t('Running first')),
+                ),
+              ],
+            ),
+          ],
+        ),
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            final vm = _selectedVm;
+            // Persistent details pane (VISTA S-01): at desktop widths it
+            // shows the selected VM summary like VirtualBox/virt-manager;
+            // under ~1000px the list keeps the full width as before.
+            if (constraints.maxWidth < 1000 || vm == null) {
+              return _buildVmList();
+            }
+            final state = _vmStates[vm] ?? 'stopped';
+            final active = state == 'running' || state == 'paused';
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(flex: 5, child: _buildVmList()),
+                const VerticalDivider(width: 1),
+                Expanded(
+                  flex: 6,
+                  child: VmDetailsPane(
+                    name: vm,
+                    state: state,
+                    conf: _vmDetails[vm] ?? const {},
+                    onStart: active ? null : () => _startVm(vm),
+                    onStop: active ? () => _stopVm(vm) : null,
+                    onOpenDetails: GoRouter.maybeOf(context) == null
+                        ? null
+                        : () => context.push(
+                            '/machines/${Uri.encodeComponent(vm)}',
+                          ),
+                    onConfigure: () {
+                      if (GoRouter.maybeOf(context) != null) {
+                        context.push(
+                          '/machines/${Uri.encodeComponent(vm)}/settings',
+                        );
+                      } else {
+                        _editVmSettings(vm);
+                      }
+                    },
+                    onSnapshots: () => _manageSnapshot(context, vm),
+                    onDelete: () => _confirmDeleteVm(context, vm),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
