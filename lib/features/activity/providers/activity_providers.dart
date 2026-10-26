@@ -255,7 +255,10 @@ class ActivityController extends Notifier<ActivityState> {
   /// file; we map them onto the matching in-flight AppOperation.
   StreamSubscription<Map<String, dynamic>>? _watchSub;
   void startOperationWatch(String target) {
-    _watchSub ??= backend.watchOperations(target).listen((opState) {
+    ref.onDispose(() => _watchSub?.cancel());
+    _watchSub ??= ref.read(backendProvider).watchOperations(target).listen((
+      opState,
+    ) {
       final opId = opState['operationId'];
       final progress = opState['progress'];
       final st = opState['state'];
@@ -263,10 +266,12 @@ class ActivityController extends Notifier<ActivityState> {
         if (op.backendOperationId != opId) continue;
         if (st == 'completed' || st == 'failed' || st == 'cancelled') {
           update(op, switch (st) {
-            'completed' => const OperationSucceeded(),
+            'completed' => const OperationSucceeded<Object?>(null),
             'cancelled' => const OperationCancelled(),
             _ => OperationFailed(
-                message: 'op failed: \${opState['error'] ?? 'unknown'}'),
+              code: 'backend.op_failed',
+              message: 'op failed: ${opState['error'] ?? 'unknown'}',
+            ),
           });
         } else if (progress is num) {
           op.state = OperationRunning(progress: progress / 100);
@@ -274,6 +279,7 @@ class ActivityController extends Notifier<ActivityState> {
       }
     }, onError: (_) => _watchSub = null); // stream died: polling still works
   }
+
   /// Updates progress/state of an in-flight operation.
   void update(AppOperation op, OperationState<Object?> next, {String? output}) {
     if (op.isTerminal) return;
