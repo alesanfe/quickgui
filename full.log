@@ -1,0 +1,573 @@
+00:00 +0: loading C:/Users/alex0/Documents/fyp/quickgui/test/architecture/arch_test.dart
+00:00 +0: C:/Users/alex0/Documents/fyp/quickgui/test/architecture/arch_test.dart: feature domains do not import flutter or dart:io
+00:00 +1: C:/Users/alex0/Documents/fyp/quickgui/test/architecture/arch_test.dart: feature application layers do not import flutter widgets
+00:00 +2: C:/Users/alex0/Documents/fyp/quickgui/test/architecture/arch_test.dart: presentation never imports the backend implementation
+00:08 +3: C:/Users/alex0/Documents/fyp/quickgui/test/contract/quickemu/supported/contract_fixtures_test.dart: capabilities fixture is schema v1 with capability map
+00:09 +4: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: (setUpAll)
+00:09 +5: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: (setUpAll)
+00:09 +5: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:09 +6: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:09 +7: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:09 +8: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:09 +9: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:09 +10: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:09 +11: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:09 +12: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:09 +13: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:09 +14: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:09 +15: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:09 +16: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:09 +17: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:09 +18: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:10 +19: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:10 +20: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:10 +21: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:10 +22: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:10 +23: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:10 +24: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:10 +25: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:10 +26: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:10 +27: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:10 +28: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:10 +29: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:10 +30: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:10 +31: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:10 +32: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:11 +32: loading C:/Users/alex0/Documents/fyp/quickgui/test/golden/diagnostics_page_golden_test.dart
+Warning: A tag was used that wasn't specified in dart_test.yaml.
+  golden was used in the suite itself
+
+00:11 +32: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 02_machines_manager (light)
+00:11 +33: C:/Users/alex0/Documents/fyp/quickgui/test/golden/diagnostics_page_golden_test.dart: diagnostics page (light) at 100/150/200% text scale (variant: CI)
+00:12 +34: C:/Users/alex0/Documents/fyp/quickgui/test/golden/diagnostics_page_golden_test.dart: diagnostics page (light) at 100/150/200% text scale (variant: CI)
+00:12 +34: loading C:/Users/alex0/Documents/fyp/quickgui/test/golden/interfaces_golden_test.dart
+Warning: A tag was used that wasn't specified in dart_test.yaml.
+  golden was used in the suite itself
+
+00:12 +34: C:/Users/alex0/Documents/fyp/quickgui/test/golden/diagnostics_page_golden_test.dart: diagnostics page (light) at 100/150/200% text scale (variant: CI)
+00:12 +35: C:/Users/alex0/Documents/fyp/quickgui/test/golden/diagnostics_page_golden_test.dart: diagnostics page (light) at 100/150/200% text scale (variant: CI)
+00:12 +36: C:/Users/alex0/Documents/fyp/quickgui/test/golden/diagnostics_page_golden_test.dart: diagnostics page (light) at 100/150/200% text scale (variant: CI)
+00:12 +37: C:/Users/alex0/Documents/fyp/quickgui/test/golden/diagnostics_page_golden_test.dart: diagnostics page (light) at 100/150/200% text scale (variant: CI)
+00:12 +38: C:/Users/alex0/Documents/fyp/quickgui/test/golden/diagnostics_page_golden_test.dart: diagnostics page (light) at 100/150/200% text scale (variant: CI)
+00:12 +39: C:/Users/alex0/Documents/fyp/quickgui/test/golden/diagnostics_page_golden_test.dart: diagnostics page (light) at 100/150/200% text scale (variant: CI)
+00:13 +40: C:/Users/alex0/Documents/fyp/quickgui/test/golden/diagnostics_page_golden_test.dart: diagnostics page (light) at 100/150/200% text scale (variant: CI)
+00:13 +41: C:/Users/alex0/Documents/fyp/quickgui/test/golden/diagnostics_page_golden_test.dart: diagnostics page (light) at 100/150/200% text scale (variant: CI)
+00:14 +42: C:/Users/alex0/Documents/fyp/quickgui/test/golden/diagnostics_page_golden_test.dart: diagnostics page (light) at 100/150/200% text scale (variant: CI)
+00:14 +43: C:/Users/alex0/Documents/fyp/quickgui/test/golden/diagnostics_page_golden_test.dart: diagnostics page (light) at 100/150/200% text scale (variant: CI)
+00:14 +44: C:/Users/alex0/Documents/fyp/quickgui/test/golden/diagnostics_page_golden_test.dart: diagnostics page (light) at 100/150/200% text scale (variant: CI)
+00:15 +45: C:/Users/alex0/Documents/fyp/quickgui/test/golden/interfaces_golden_test.dart: interfaces (light) (variant: CI)
+00:15 +46: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 08_vm_config_dialog (light)
+00:16 +47: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 08_vm_config_dialog (light)
+00:16 +48: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 08_vm_config_dialog (light)
+00:16 +49: C:/Users/alex0/Documents/fyp/quickgui/test/golden/diagnostics_page_golden_test.dart: diagnostics page (dark) at 100/150/200% text scale (variant: CI)
+00:16 +50: C:/Users/alex0/Documents/fyp/quickgui/test/golden/diagnostics_page_golden_test.dart: diagnostics page (dark) at 100/150/200% text scale (variant: CI)
+00:16 +51: C:/Users/alex0/Documents/fyp/quickgui/test/golden/diagnostics_page_golden_test.dart: diagnostics page (dark) at 100/150/200% text scale (variant: CI)
+00:16 +52: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 09_vm_delete_confirm (light)
+00:17 +53: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 09_vm_delete_confirm (light)
+00:17 +54: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 10_drawer_settings (light)
+00:18 +55: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 10_drawer_settings (light)
+00:18 +56: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 10_drawer_settings (light)
+00:18 +56: C:/Users/alex0/Documents/fyp/quickgui/test/resilience/degraded_inputs_test.dart: a conf inside a symlinked directory stays in place
+  Skip: symlink creation needs a privilege
+00:18 +56 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 10_drawer_settings (light)
+00:18 +57 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 10_drawer_settings (light)
+00:18 +58 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 11_download_history (light)
+00:18 +59 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 11_download_history (light)
+00:18 +60 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 11_download_history (light)
+00:18 +61 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 11_download_history (light)
+00:18 +62 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 11_download_history (light)
+00:18 +63 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 11_download_history (light)
+00:18 +64 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 11_download_history (light)
+00:18 +65 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 11_download_history (light)
+00:18 +66 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 11_download_history (light)
+00:18 +67 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 11_download_history (light)
+00:18 +68 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 11_download_history (light)
+00:18 +69 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 11_download_history (light)
+00:18 +70 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 11_download_history (light)
+00:18 +71 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 11_download_history (light)
+00:18 +72 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 11_download_history (light)
+00:18 +73 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/security/input_safety_test.dart: config values are stored literally payload $(touch injected) round-trips verbatim with no side effects
+00:18 +74 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 12_vm_snapshots (light)
+00:18 +75 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 12_vm_snapshots (light)
+00:18 +76 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 12_vm_snapshots (light)
+00:18 +77 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 12_vm_snapshots (light)
+00:18 +78 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 12_vm_snapshots (light)
+00:18 +79 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 12_vm_snapshots (light)
+00:19 +80 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 12_vm_snapshots (light)
+00:19 +81 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 12_vm_snapshots (light)
+00:19 +82 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 12_vm_snapshots (light)
+00:19 +83 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 12_vm_snapshots (light)
+00:19 +84 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 12_vm_snapshots (light)
+00:19 +85 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 12_vm_snapshots (light)
+00:19 +86 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 12_vm_snapshots (light)
+00:19 +87 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 12_vm_snapshots (light)
+00:19 +88 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 12_vm_snapshots (light)
+00:19 +89 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 12_vm_snapshots (light)
+00:19 +90 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 12_vm_snapshots (light)
+00:19 +91 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 12_vm_snapshots (light)
+00:19 +92 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 12_vm_snapshots (light)
+00:19 +93 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 12_vm_snapshots (light)
+00:19 +94 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 12_vm_snapshots (light)
+00:20 +95 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 13_vm_resources (light)
+00:20 +96 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 13_vm_resources (light)
+00:20 +97 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 13_vm_resources (light)
+00:20 +98 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 13_vm_resources (light)
+00:20 +99 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 13_vm_resources (light)
+00:20 +100 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 13_vm_resources (light)
+00:20 +101 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 13_vm_resources (light)
+00:20 +102 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 13_vm_resources (light)
+00:20 +103 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 13_vm_resources (light)
+00:20 +104 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 13_vm_resources (light)
+00:20 +105 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 13_vm_resources (light)
+00:20 +106 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 13_vm_resources (light)
+00:20 +107 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 13_vm_resources (light)
+00:20 +108 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 13_vm_resources (light)
+00:20 +109 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 13_vm_resources (light)
+00:20 +110 ~1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 13_vm_resources (light)
+00:20 +110 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 13_vm_resources (light)
+00:20 +110 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/unit/core/log_store_test.dart: AppLog.event writes to the store and the logger [E]
+  Bad state: No element
+  dart:core                                 List.single
+  test\unit\core\log_store_test.dart 60:21  main.<fn>
+  
+00:20 +111 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 13_vm_resources (light)
+00:21 +112 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 13_vm_resources (light)
+00:21 +113 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/unit/features/activity/activity_controller_test.dart: non-zero exit records backend.exit_N code
+00:21 +114 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 14_vm_boot_network (light)
+00:21 +115 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 14_vm_boot_network (light)
+00:22 +116 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 14_vm_boot_network (light)
+00:22 +117 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 14_vm_boot_network (light)
+00:22 +118 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 14_vm_boot_network (light)
+00:22 +119 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 14_vm_boot_network (light)
+00:22 +120 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 14_vm_boot_network (light)
+00:22 +121 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 14_vm_boot_network (light)
+00:22 +122 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 14_vm_boot_network (light)
+00:22 +123 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 14_vm_boot_network (light)
+00:22 +124 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 14_vm_boot_network (light)
+00:22 +125 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 14_vm_boot_network (light)
+00:22 +126 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 14_vm_boot_network (light)
+00:22 +127 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 14_vm_boot_network (light)
+00:22 +128 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 14_vm_boot_network (light)
+00:22 +129 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 14_vm_boot_network (light)
+00:22 +130 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 14_vm_boot_network (light)
+00:22 +131 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 14_vm_boot_network (light)
+00:22 +132 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 14_vm_boot_network (light)
+00:22 +133 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 14_vm_boot_network (light)
+00:22 +134 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 14_vm_boot_network (light)
+00:22 +135 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 14_vm_boot_network (light)
+00:23 +136 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:23 +137 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:23 +138 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:23 +139 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +140 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +141 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +142 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +143 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +144 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +145 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +146 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +147 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +148 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +149 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +149 ~1 -1: C:/Users/alex0/Documents/fyp/quickgui/test/unit/features/diagnostics/system_host_probe_test.dart: missingMacosRequirements reports flags absent from the host cpu
+  Skip: reads /proc/cpuinfo (Linux only)
+00:24 +149 ~2 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +149 ~2 -1: C:/Users/alex0/Documents/fyp/quickgui/test/unit/features/diagnostics/system_host_probe_test.dart: missingMacosRequirements uses the default requirement for unknown releases
+  Skip: reads /proc/cpuinfo (Linux only)
+00:24 +149 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +150 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +151 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +152 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +153 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +154 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +155 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +156 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +157 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +158 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +159 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +160 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +161 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +162 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +163 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +164 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +165 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +166 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +167 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +168 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +169 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +170 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +171 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +172 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +173 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +174 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +175 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +176 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:24 +177 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:25 +178 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:25 +179 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:25 +180 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:25 +181 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (light)
+00:25 +182 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +183 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +184 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +185 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +186 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +187 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +188 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +189 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +190 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +191 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +192 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +193 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +194 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +195 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +196 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +197 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +198 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +199 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +200 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +201 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +202 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +203 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +204 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +205 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +206 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +207 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +208 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +209 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +210 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +211 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +212 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +213 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +214 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +215 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +216 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +217 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:26 +218 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:27 +219 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:27 +220 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:27 +221 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:27 +222 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:27 +223 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:27 +224 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:27 +225 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:27 +226 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:27 +227 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:27 +228 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:27 +229 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:27 +230 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:27 +231 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:27 +232 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:27 +233 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:27 +234 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:27 +235 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:27 +236 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:27 +237 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:27 +238 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:27 +239 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:27 +240 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:27 +241 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:27 +242 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:27 +243 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:27 +244 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 16_check_updates (light)
+00:28 +245 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 17_system_diagnostics (light)
+00:28 +246 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 18_vm_menu_running (light)
+00:28 +246 ~3 -1: C:/Users/alex0/Documents/fyp/quickgui/test/unit/infrastructure/host_process_test.dart: process start preserves arguments without repeating the executable
+  Skip: requires a POSIX sh
+00:28 +246 ~4 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 18_vm_menu_running (light)
+00:28 +246 ~4 -1: C:/Users/alex0/Documents/fyp/quickgui/test/unit/infrastructure/host_process_test.dart: process runner propagates exit code stdout and stderr
+  Skip: requires a POSIX sh
+00:28 +246 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 18_vm_menu_running (light)
+00:28 +247 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 18_vm_menu_running (light)
+00:28 +248 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 18_vm_menu_running (light)
+00:28 +249 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 18_vm_menu_running (light)
+00:28 +250 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 18_vm_menu_running (light)
+00:28 +251 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 18_vm_menu_running (light)
+00:28 +252 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 18_vm_menu_running (light)
+00:28 +253 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 18_vm_menu_running (light)
+00:28 +254 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 18_vm_menu_running (light)
+00:29 +255 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +256 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +257 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +258 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +259 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +260 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +261 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +262 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +263 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +264 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +265 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +266 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +267 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +268 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +269 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +270 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +271 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +272 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +273 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +274 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +275 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +276 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +277 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +278 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +279 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +280 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +281 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +282 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +283 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +284 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +285 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +286 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +287 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +288 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +289 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +290 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +291 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +292 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +293 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +294 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +295 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +296 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +297 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +298 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +299 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +300 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +301 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +302 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +303 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +304 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +305 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +306 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +307 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +308 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +309 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +310 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +311 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +312 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +313 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +314 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +315 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +316 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +317 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 19_vm_stop_confirm (light)
+00:29 +318 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 20_vm_process_output (light)
+00:30 +319 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 20_vm_process_output (light)
+00:30 +320 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/unit/infrastructure/vm_config_atomic_test.dart: write replaces a key and leaves no temp file behind
+00:30 +321 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/unit/infrastructure/vm_config_atomic_test.dart: write replaces a key and leaves no temp file behind
+00:30 +322 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 21_vm_resize (light)
+00:30 +323 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 21_vm_resize (light)
+00:30 +324 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 21_vm_resize (light)
+00:31 +325 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 21_vm_resize (light)
+00:31 +326 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 21_vm_resize (light)
+00:31 +327 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 21_vm_resize (light)
+00:31 +328 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 21_vm_resize (light)
+00:31 +329 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 21_vm_resize (light)
+00:31 +330 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 21_vm_resize (light)
+00:31 +331 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 21_vm_resize (light)
+00:31 +332 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 21_vm_resize (light)
+00:31 +333 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 21_vm_resize (light)
+00:31 +334 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 21_vm_resize (light)
+00:31 +335 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 21_vm_resize (light)
+00:31 +336 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 21_vm_resize (light)
+00:31 +336 ~5 -1: C:/Users/alex0/Documents/fyp/quickgui/test/unit/infrastructure/vm_config_atomic_test.dart: write through a symlink keeps the link and swaps the target
+  Skip: symlink creation needs a privilege
+00:31 +336 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 21_vm_resize (light)
+00:31 +337 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 21_vm_resize (light)
+00:31 +338 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 21_vm_resize (light)
+00:31 +339 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 21_vm_resize (light)
+00:31 +340 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 21_vm_resize (light)
+00:31 +341 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/unit/infrastructure/vm_config_file_store_test.dart: backups restoreBackup restores content and keeps current as backup
+00:31 +342 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 22_vm_clone (light)
+00:32 +343 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/activity_page_test.dart: tabs filter history by status
+00:34 +344 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 23_vm_settings_all (light)
+00:34 +345 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/app_widget_test.dart: app builds a MaterialApp with a fake backend
+00:34 +346 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/app_widget_test.dart: app builds a MaterialApp with a fake backend
+00:35 +347 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/app_widget_test.dart: app builds a MaterialApp with a fake backend
+00:35 +348 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/app_widget_test.dart: app builds a MaterialApp with a fake backend
+00:36 +349 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/app_widget_test.dart: app builds a MaterialApp with a fake backend
+00:36 +350 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/app_widget_test.dart: app builds a MaterialApp with a fake backend
+00:36 +351 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 25_vm_display_viewer (light)
+
+Warning: A call to tap() with finder "Found 1 widget with text "Display viewer" (ignoring all but last): [
+  Text("Display viewer", inherit: true, color: Color(alpha: 1.0000, red: 0.2235, green: 0.2235, blue: 0.2235, colorSpace: ColorSpace.sRGB), dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery, _ScrollableScope]),
+]" derived an Offset (Offset(632.0, 422.0)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+The finder corresponds to this RenderBox: RenderParagraph#d9c2a relayoutBoundary=up17
+The hit test result at that offset is: HitTestResult(_RenderListTile#db99a@Offset(163.0, 2.0), RenderPadding#f160d@Offset(163.0, 2.0), RenderPadding#8048a@Offset(163.0, 2.0), RenderSemanticsAnnotations#1a2e1@Offset(163.0, 2.0), RenderPointerListener#799f9@Offset(163.0, 2.0), RenderSemanticsAnnotations#79997@Offset(163.0, 2.0), RenderMouseRegion#dd418@Offset(163.0, 2.0), RenderSemanticsAnnotations#48110@Offset(163.0, 2.0), RenderConstrainedBox#9bf40@Offset(163.0, 2.0), RenderPadding#28beb@Offset(163.0, 2.0), RenderClipRect#b326c@Offset(163.0, 2.0), RenderFlex#0985d@Offset(163.0, 2.0), RenderClipRect#f4e39@Offset(163.0, 2.0), RenderFlex#07ae7@Offset(163.0, 2.0), RenderPositionedBox#f1c68@Offset(163.0, 2.0), RenderPadding#07829@Offset(175.0, 2.0), RenderPointerListener#6ed9d@Offset(175.0, 2.0), RenderSemanticsAnnotations#5e287@Offset(175.0, 2.0), RenderMouseRegion#4aa35@Offset(175.0, 2.0), RenderSemanticsAnnotations#a0180@Offset(175.0, 2.0), _RenderInkFeatures#91201@Offset(175.0, 2.0), RenderCustomPaint#ba5f6@Offset(175.0, 2.0), RenderPhysicalShape#f6ab7@Offset(175.0, 2.0), RenderConstrainedBox#fb00e@Offset(175.0, 2.0), _RenderInputPadding#ea63e@Offset(175.0, 2.0), RenderSemanticsAnnotations#e7403@Offset(175.0, 2.0), RenderMouseRegion#d28a4@Offset(175.0, 2.0), RenderMergeSemantics#05243@Offset(175.0, 2.0), RenderFlex#ada14@Offset(175.0, 398.0), _RenderSingleChildViewport#81ca0@Offset(175.0, 398.0), RenderIgnorePointer#7d7d5@Offset(175.0, 398.0), RenderSemanticsAnnotations#9123e@Offset(175.0, 398.0), RenderPointerListener#33a8b@Offset(175.0, 398.0), RenderSemanticsGestureHandler#4db61@Offset(175.0, 398.0), RenderPointerListener#c8c16@Offset(175.0, 398.0), _RenderScrollSemantics#e3379@Offset(175.0, 398.0), RenderRepaintBoundary#1b26d@Offset(175.0, 398.0), RenderCustomPaint#9e9eb@Offset(175.0, 398.0), RenderMouseRegion#20310@Offset(175.0, 398.0), RenderPointerListener#420f2@Offset(175.0, 398.0), RenderSemanticsGestureHandler#eb5a1@Offset(175.0, 398.0), RenderPointerListener#744d3@Offset(175.0, 398.0), RenderRepaintBoundary#62e61@Offset(175.0, 398.0), RenderPadding#fef82@Offset(175.0, 406.0), RenderPositionedBox#bd42d@Offset(175.0, 406.0), _RenderInkFeatures#2af99@Offset(175.0, 406.0), RenderCustomPaint#5b5c5@Offset(175.0, 406.0), RenderPhysicalShape#9e389@Offset(175.0, 406.0), RenderIntrinsicWidth#2f58e@Offset(175.0, 406.0), RenderConstraintsTransformBox#07b93@Offset(175.0, 406.0), RenderConstrainedBox#1e725@Offset(175.0, 406.0), RenderAnimatedOpacity#d14e9@Offset(175.0, 406.0), RenderSemanticsAnnotations#c3d70@Offset(175.0, 406.0), RenderSemanticsAnnotations#88c65@Offset(175.0, 406.0), RenderMouseRegion#abf70@Offset(175.0, 406.0), RenderTapRegion#7f5fb@Offset(175.0, 406.0), RenderCustomSingleChildLayoutBox#5d009@Offset(632.0, 422.0), RenderConstrainedBox#29661@Offset(632.0, 422.0), RenderIgnorePointer#08702@Offset(632.0, 422.0), RenderExcludeSemantics#8566b@Offset(632.0, 422.0), _RenderLayoutBuilder#c6d71@Offset(632.0, 422.0), _RenderDeferredLayoutBox#e1600@Offset(632.0, 422.0), _RenderTheater#822c1@Offset(632.0, 422.0), RenderAbsorbPointer#cb152@Offset(632.0, 422.0), RenderPointerListener#84232@Offset(632.0, 422.0), RenderSemanticsAnnotations#56910@Offset(632.0, 422.0), RenderSemanticsAnnotations#c11c3@Offset(632.0, 422.0), RenderSemanticsAnnotations#244a5@Offset(632.0, 422.0), RenderSemanticsAnnotations#e0e79@Offset(632.0, 422.0), RenderTapRegionSurface#e5a60@Offset(632.0, 422.0), RenderSemanticsAnnotations#15190@Offset(632.0, 422.0), RenderSemanticsAnnotations#8e586@Offset(632.0, 422.0), HitTestEntry<HitTestTarget>#470cd(_ReusableRenderView#d802e), HitTestEntry<HitTestTarget>#e7990(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.menuItem.<anonymous closure> (file:///C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart:286:13)
+<asynchronous suspension>
+#4      _capture (file:///C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart:226:5)
+<asynchronous suspension>
+#5      main.<anonymous closure> (file:///C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart:455:9)
+<asynchronous suspension>
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#8      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+00:37 +352 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 25_vm_display_viewer (light)
+00:37 +353 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 25_vm_display_viewer (light)
+00:38 +354 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 25_vm_display_viewer (light)
+00:39 +355 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 25_vm_display_viewer (light)
+00:39 +356 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/app_widget_test.dart: resizing across the breakpoint preserves route and branch state
+00:39 +357 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/app_widget_test.dart: resizing across the breakpoint preserves route and branch state
+00:39 +358 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/app_widget_test.dart: resizing across the breakpoint preserves route and branch state
+00:39 +359 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/app_widget_test.dart: resizing across the breakpoint preserves route and branch state
+00:40 +360 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/app_widget_test.dart: resizing across the breakpoint preserves route and branch state
+00:40 +361 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/app_widget_test.dart: resizing across the breakpoint preserves route and branch state
+00:40 +362 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/app_widget_test.dart: resizing across the breakpoint preserves route and branch state
+00:40 +363 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/app_widget_test.dart: resizing across the breakpoint preserves route and branch state
+00:40 +364 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/app_widget_test.dart: resizing across the breakpoint preserves route and branch state
+00:40 +365 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/app_widget_test.dart: resizing across the breakpoint preserves route and branch state
+00:40 +366 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/app_widget_test.dart: resizing across the breakpoint preserves route and branch state
+00:40 +367 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/app_widget_test.dart: resizing across the breakpoint preserves route and branch state
+00:40 +368 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/catalog_workflows_test.dart: customization validates RAM CPU and disk and can be cancelled
+00:40 +369 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/catalog_workflows_test.dart: customization validates RAM CPU and disk and can be cancelled
+00:41 +370 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/app_widget_test.dart: minimum window supports large text in the shell
+00:41 +371 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/app_widget_test.dart: minimum window supports large text in the shell
+00:41 +372 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 07_vm_menu (dark)
+00:41 +373 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 07_vm_menu (dark)
+00:41 +374 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 07_vm_menu (dark)
+00:41 +375 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 08_vm_config_dialog (dark)
+00:42 +376 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/create_wizard_test.dart: renders the five steps with the origin choice
+00:43 +377 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/create_wizard_test.dart: renders the five steps with the origin choice
+00:43 +378 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/create_wizard_test.dart: renders the five steps with the origin choice
+00:43 +379 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/create_wizard_test.dart: renders the five steps with the origin choice
+00:45 +380 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/diagnostics_page_test.dart: shows tool status with text, not only colour
+00:45 +381 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/diagnostics_page_test.dart: shows tool status with text, not only colour
+00:45 +382 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/downloader_test.dart: reports curl progress and success, then records history
+00:45 +383 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/downloader_test.dart: reports curl progress and success, then records history
+00:46 +383 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/create_wizard_test.dart: resources step shows profile and conf fields
+
+Warning: A call to tap() with finder "Found 1 widget with text "Continue" (ignoring all but first): [
+  Text("Continue", dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery]),
+]" derived an Offset (Offset(140.4, 312.0)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+The finder corresponds to this RenderBox: RenderParagraph#6f640 relayoutBoundary=up38
+The hit test result at that offset is: HitTestResult(RenderPointerListener#529b2@Offset(140.4, 256.0), RenderSemanticsGestureHandler#c8796@Offset(140.4, 256.0), RenderPointerListener#61d83@Offset(140.4, 256.0), _RenderScrollSemantics#ef251@Offset(140.4, 256.0), RenderClipRect#ab4c1@Offset(140.4, 256.0), RenderCustomMultiChildLayoutBox#69d02@Offset(140.4, 312.0), _RenderInkFeatures#cc000@Offset(140.4, 312.0), RenderPhysicalModel#e56f3@Offset(140.4, 312.0), RenderSemanticsAnnotations#3ffeb@Offset(140.4, 312.0), RenderRepaintBoundary#be1d6@Offset(140.4, 312.0), RenderIgnorePointer#6cb6e@Offset(140.4, 312.0), RenderAnimatedOpacity#5ad80@Offset(140.4, 312.0), RenderAnimatedOpacity#214f4@Offset(140.4, 312.0), _RenderColoredBox#dc1ba@Offset(140.4, 312.0), RenderAnimatedOpacity#6953d@Offset(140.4, 312.0), RenderIgnorePointer#19617@Offset(140.4, 312.0), RenderAnimatedOpacity#37e6f@Offset(140.4, 312.0), RenderRepaintBoundary#c9eeb@Offset(140.4, 312.0), RenderSemanticsAnnotations#6d01b@Offset(140.4, 312.0), RenderOffstage#6191e@Offset(140.4, 312.0), RenderSemanticsAnnotations#f91df@Offset(140.4, 312.0), _RenderTheater#3c0a7@Offset(140.4, 312.0), RenderAbsorbPointer#57f85@Offset(140.4, 312.0), RenderPointerListener#9f723@Offset(140.4, 312.0), RenderSemanticsAnnotations#5fdec@Offset(140.4, 312.0), RenderSemanticsAnnotations#21b9e@Offset(140.4, 312.0), RenderSemanticsAnnotations#26e44@Offset(140.4, 312.0), RenderSemanticsAnnotations#2fdc0@Offset(140.4, 312.0), RenderTapRegionSurface#0bc14@Offset(140.4, 312.0), RenderSemanticsAnnotations#20724@Offset(140.4, 312.0), RenderSemanticsAnnotations#aa629@Offset(140.4, 312.0), HitTestEntry<HitTestTarget>#4fe39(_ReusableRenderView#89c16), HitTestEntry<HitTestTarget>#b88cd(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.<anonymous closure> (file:///C:/Users/alex0/Documents/fyp/quickgui/test/widget/create_wizard_test.dart:88:18)
+<asynchronous suspension>
+#4      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#5      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#6      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+00:46 +384 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/downloader_test.dart: reports curl progress and success, then records history
+00:46 +385 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 13_vm_resources (dark)
+00:46 +386 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/downloader_test.dart: applies customConf to the newest .conf on success
+00:47 +387 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 14_vm_boot_network (dark)
+00:48 +388 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 14_vm_boot_network (dark)
+00:48 +389 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 14_vm_boot_network (dark)
+00:48 +390 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 14_vm_boot_network (dark)
+00:48 +391 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 14_vm_boot_network (dark)
+00:48 +392 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/home_workflows_test.dart: DownloaderMenu falls back to a writable directory when cwd is not
+00:48 +393 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (dark)
+00:49 +394 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (dark)
+00:49 +395 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 15_vm_devices (dark)
+00:50 +396 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: snapshot Info sends only the selected action
+00:50 +397 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: snapshot Info sends only the selected action
+00:50 +398 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: snapshot Info sends only the selected action
+00:51 +399 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: snapshot Info sends only the selected action
+00:51 +400 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: snapshot Info sends only the selected action
+00:52 +401 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: snapshot Info sends only the selected action
+00:52 +402 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: snapshot Info sends only the selected action
+00:52 +403 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/validated_text_dialog_test.dart: disables confirm and shows an error for an unsafe name
+00:52 +404 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/validated_text_dialog_test.dart: disables confirm and shows an error for an unsafe name
+00:53 +405 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/validated_text_dialog_test.dart: disables confirm and shows an error for an unsafe name
+00:53 +406 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/validated_text_dialog_test.dart: disables confirm and shows an error for an unsafe name
+00:53 +407 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: snapshot Create sends only the selected action
+00:53 +408 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: snapshot Create sends only the selected action
+00:53 +409 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: snapshot Create sends only the selected action
+00:53 +410 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 20_vm_process_output (dark)
+00:54 +411 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 20_vm_process_output (dark)
+00:54 +412 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 20_vm_process_output (dark)
+00:54 +413 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 20_vm_process_output (dark)
+00:54 +414 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: snapshot Apply sends only the selected action
+00:54 +415 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: snapshot Apply sends only the selected action
+00:54 +416 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 21_vm_resize (dark)
+00:55 +417 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/home_workflows_test.dart: VmConfigEditorDialog loads the conf file and saves edits back
+00:55 +418 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/home_workflows_test.dart: VmConfigEditorDialog loads the conf file and saves edits back
+00:56 +419 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/home_workflows_test.dart: VmConfigEditorDialog loads the conf file and saves edits back
+00:56 +420 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/vm_settings_page_test.dart: loads configuration through the injected store
+00:56 +421 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/vm_settings_page_test.dart: loads configuration through the injected store
+00:57 +422 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/vm_settings_page_test.dart: loads configuration through the injected store
+00:57 +423 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/vm_settings_page_test.dart: loads configuration through the injected store
+00:57 +424 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 23_vm_settings_all (dark)
+00:57 +425 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 23_vm_settings_all (dark)
+00:58 +426 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 23_vm_settings_all (dark)
+00:58 +427 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/home_workflows_test.dart: VmConfigEditorDialog an external change offers conflict resolution
+00:58 +428 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/home_workflows_test.dart: VmConfigEditorDialog an external change offers conflict resolution
+00:59 +429 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/home_workflows_test.dart: VmConfigEditorDialog an external change offers conflict resolution
+00:59 +430 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 24_vm_shared_folder (dark)
+00:59 +431 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 24_vm_shared_folder (dark)
+01:00 +432 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/vm_settings_page_test.dart: save failure retains edits and offers another save
+01:00 +433 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: snapshot tag with spaces is forwarded as one argument
+01:00 +434 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 25_vm_display_viewer (dark)
+01:00 +435 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 25_vm_display_viewer (dark)
+
+Warning: A call to tap() with finder "Found 1 widget with text "Display viewer" (ignoring all but last): [
+  Text("Display viewer", inherit: true, color: Color(alpha: 1.0000, red: 0.7922, green: 0.7922, blue: 0.7922, colorSpace: ColorSpace.sRGB), dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery, _ScrollableScope]),
+]" derived an Offset (Offset(632.0, 422.0)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+The finder corresponds to this RenderBox: RenderParagraph#8e295 relayoutBoundary=up17
+The hit test result at that offset is: HitTestResult(_RenderListTile#d54b2@Offset(163.0, 2.0), RenderPadding#2aa8b@Offset(163.0, 2.0), RenderPadding#9cfba@Offset(163.0, 2.0), RenderSemanticsAnnotations#bba52@Offset(163.0, 2.0), RenderPointerListener#0674f@Offset(163.0, 2.0), RenderSemanticsAnnotations#e2084@Offset(163.0, 2.0), RenderMouseRegion#018fb@Offset(163.0, 2.0), RenderSemanticsAnnotations#b0997@Offset(163.0, 2.0), RenderConstrainedBox#26bfb@Offset(163.0, 2.0), RenderPadding#3a3f4@Offset(163.0, 2.0), RenderClipRect#af41b@Offset(163.0, 2.0), RenderFlex#93624@Offset(163.0, 2.0), RenderClipRect#6ce33@Offset(163.0, 2.0), RenderFlex#0bd9d@Offset(163.0, 2.0), RenderPositionedBox#44c7f@Offset(163.0, 2.0), RenderPadding#ee963@Offset(175.0, 2.0), RenderPointerListener#8f657@Offset(175.0, 2.0), RenderSemanticsAnnotations#a828c@Offset(175.0, 2.0), RenderMouseRegion#6e32d@Offset(175.0, 2.0), RenderSemanticsAnnotations#b4075@Offset(175.0, 2.0), _RenderInkFeatures#77a18@Offset(175.0, 2.0), RenderCustomPaint#d75b9@Offset(175.0, 2.0), RenderPhysicalShape#bf6fc@Offset(175.0, 2.0), RenderConstrainedBox#0a258@Offset(175.0, 2.0), _RenderInputPadding#eba63@Offset(175.0, 2.0), RenderSemanticsAnnotations#18e7f@Offset(175.0, 2.0), RenderMouseRegion#e9ecf@Offset(175.0, 2.0), RenderMergeSemantics#35ac0@Offset(175.0, 2.0), RenderFlex#fc4f4@Offset(175.0, 398.0), _RenderSingleChildViewport#4f3cf@Offset(175.0, 398.0), RenderIgnorePointer#03d02@Offset(175.0, 398.0), RenderSemanticsAnnotations#c2358@Offset(175.0, 398.0), RenderPointerListener#bf3e2@Offset(175.0, 398.0), RenderSemanticsGestureHandler#245b9@Offset(175.0, 398.0), RenderPointerListener#92011@Offset(175.0, 398.0), _RenderScrollSemantics#81c87@Offset(175.0, 398.0), RenderRepaintBoundary#90a05@Offset(175.0, 398.0), RenderCustomPaint#65a65@Offset(175.0, 398.0), RenderMouseRegion#fa39a@Offset(175.0, 398.0), RenderPointerListener#0d797@Offset(175.0, 398.0), RenderSemanticsGestureHandler#0faaf@Offset(175.0, 398.0), RenderPointerListener#7dccc@Offset(175.0, 398.0), RenderRepaintBoundary#074a0@Offset(175.0, 398.0), RenderPadding#05854@Offset(175.0, 406.0), RenderPositionedBox#5d5ba@Offset(175.0, 406.0), _RenderInkFeatures#62c57@Offset(175.0, 406.0), RenderCustomPaint#f3364@Offset(175.0, 406.0), RenderPhysicalShape#2fbf6@Offset(175.0, 406.0), RenderIntrinsicWidth#6ec9d@Offset(175.0, 406.0), RenderConstraintsTransformBox#cb38d@Offset(175.0, 406.0), RenderConstrainedBox#946f6@Offset(175.0, 406.0), RenderAnimatedOpacity#33702@Offset(175.0, 406.0), RenderSemanticsAnnotations#175ab@Offset(175.0, 406.0), RenderSemanticsAnnotations#d2542@Offset(175.0, 406.0), RenderMouseRegion#b37de@Offset(175.0, 406.0), RenderTapRegion#dc8c8@Offset(175.0, 406.0), RenderCustomSingleChildLayoutBox#c5859@Offset(632.0, 422.0), RenderConstrainedBox#8191f@Offset(632.0, 422.0), RenderIgnorePointer#8560e@Offset(632.0, 422.0), RenderExcludeSemantics#4b657@Offset(632.0, 422.0), _RenderLayoutBuilder#60727@Offset(632.0, 422.0), _RenderDeferredLayoutBox#49b8f@Offset(632.0, 422.0), _RenderTheater#5cbee@Offset(632.0, 422.0), RenderAbsorbPointer#f261b@Offset(632.0, 422.0), RenderPointerListener#fef3d@Offset(632.0, 422.0), RenderSemanticsAnnotations#3ca26@Offset(632.0, 422.0), RenderSemanticsAnnotations#eec49@Offset(632.0, 422.0), RenderSemanticsAnnotations#fa87e@Offset(632.0, 422.0), RenderSemanticsAnnotations#0f752@Offset(632.0, 422.0), RenderTapRegionSurface#b14b4@Offset(632.0, 422.0), RenderSemanticsAnnotations#e3960@Offset(632.0, 422.0), RenderSemanticsAnnotations#d5cf3@Offset(632.0, 422.0), HitTestEntry<HitTestTarget>#78cc7(_ReusableRenderView#d802e), HitTestEntry<HitTestTarget>#eb384(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.menuItem.<anonymous closure> (file:///C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart:286:13)
+<asynchronous suspension>
+#4      _capture (file:///C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart:226:5)
+<asynchronous suspension>
+#5      main.<anonymous closure> (file:///C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart:455:9)
+<asynchronous suspension>
+#6      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#7      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#8      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+01:01 +436 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 25_vm_display_viewer (dark)
+01:01 +437 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 25_vm_display_viewer (dark)
+01:01 +438 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 25_vm_display_viewer (dark)
+01:02 +439 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 25_vm_display_viewer (dark)
+01:02 +440 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 25_vm_display_viewer (dark)
+01:02 +441 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 25_vm_display_viewer (dark)
+01:02 +442 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/capture/interface_capture_test.dart: 25_vm_display_viewer (dark)
+01:03 +443 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: Resume sends one command for the selected VM
+01:03 +444 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: Check VM sends one command for the selected VM
+01:03 +445 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: delete confirmation Cancel respects its scope
+01:03 +446 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: delete confirmation Delete disk image respects its scope
+01:04 +447 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: delete confirmation Delete whole VM respects its scope
+01:04 +448 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: start passes display from configuration instead of host toggle
+01:04 +449 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: running VM reset asks confirmation then sends system_reset
+01:05 +450 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: running VM reset cancelled sends nothing
+01:05 +451 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: paused VM shows a Paused badge
+01:05 +452 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: stopped VM does not offer reset
+01:05 +453 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: running VM stop can be cancelled without sending a command
+01:06 +454 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: action with output opens the quickemu output dialog
+01:06 +455 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: running VM exposes SPICE connect with its port
+01:06 +456 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: app lifecycle pause and resume keeps the list stable
+01:07 +457 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: pid-file fallback marks the VM running without capabilities
+01:07 +458 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: Open VM folder delegates to the backend
+01:07 +459 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: Export runs the backend export for the VM
+01:08 +460 ~6 -1: C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart: (tearDownAll)
+01:08 +460 ~6 -1: Some tests failed.
+
+Failing tests:
+  C:/Users/alex0/Documents/fyp/quickgui/test/unit/core/log_store_test.dart: AppLog.event writes to the store and the logger

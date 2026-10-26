@@ -1,0 +1,37 @@
+00:00 +0: loading C:/Users/alex0/Documents/fyp/quickgui/test/widget/manager_workflows_test.dart
+00:00 +0: (setUpAll)
+00:00 +0: snapshot Info sends only the selected action
+00:02 +1: snapshot Create sends only the selected action
+00:03 +2: snapshot Apply sends only the selected action
+00:04 +3: snapshot Delete sends only the selected action
+00:05 +4: snapshot dialog lists existing snapshots and fills the tag
+00:05 +5: snapshot dialog can be dismissed with Cancel
+00:06 +6: snapshot Apply cancelled at confirmation runs nothing
+00:06 +7: snapshot Delete cancelled at confirmation runs nothing
+00:07 +8: snapshot actions stay disabled until a tag is entered
+00:08 +9: snapshot tag with spaces is forwarded as one argument
+00:08 +10: Clone validates input and forwards the confirmed value
+00:09 +11: Clone cancellation leaves the backend untouched
+00:09 +12: Resize disk validates input and forwards the confirmed value
+00:10 +13: Resize disk cancellation leaves the backend untouched
+00:10 +14: filter is case insensitive and does not run commands
+00:10 +15: missing acceleration displays an explicit warning
+00:11 +16: Resume sends one command for the selected VM
+00:11 +17: Check VM sends one command for the selected VM
+00:11 +18: delete confirmation Cancel respects its scope
+00:12 +19: delete confirmation Delete disk image respects its scope
+00:12 +20: delete confirmation Delete whole VM respects its scope
+00:12 +21: start passes display from configuration instead of host toggle
+00:13 +22: running VM reset asks confirmation then sends system_reset
+00:13 +23: running VM reset cancelled sends nothing
+00:13 +24: paused VM shows a Paused badge
+00:14 +25: stopped VM does not offer reset
+00:14 +26: running VM stop can be cancelled without sending a command
+00:14 +27: action with output opens the quickemu output dialog
+00:14 +28: running VM exposes SPICE connect with its port
+00:15 +29: app lifecycle pause and resume keeps the list stable
+00:15 +30: pid-file fallback marks the VM running without capabilities
+00:15 +31: Open VM folder delegates to the backend
+00:16 +32: Export runs the backend export for the VM
+00:16 +33: (tearDownAll)
+00:16 +33: All tests passed!

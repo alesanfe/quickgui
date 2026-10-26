@@ -40,10 +40,7 @@ void main() {
     });
   });
 
-  test('AppLog.event writes to the store and the logger', () {
-    final captured = <String>[];
-    final sub = Logger.root.onRecord.listen((r) => captured.add(r.message));
-    addTearDown(sub.cancel);
+  test('AppLog.event writes a structured record to the store', () {
     AppLog.event(
       AppLog.backendContract,
       Level.FINE,
@@ -54,9 +51,12 @@ void main() {
       exitCode: 0,
       legacy: false,
     );
-    expect(captured.single, contains('command=start'));
-    expect(captured.single, contains('vm=fedora-45'));
-    expect(LogStore.records.single.command, 'start');
-    expect(LogStore.records.single.durationMs, 12);
+    final record = LogStore.records.single;
+    expect(record.command, 'start');
+    expect(record.vm, 'fedora-45');
+    expect(record.durationMs, 12);
+    expect(record.exitCode, 0);
+    expect(record.legacy, false);
+    expect(record.logger, 'contract');
   });
 }

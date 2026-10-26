@@ -1,0 +1,4 @@
+00:00 +0: loading C:/Users/alex0/Documents/fyp/quickgui/test/unit/core/operation_state_test.dart
+00:00 +0: busy and terminal flags are mutually consistent
+00:00 +1: value equality and copyWith come from Freezed
+00:00 +2: All tests passed!

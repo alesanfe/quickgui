@@ -1,0 +1,21 @@
+00:00 +0: loading C:/Users/alex0/Documents/fyp/quickgui/test/unit/core/log_store_test.dart
+00:00 +0: LogStore keeps bounded records newest first
+00:00 +1: LogStore toJson exports structured fields
+00:00 +2: AppLog.event writes a structured record to the store
+00:00 +2 -1: AppLog.event writes a structured record to the store [E]
+  Expected: 'backend.contract'
+    Actual: 'contract'
+     Which: is different.
+            Expected: backend.co ...
+              Actual: contract
+                      ^
+             Differ at offset 0
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test\unit\core\log_store_test.dart 60:5             main.<fn>
+  
+00:00 +2 -1: Some tests failed.
+
+Failing tests:
+  C:/Users/alex0/Documents/fyp/quickgui/test/unit/core/log_store_test.dart: AppLog.event writes a structured record to the store

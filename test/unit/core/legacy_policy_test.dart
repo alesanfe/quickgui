@@ -48,7 +48,9 @@ void main() {
       }
       expect(LegacyTelemetry.count, 50);
       expect(LegacyTelemetry.last?.command, 'cmd59');
-      expect(LegacyTelemetry.commands, contains('cmd0'));
+      // 60 records into a 50-cap buffer: cmd0..cmd9 are evicted.
+      expect(LegacyTelemetry.commands, contains('cmd10'));
+      expect(LegacyTelemetry.commands, isNot(contains('cmd0')));
     });
 
     test('toJson exports redacted entries', () {

@@ -264,11 +264,12 @@ void main() {
   ) async {
     await open(tester);
     await tester.enterText(find.byType(TextField), 'LINUX');
-    await tester.pump();
+    // The search field is debounced (250 ms) — let the timer fire.
+    await tester.pump(const Duration(milliseconds: 300));
     // The name appears both in the row and in the details pane header.
     expect(find.text('linux-test'), findsWidgets);
     await tester.enterText(find.byType(TextField), 'missing');
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
     // The row is filtered out; the details pane keeps the selection,
     // like VirtualBox does when the list is filtered.
     expect(find.widgetWithText(ListTile, 'linux-test'), findsNothing);
