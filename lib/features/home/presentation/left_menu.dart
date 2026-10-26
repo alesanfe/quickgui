@@ -147,6 +147,7 @@ class _LeftMenuState extends ConsumerState<LeftMenu> {
                 },
               ),
               ListTile(
+                key: const ValueKey('nav.check-updates'),
                 leading: const Icon(Icons.system_update),
                 title: Text(context.t('Check for updates')),
                 dense: true,
@@ -188,6 +189,7 @@ class _LeftMenuState extends ConsumerState<LeftMenu> {
                 },
               ),
               ListTile(
+                key: const ValueKey('nav.quickemu-report'),
                 leading: const Icon(Icons.monitor_heart),
                 title: Text(context.t('Quickemu report')),
                 dense: true,
