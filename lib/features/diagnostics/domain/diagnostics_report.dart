@@ -23,6 +23,7 @@ abstract class DiagnosticsReport with _$DiagnosticsReport {
     @Default(<Map<String, dynamic>>[]) List<Map<String, dynamic>> recentErrors,
     @Default(<Map<String, dynamic>>[])
     List<Map<String, dynamic>> legacyFallbacks,
+    @Default(<String, dynamic>{}) Map<String, dynamic> hostInfo,
   }) = _DiagnosticsReport;
 
   /// Supported contract version range of this quickgui build.
@@ -51,6 +52,12 @@ abstract class DiagnosticsReport with _$DiagnosticsReport {
     b.writeln('Capabilities:');
     for (final e in capabilities.entries) {
       b.writeln('  ${e.key}: ${e.value}');
+    }
+    if (hostInfo.isNotEmpty) {
+      b.writeln('Host info:');
+      for (final e in hostInfo.entries) {
+        b.writeln('  ${e.key}: ${e.value}');
+      }
     }
     if (legacyFallbacks.isNotEmpty) {
       b.writeln('Legacy fallbacks: ${legacyFallbacks.length}');

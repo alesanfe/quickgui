@@ -68,6 +68,11 @@ abstract class VirtualizationBackend {
     String operationId,
   );
 
+  /// Host inventory from `--host-info` (kernel, KVM, IOMMU, qemu and
+  /// dependency flags in one machine-readable call). Null when the
+  /// backend predates the structured contract.
+  Future<Map<String, dynamic>?> hostInfo();
+
   /// Lists every async operation the backend registry holds for
   /// [target] (`{operationId,type,state,progress,startedAt}` entries).
   /// Empty when the backend has no registry.

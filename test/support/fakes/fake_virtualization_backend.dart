@@ -112,6 +112,11 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
     for (final e in operationStates.entries) {'operationId': e.key, ...e.value},
   ];
 
+  Map<String, dynamic>? hostInfoResponse;
+
+  @override
+  Future<Map<String, dynamic>?> hostInfo() async => hostInfoResponse;
+
   final List<String> cancelledOperations = [];
 
   @override

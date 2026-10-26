@@ -207,6 +207,17 @@ class QuickemuBackend implements VirtualizationBackend {
   }
 
   @override
+  Future<Map<String, dynamic>?> hostInfo() async {
+    try {
+      final response = await _structured.run('host-info', ['--host-info']);
+      return response.dataMap;
+    } on AppFailure catch (e) {
+      if (isBackendEnvelopeMissing(e)) return null;
+      rethrow;
+    }
+  }
+
+  @override
   Future<List<Map<String, dynamic>>> listOperations(String target) async {
     try {
       final response = await _structured.run('op-list', [

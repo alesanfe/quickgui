@@ -26,6 +26,7 @@ class CollectDiagnostics {
     try {
       final available = await _backend.checkAvailability();
       final caps = available ? await _backend.getCapabilities() : null;
+      final hostInfo = available ? await _backend.hostInfo() : null;
       final rawFlags = caps?['capabilities'];
       final dir = await _host.workingDirectory();
       return Ok(
@@ -49,6 +50,7 @@ class CollectDiagnostics {
                 r.toJson(),
           ],
           legacyFallbacks: LegacyTelemetry.toJson(),
+          hostInfo: hostInfo ?? const {},
         ),
       );
     } on Exception catch (e) {

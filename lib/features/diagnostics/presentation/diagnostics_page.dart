@@ -107,6 +107,14 @@ class _ReportView extends StatelessWidget {
           _Section(context.t('Capabilities'), [
             for (final e in r.capabilities.entries) _Status(e.key, ok: e.value),
           ]),
+        if (r.hostInfo.isNotEmpty)
+          _Section(context.t('Host info'), [
+            for (final e in r.hostInfo.entries)
+              if (e.value is bool)
+                _Status(e.key, ok: e.value as bool)
+              else
+                _Info(e.key, '${e.value}'),
+          ]),
       ],
     );
   }

@@ -181,6 +181,9 @@ class _TrackedBackend implements VirtualizationBackend {
   ) => backend.operationStatus(target, operationId);
 
   @override
+  Future<Map<String, dynamic>?> hostInfo() => backend.hostInfo();
+
+  @override
   Future<List<Map<String, dynamic>>> listOperations(String target) =>
       backend.listOperations(target);
 
