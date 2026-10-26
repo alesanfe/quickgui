@@ -140,6 +140,20 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
   Future<void> pruneBackups(String target, {int keep = 5}) async =>
       backupItems.removeRange(0, (backupItems.length - keep).clamp(0, 1 << 30));
 
+  final List<String> hotplugCalls = [];
+
+  @override
+  Future<void> hotplugUsb(String confPath, String device) async =>
+      hotplugCalls.add('usb:$device');
+
+  @override
+  Future<void> hotplugDisk(String confPath, String diskPath) async =>
+      hotplugCalls.add('disk:$diskPath');
+
+  @override
+  Future<void> diskCompact(String confPath) async =>
+      hotplugCalls.add('compact');
+
   List<Map<String, dynamic>> snapshotTreeItems = [];
 
   @override

@@ -310,6 +310,35 @@ class QuickemuBackend implements VirtualizationBackend {
   }
 
   @override
+  Future<void> hotplugUsb(String confPath, String device) async {
+    await _structured.run('hotplug', [
+      '--vm',
+      confPath,
+      '--hotplug-usb',
+      device,
+    ]);
+  }
+
+  @override
+  Future<void> hotplugDisk(String confPath, String diskPath) async {
+    await _structured.run('hotplug', [
+      '--vm',
+      confPath,
+      '--hotplug-disk',
+      diskPath,
+    ]);
+  }
+
+  @override
+  Future<void> diskCompact(String confPath) async {
+    await _structured.run('disk-compact', [
+      '--vm',
+      confPath,
+      '--disk-compact',
+    ]);
+  }
+
+  @override
   Future<Map<String, dynamic>?> hostInfo() async {
     try {
       final response = await _structured.run('host-info', ['--host-info']);

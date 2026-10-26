@@ -92,6 +92,15 @@ abstract class VirtualizationBackend {
   /// the UI can show lineage instead of a flat list.
   Future<List<Map<String, dynamic>>> snapshotTree(String confPath);
 
+  /// Hot-plug a USB device into a running VM (`--hotplug-usb <dev>`).
+  Future<void> hotplugUsb(String confPath, String device);
+
+  /// Hot-plug a disk image into a running VM (`--hotplug-disk <path>`).
+  Future<void> hotplugDisk(String confPath, String diskPath);
+
+  /// Compacts the VM disk in place (`--disk-compact`).
+  Future<void> diskCompact(String confPath);
+
   /// Host inventory from `--host-info` (kernel, KVM, IOMMU, qemu and
   /// dependency flags in one machine-readable call). Null when the
   /// backend predates the structured contract.

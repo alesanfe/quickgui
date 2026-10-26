@@ -217,6 +217,27 @@ class _TrackedBackend implements VirtualizationBackend {
       backend.snapshotTree(confPath);
 
   @override
+  Future<void> hotplugUsb(String confPath, String device) => track<void>(
+    OperationKind.command,
+    'hotplug-usb ${p.basename(confPath)}',
+    (op) => backend.hotplugUsb(confPath, device),
+  );
+
+  @override
+  Future<void> hotplugDisk(String confPath, String diskPath) => track<void>(
+    OperationKind.command,
+    'hotplug-disk ${p.basename(confPath)}',
+    (op) => backend.hotplugDisk(confPath, diskPath),
+  );
+
+  @override
+  Future<void> diskCompact(String confPath) => track<void>(
+    OperationKind.command,
+    'disk-compact ${p.basename(confPath)}',
+    (op) => backend.diskCompact(confPath),
+  );
+
+  @override
   Future<Map<String, dynamic>?> hostInfo() => backend.hostInfo();
 
   @override

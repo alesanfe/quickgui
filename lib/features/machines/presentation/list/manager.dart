@@ -1421,6 +1421,15 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
               constraints: const BoxConstraints(maxHeight: 560),
               onSelected: (choice) async {
                 switch (choice) {
+                  case 'hotplug':
+                    showDialog<void>(
+                      context: context,
+                      builder: (dialogContext) => _HotplugDialog(
+                        backend: _backend,
+                        vm: currentVm,
+                        confPath: _vmConfFiles[currentVm]!,
+                      ),
+                    );
                   case 'backup':
                     showDialog<void>(
                       context: context,
@@ -1793,6 +1802,16 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                     child: ListTile(
                       leading: const Icon(Icons.archive),
                       title: Text(context.t('Export')),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                if (_cap('hotplug'))
+                  PopupMenuItem(
+                    value: 'hotplug',
+                    child: ListTile(
+                      leading: const Icon(Icons.usb),
+                      title: Text(context.t('Hotplug devices')),
                       dense: true,
                       contentPadding: EdgeInsets.zero,
                     ),
@@ -2303,6 +2322,111 @@ class _BackupsDialogState extends State<_BackupsDialog> {
             : () => _run(() => widget.backend.pruneBackups(widget.vm)),
         icon: const Icon(Icons.delete_sweep),
         label: Text(context.t('Prune old')),
+      ),
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: Text(context.t('Close')),
+      ),
+    ],
+  );
+}
+
+/// Hot-plug dialog (`--hotplug-usb` / `--hotplug-disk` /
+/// `--disk-compact`) — only meaningful while the VM runs.
+class _HotplugDialog extends StatefulWidget {
+  const _HotplugDialog({
+    required this.backend,
+    required this.vm,
+    required this.confPath,
+  });
+  final VirtualizationBackend backend;
+  final String vm;
+  final String confPath;
+
+  @override
+  State<_HotplugDialog> createState() => _HotplugDialogState();
+}
+
+class _HotplugDialogState extends State<_HotplugDialog> {
+  final _usbCtrl = TextEditingController();
+  final _diskCtrl = TextEditingController();
+  bool _busy = false;
+  String? _error;
+
+  Future<void> _run(Future<void> Function() action) async {
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await action();
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      if (mounted) setState(() => _error = '$e');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: Text(context.t('Hotplug — {0}', args: [widget.vm])),
+    content: SizedBox(
+      width: 420,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (_error != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text('${context.t('Error')}: $_error'),
+            ),
+          TextField(
+            controller: _usbCtrl,
+            decoration: InputDecoration(
+              labelText: context.t('USB device (id or path)'),
+              isDense: true,
+            ),
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _diskCtrl,
+            decoration: InputDecoration(
+              labelText: context.t('Disk image path'),
+              isDense: true,
+            ),
+          ),
+        ],
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: _busy || _usbCtrl.text.trim().isEmpty
+            ? null
+            : () => _run(
+                () => widget.backend.hotplugUsb(
+                  widget.confPath,
+                  _usbCtrl.text.trim(),
+                ),
+              ),
+        child: Text(context.t('Attach USB')),
+      ),
+      TextButton(
+        onPressed: _busy || _diskCtrl.text.trim().isEmpty
+            ? null
+            : () => _run(
+                () => widget.backend.hotplugDisk(
+                  widget.confPath,
+                  _diskCtrl.text.trim(),
+                ),
+              ),
+        child: Text(context.t('Attach disk')),
+      ),
+      TextButton(
+        onPressed: _busy
+            ? null
+            : () => _run(() => widget.backend.diskCompact(widget.confPath)),
+        child: Text(context.t('Compact disk')),
       ),
       TextButton(
         onPressed: () => Navigator.pop(context),
