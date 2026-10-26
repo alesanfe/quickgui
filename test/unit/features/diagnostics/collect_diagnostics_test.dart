@@ -28,7 +28,7 @@ void main() {
     expect(report.capabilities['safeDeletePlan'], isFalse);
     expect(report.tools['quickemu'], isTrue);
     expect(report.tools['swtpm'], isFalse);
-    expect(report.quickguiVersion, '1.2.3');
+    expect(report.quickguiVersion, '2.0.0');
   });
 
   test('missing backend yields an unavailable report, not a failure', () async {

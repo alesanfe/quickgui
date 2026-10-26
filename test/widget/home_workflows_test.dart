@@ -284,7 +284,7 @@ void main() {
     testWidgets('renders application and backend versions', (tester) async {
       backend.backendVersion = '4.9.7';
       await open(tester, const SizedBox(width: 420, child: LeftMenu()));
-      expect(find.textContaining('1.2.3'), findsWidgets);
+      expect(find.textContaining('2.0.0'), findsWidgets);
       expect(find.textContaining('4.9.7'), findsWidgets);
       expect(tester.takeException(), isNull);
     });

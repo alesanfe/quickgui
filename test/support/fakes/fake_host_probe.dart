@@ -17,7 +17,7 @@ class FakeHostProbe implements HostProbe {
   @override
   String get homeDirectory => '/home/tester';
   @override
-  String get appVersion => '1.2.3';
+  String get appVersion => '2.0.0';
 
   bool writable = true;
   String? terminal;
