@@ -5,6 +5,7 @@ import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:quickgui/core/telemetry/legacy_telemetry.dart';
 import 'package:quickgui/features/diagnostics/domain/diagnostics_report.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
+import 'package:quickgui/features/machines/providers/tracked_backend_provider.dart';
 import 'package:quickgui/shared/widgets/bytes_formatter.dart';
 
 /// Local diagnostics: backend, contract, tools, KVM, disk and capabilities.
@@ -115,6 +116,7 @@ class _ReportView extends StatelessWidget {
               else
                 _Info(e.key, '${e.value}'),
           ]),
+        if (r.backendAvailable) const _VfioScanSection(),
       ],
     );
   }
@@ -186,4 +188,62 @@ class _Status extends StatelessWidget {
       ),
     );
   }
+}
+
+/// On-demand `--vfio-scan`: lists IOMMU passthrough candidates only
+/// when the user asks — the scan probes hardware and is not free.
+class _VfioScanSection extends ConsumerStatefulWidget {
+  const _VfioScanSection();
+
+  @override
+  ConsumerState<_VfioScanSection> createState() => _VfioScanSectionState();
+}
+
+class _VfioScanSectionState extends ConsumerState<_VfioScanSection> {
+  List<Map<String, dynamic>>? _devices;
+  bool _busy = false;
+  String? _error;
+
+  Future<void> _scan() async {
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      final devices = await ref.read(trackedBackendProvider).vfioScan();
+      if (mounted) setState(() => _devices = devices);
+    } catch (e) {
+      if (mounted) setState(() => _error = '$e');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => _Section(context.t('VFIO scan'), [
+    if (_error != null) _Info(context.t('Error'), _error!),
+    if (_devices != null && _devices!.isEmpty)
+      _Info(context.t('Devices'), context.t('No passthrough candidates')),
+    for (final d in _devices ?? const [])
+      _Info(
+        '${d['id'] ?? d['bdf'] ?? context.t('Device')}',
+        '${d['name'] ?? d['driver'] ?? ''} ${d['iommuGroup'] != null ? '· group ${d['iommuGroup']}' : ''}'
+            .trim(),
+      ),
+    ListTile(
+      leading: _busy
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(),
+            )
+          : const Icon(Icons.memory),
+      title: Text(
+        _devices == null
+            ? context.t('Scan passthrough devices')
+            : context.t('Scan again'),
+      ),
+      onTap: _busy ? null : _scan,
+    ),
+  ]);
 }

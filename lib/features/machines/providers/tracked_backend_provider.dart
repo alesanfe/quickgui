@@ -238,6 +238,9 @@ class _TrackedBackend implements VirtualizationBackend {
   );
 
   @override
+  Future<List<Map<String, dynamic>>> vfioScan() => backend.vfioScan();
+
+  @override
   Future<Map<String, dynamic>?> hostInfo() => backend.hostInfo();
 
   @override

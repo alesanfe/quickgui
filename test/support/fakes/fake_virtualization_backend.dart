@@ -160,6 +160,11 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
   Future<List<Map<String, dynamic>>> snapshotTree(String confPath) async =>
       snapshotTreeItems;
 
+  List<Map<String, dynamic>> vfioDevices = [];
+
+  @override
+  Future<List<Map<String, dynamic>>> vfioScan() async => vfioDevices;
+
   Map<String, dynamic>? hostInfoResponse;
 
   @override

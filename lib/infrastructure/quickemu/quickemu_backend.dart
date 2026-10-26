@@ -339,6 +339,21 @@ class QuickemuBackend implements VirtualizationBackend {
   }
 
   @override
+  Future<List<Map<String, dynamic>>> vfioScan() async {
+    try {
+      final response = await _structured.run('vfio-scan', ['--vfio-scan']);
+      final items =
+          response.dataMap?['devices'] ?? response.dataMap?['gpus'];
+      return items is List
+          ? [for (final i in items) Map<String, dynamic>.from(i as Map)]
+          : const [];
+    } on AppFailure catch (e) {
+      if (isBackendEnvelopeMissing(e)) return const [];
+      rethrow;
+    }
+  }
+
+  @override
   Future<Map<String, dynamic>?> hostInfo() async {
     try {
       final response = await _structured.run('host-info', ['--host-info']);

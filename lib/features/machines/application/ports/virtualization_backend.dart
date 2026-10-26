@@ -101,6 +101,10 @@ abstract class VirtualizationBackend {
   /// Compacts the VM disk in place (`--disk-compact`).
   Future<void> diskCompact(String confPath);
 
+  /// IOMMU/VFIO passthrough devices (`--vfio-scan`) — the structured
+  /// scan lists candidates the user could assign to a VM.
+  Future<List<Map<String, dynamic>>> vfioScan();
+
   /// Host inventory from `--host-info` (kernel, KVM, IOMMU, qemu and
   /// dependency flags in one machine-readable call). Null when the
   /// backend predates the structured contract.
