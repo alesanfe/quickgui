@@ -555,7 +555,7 @@ class QuickemuBackend implements VirtualizationBackend {
   Stream<Map<String, dynamic>> watchOperations(String target) async* {
     final proc = await Process.start('quickemu', [
       '--vm',
-      '\$target.conf',
+      '$target.conf',
       '--op-watch',
       '--format',
       'json',
@@ -564,8 +564,10 @@ class QuickemuBackend implements VirtualizationBackend {
         .transform(const Utf8Decoder())
         .transform(const LineSplitter())
         .where((l) => l.trim().isNotEmpty)
-        .map((l) => Map<String, dynamic>.from(
-            jsonDecode(l) as Map<dynamic, dynamic>));
+        .map(
+          (l) =>
+              Map<String, dynamic>.from(jsonDecode(l) as Map<dynamic, dynamic>),
+        );
   }
 
   /// Per-VM runtime metrics via `--stats` (QMP cpus/block/balloon).
@@ -574,13 +576,12 @@ class QuickemuBackend implements VirtualizationBackend {
     try {
       final response = await _structured.run('stats', [
         '--vm',
-        '\$target.conf',
+        '$target.conf',
         '--stats',
       ]);
       return response.dataMap;
     } on AppFailure catch (e) {
-      if (isBackendEnvelopeMissing(e) ||
-          e.code == 'VM_MUST_BE_RUNNING') {
+      if (isBackendEnvelopeMissing(e) || e.code == 'VM_MUST_BE_RUNNING') {
         return null;
       }
       rethrow;
@@ -604,7 +605,7 @@ class QuickemuBackend implements VirtualizationBackend {
   Future<void> linkedClone(String target, String destination) async {
     await _structured.run('linked-clone', [
       '--vm',
-      '\$target.conf',
+      '$target.conf',
       '--linked-clone',
       destination,
     ]);
@@ -615,7 +616,7 @@ class QuickemuBackend implements VirtualizationBackend {
   Future<void> startWithProfile(String target, String profile) async {
     await _structured.run('profile', [
       '--vm',
-      '\$target.conf',
+      '$target.conf',
       '--profile',
       profile,
     ]);
@@ -627,12 +628,11 @@ class QuickemuBackend implements VirtualizationBackend {
     try {
       final response = await _structured.run('plugins', ['--plugins']);
       final items = response.dataMap?['plugins'] ?? response.data;
-      if (items is List) return items.map((e) => '\$e').toList();
+      if (items is List) return items.map((e) => '$e').toList();
       return const [];
     } on AppFailure catch (e) {
       if (isBackendEnvelopeMissing(e)) return const [];
       rethrow;
     }
   }
-
 }

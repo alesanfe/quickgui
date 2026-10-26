@@ -264,4 +264,23 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
     convertCalls.add([inputPath, outputPath]);
     return lastActionResult ?? ProcessResult(0, 0, '', '');
   }
+
+  @override
+  Stream<Map<String, dynamic>> watchOperations(String target) =>
+      const Stream.empty();
+
+  @override
+  Future<Map<String, dynamic>?> vmStats(String target) async => null;
+
+  @override
+  Future<Map<String, dynamic>> listInventory() async => {};
+
+  @override
+  Future<void> linkedClone(String target, String destination) async {}
+
+  @override
+  Future<void> startWithProfile(String target, String profile) async {}
+
+  @override
+  Future<List<String>> listPlugins() async => const [];
 }

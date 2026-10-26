@@ -177,18 +177,22 @@ abstract class VirtualizationBackend {
   /// Converts the disk image at [inputPath] to qcow2 at [outputPath]
   /// (`qemu-img convert`). Used when importing foreign image formats.
   Future<ProcessResult> convertDiskImage(String inputPath, String outputPath);
+
   /// Streams op-state changes (`--op-watch`); replaces --op-list polling.
   Stream<Map<String, dynamic>> watchOperations(String target);
+
   /// Per-VM QMP metrics (`--stats`).
   Future<Map<String, dynamic>?> vmStats(String target);
+
   /// Global VM inventory (`--inventory` -> vms.json).
   Future<Map<String, dynamic>> listInventory();
+
   /// COW clone via qcow2 backing-file (`--linked-clone`).
   Future<void> linkedClone(String target, String destination);
+
   /// Reusable profile preset (`--profile`).
   Future<void> startWithProfile(String target, String profile);
+
   /// quickemu-plugin-* on PATH (`--plugins`).
   Future<List<String>> listPlugins();
-
 }
-

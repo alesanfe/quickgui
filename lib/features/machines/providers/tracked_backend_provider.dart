@@ -346,4 +346,32 @@ class _TrackedBackend implements VirtualizationBackend {
         p.basename(outputPath),
         (op) => backend.convertDiskImage(inputPath, outputPath),
       );
+
+  @override
+  Stream<Map<String, dynamic>> watchOperations(String target) =>
+      backend.watchOperations(target);
+
+  @override
+  Future<Map<String, dynamic>?> vmStats(String target) =>
+      backend.vmStats(target);
+
+  @override
+  Future<Map<String, dynamic>> listInventory() => backend.listInventory();
+
+  @override
+  Future<void> linkedClone(String target, String destination) => track<void>(
+    OperationKind.clone,
+    '$target → ${p.basename(destination)}',
+    (op) => backend.linkedClone(target, destination),
+  );
+
+  @override
+  Future<void> startWithProfile(String target, String profile) => track<void>(
+    OperationKind.start,
+    '$target ($profile)',
+    (op) => backend.startWithProfile(target, profile),
+  );
+
+  @override
+  Future<List<String>> listPlugins() => backend.listPlugins();
 }
