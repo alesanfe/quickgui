@@ -106,6 +106,14 @@ class _VmPageState extends ConsumerState<VmPage> {
     }
   }
 
+  /// The real backend emits `allowedOps` in `vm.status` — when present,
+  /// it is the authoritative gate for each action; when absent (legacy
+  /// backend) the current state-based gate decides.
+  bool _allowed(String op) {
+    final ops = _status['allowedOps'];
+    return ops is! List || ops.map((e) => '$e').contains(op);
+  }
+
   Widget _actions() {
     final state = '${_status['state'] ?? 'unknown'}';
     final active = state == 'running' || state == 'paused';
@@ -124,12 +132,14 @@ class _VmPageState extends ConsumerState<VmPage> {
             label: Text(state),
           ),
           FilledButton.icon(
-            onPressed: _busy || active ? null : () => _run([]),
+            onPressed: _busy || active || !_allowed('start')
+                ? null
+                : () => _run([]),
             icon: const Icon(Icons.play_arrow),
             label: Text(context.t('Start')),
           ),
           OutlinedButton.icon(
-            onPressed: _busy || !active
+            onPressed: _busy || !active || !_allowed('stop')
                 ? null
                 : () async {
                     await showStopVmDialog(
@@ -144,7 +154,7 @@ class _VmPageState extends ConsumerState<VmPage> {
             label: Text(context.t('Shut down')),
           ),
           OutlinedButton(
-            onPressed: _busy || !active
+            onPressed: _busy || !active || !_allowed('pause')
                 ? null
                 : () =>
                       _run([if (state == 'paused') '--resume' else '--pause']),
@@ -153,19 +163,21 @@ class _VmPageState extends ConsumerState<VmPage> {
             ),
           ),
           OutlinedButton(
-            onPressed: _busy || !active
+            onPressed: _busy || !active || !_allowed('reset')
                 ? null
                 : () => _run(['--monitor-cmd', 'system_reset'], confirm: true),
             child: Text(context.t('Reset')),
           ),
           IconButton(
             tooltip: context.t('Screenshot'),
-            onPressed: _busy || !active ? null : () => _run(['--screenshot']),
+            onPressed: _busy || !active || !_allowed('screenshot')
+                ? null
+                : () => _run(['--screenshot']),
             icon: const Icon(Icons.screenshot_monitor),
           ),
           IconButton(
             tooltip: context.t('Send Ctrl+Alt+Del'),
-            onPressed: _busy || !active
+            onPressed: _busy || !active || !_allowed('send-keys')
                 ? null
                 : () => _run(['--send-keys', 'ctrl-alt-delete']),
             icon: const Icon(Icons.keyboard),
