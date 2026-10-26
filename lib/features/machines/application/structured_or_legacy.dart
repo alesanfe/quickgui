@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:quickgui/core/errors/app_failure.dart';
+import 'package:quickgui/core/telemetry/legacy_telemetry.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
 
 /// Runs [command]/[arguments] through the structured `--format json`
@@ -21,6 +22,7 @@ Future<ProcessResult> runVmActionOrLegacy(
     return ProcessResult(0, 0, '', '');
   } on AppFailure catch (e) {
     if (!isBackendEnvelopeMissing(e)) rethrow;
+    LegacyTelemetry.record(command, e.code);
     return await backend.runAction(arguments);
   }
 }
