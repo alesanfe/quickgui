@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:quickgui/features/machines/application/structured_or_legacy.dart';
 import 'package:quickgui/features/machines/providers/tracked_backend_provider.dart';
+
 import 'package:quickgui/features/machines/presentation/details/vm_connection_view.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_settings_page.dart';
 import 'package:quickgui/features/machines/presentation/shared/stop_vm_dialog.dart';
@@ -143,6 +144,7 @@ class _VmPageState extends ConsumerState<VmPage> {
             ),
             label: Text(state),
           ),
+          _MetricsChips(widget.vmName),
           FilledButton.icon(
             onPressed: _busy || active || !_allowed('start')
                 ? null
@@ -657,6 +659,34 @@ class _VmPageState extends ConsumerState<VmPage> {
           ),
         ),
       ],
+    );
+  }
+}
+
+
+/// QMP-sourced live metrics for a running VM (--stats): CPU count and
+/// balloon memory, folded into two chips next to the state indicator.
+class _MetricsChips extends ConsumerWidget {
+  const _MetricsChips(this.vm);
+  final String vm;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final stats = ref.watch(vmStatsProvider(vm));
+    return stats.maybeWhen(
+      data: (d) => d == null
+          ? const SizedBox.shrink()
+          : Wrap(spacing: 8, children: [
+              Chip(
+                avatar: const Icon(Icons.memory, size: 16),
+                label: Text('cpus ${d['cpus'] ?? '-'}'),
+              ),
+              Chip(
+                avatar: const Icon(Icons.storage, size: 16),
+                label: Text('mem ${d['memory'] ?? '-'}'),
+              ),
+            ]),
+      orElse: () => const SizedBox.shrink(),
     );
   }
 }
