@@ -28,8 +28,9 @@ String _envelope({
   bool success = true,
   String data = '{}',
   String errors = '[]',
+  String command = 'status',
 }) =>
-    '{"schemaVersion":1,"command":"status","success":$success,'
+    '{"schemaVersion":1,"command":"$command","success":$success,'
     '"data":$data,"warnings":[],"errors":$errors,'
     '"meta":{"quickemuVersion":"4.9.9","timestamp":"2026-01-01T00:00:00Z"}}';
 
@@ -128,6 +129,46 @@ void main() {
     test('command mismatch rejected', () async {
       expect(
         () => _exec(ProcessResult(1, 0, _envelope(), '')).run('list-vms', []),
+        throwsA(
+          isA<AppFailure>().having((e) => e.code, 'code', 'COMMAND_MISMATCH'),
+        ),
+      );
+    });
+
+    test('namespaced vm.<command> envelopes are accepted', () async {
+      // Real quickemu emits vm.status, not status — see schemas/v1/*.json.
+      final response = await _exec(
+        ProcessResult(1, 0, _envelope(command: 'vm.status'), ''),
+      ).run('status', []);
+      expect(response.command, 'vm.status');
+    });
+
+    test('past-tense lifecycle names are accepted', () async {
+      for (final (expected, actual) in [
+        ('clone', 'vm.cloned'),
+        ('start', 'vm.started'),
+        ('pause', 'vm.paused'),
+        ('resume', 'vm.resumed'),
+        ('delete-vm', 'vm.trashed'),
+        ('delete-plan', 'vm.delete-plan'),
+        ('snapshot-list', 'vm.snapshot.list'),
+      ]) {
+        final response = await _exec(
+          ProcessResult(1, 0, _envelope(command: actual), ''),
+        ).run(expected, []);
+        expect(
+          response.command,
+          actual,
+          reason: 'expected $expected to accept $actual',
+        );
+      }
+    });
+
+    test('unrelated namespaced command is still a mismatch', () async {
+      expect(
+        () =>
+            _exec(ProcessResult(1, 0, _envelope(command: 'vm.cloned'), ''))
+                .run('status', []),
         throwsA(
           isA<AppFailure>().having((e) => e.code, 'code', 'COMMAND_MISMATCH'),
         ),

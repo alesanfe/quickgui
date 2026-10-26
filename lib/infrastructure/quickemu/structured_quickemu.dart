@@ -285,7 +285,7 @@ class StructuredQuickemu {
       rethrow;
     }
 
-    if (response.command != command) {
+    if (!_commandMatches(command, response.command)) {
       throw AppFailure(
         AppFailureKind.backendContract,
         'COMMAND_MISMATCH',
@@ -340,6 +340,38 @@ class StructuredQuickemu {
   /// True when the failure means the backend does not speak the
   /// structured envelope at all — callers may fall back to legacy
   /// parsing without masking real contract defects.
+  /// The real backend emits namespaced command names (`vm.status`,
+  /// `vm.snapshot.list`) and past-tense names for lifecycle verbs
+  /// (`vm.started`, `vm.paused`). Both spellings denote the same command —
+  /// normalize before comparing so a pre-contract caller name like
+  /// `status` still validates against `vm.status`.
+  static bool _commandMatches(String expected, String actual) {
+    if (expected == actual) return true;
+    String norm(String c) => c.replaceFirst(RegExp(r'^(vm|host)\.'), '');
+    final e = norm(expected);
+    final a = norm(actual);
+    if (e == a) return true;
+    const aliases = {
+      'start': {'started'},
+      'stop': {'stopped'},
+      'kill': {'stopped'},
+      'powerdown': {'stopped'},
+      'pause': {'paused'},
+      'resume': {'resumed'},
+      'clone': {'cloned'},
+      'delete-vm': {'trashed', 'delete'},
+      'delete-disk': {'trashed', 'delete'},
+      'delete-plan': {'plan', 'delete-plan'},
+      'execution-plan': {'plan'},
+      'snapshot-list': {'snapshot.list'},
+      'snapshot-create': {'snapshot.created'},
+      'snapshot-apply': {'snapshot.applied', 'restored'},
+      'snapshot-delete': {'snapshot.deleted'},
+      'list-vms': {'list'},
+    };
+    return aliases[e]?.contains(a) ?? false;
+  }
+
   static bool isLegacyBackend(AppFailure failure) =>
       failure.kind == AppFailureKind.backendContract &&
       {
