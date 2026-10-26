@@ -1421,6 +1421,15 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
               constraints: const BoxConstraints(maxHeight: 560),
               onSelected: (choice) async {
                 switch (choice) {
+                  case 'backup':
+                    showDialog<void>(
+                      context: context,
+                      builder: (dialogContext) => _BackupsDialog(
+                        backend: _backend,
+                        vm: currentVm,
+                        onChanged: _getVms,
+                      ),
+                    );
                   case 'config':
                     showDialog<void>(
                       context: context,
@@ -1784,6 +1793,16 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                     child: ListTile(
                       leading: const Icon(Icons.archive),
                       title: Text(context.t('Export')),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                if (_cap('verifiedArchives'))
+                  PopupMenuItem(
+                    value: 'backup',
+                    child: ListTile(
+                      leading: const Icon(Icons.backup),
+                      title: Text(context.t('Backups')),
                       dense: true,
                       contentPadding: EdgeInsets.zero,
                     ),
@@ -2154,6 +2173,137 @@ class _TrashDialogState extends State<_TrashDialog> {
             ),
     ),
     actions: [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: Text(context.t('Close')),
+      ),
+    ],
+  );
+}
+
+/// Verified-archive backups for a VM (`--backup-list` / `--backup` /
+/// `--backup-restore` / `--backup-prune`).
+class _BackupsDialog extends StatefulWidget {
+  const _BackupsDialog({
+    required this.backend,
+    required this.vm,
+    required this.onChanged,
+  });
+  final VirtualizationBackend backend;
+  final String vm;
+  final VoidCallback onChanged;
+
+  @override
+  State<_BackupsDialog> createState() => _BackupsDialogState();
+}
+
+class _BackupsDialogState extends State<_BackupsDialog> {
+  List<Map<String, dynamic>> _items = const [];
+  bool _loading = true;
+  bool _busy = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final items = await widget.backend.listBackups(widget.vm);
+      if (mounted) {
+        setState(() {
+          _items = items;
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = '$e';
+          _loading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _run(Future<void> Function() action) async {
+    setState(() => _busy = true);
+    try {
+      await action();
+      widget.onChanged();
+    } catch (e) {
+      _error = '$e';
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+    await _load();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: Text(context.t('Backups for {0}', args: [widget.vm])),
+    content: SizedBox(
+      width: 460,
+      child: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (_error != null) Text('${context.t('Error')}: $_error'),
+                if (_items.isEmpty)
+                  Text(context.t('No backups for this machine.'))
+                else
+                  ListView(
+                    shrinkWrap: true,
+                    children: [
+                      for (final b in _items)
+                        ListTile(
+                          dense: true,
+                          leading: const Icon(Icons.archive),
+                          title: Text(
+                            '${b['file'] ?? b['name'] ?? '?'}',
+                            style: const TextStyle(
+                              fontFamily: 'monospace',
+                              fontSize: 12,
+                            ),
+                          ),
+                          subtitle: b['size'] != null
+                              ? Text('${b['size']}')
+                              : null,
+                          trailing: TextButton(
+                            onPressed: _busy
+                                ? null
+                                : () => _run(
+                                    () => widget.backend.restoreBackup(
+                                      widget.vm,
+                                      '${b['file'] ?? b['name']}',
+                                    ),
+                                  ),
+                            child: Text(context.t('Restore')),
+                          ),
+                        ),
+                    ],
+                  ),
+              ],
+            ),
+    ),
+    actions: [
+      TextButton.icon(
+        onPressed: _busy
+            ? null
+            : () => _run(() => widget.backend.createBackup(widget.vm)),
+        icon: const Icon(Icons.add),
+        label: Text(context.t('Create backup')),
+      ),
+      TextButton.icon(
+        onPressed: _busy
+            ? null
+            : () => _run(() => widget.backend.pruneBackups(widget.vm)),
+        icon: const Icon(Icons.delete_sweep),
+        label: Text(context.t('Prune old')),
+      ),
       TextButton(
         onPressed: () => Navigator.pop(context),
         child: Text(context.t('Close')),

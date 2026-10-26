@@ -191,6 +191,28 @@ class _TrackedBackend implements VirtualizationBackend {
   );
 
   @override
+  Future<List<Map<String, dynamic>>> listBackups(String target) =>
+      backend.listBackups(target);
+
+  @override
+  Future<void> createBackup(String target) => track<void>(
+    OperationKind.command,
+    '$target backup',
+    (op) => backend.createBackup(target),
+  );
+
+  @override
+  Future<void> restoreBackup(String target, String backupFile) => track<void>(
+    OperationKind.restore,
+    '$target from ${p.basename(backupFile)}',
+    (op) => backend.restoreBackup(target, backupFile),
+  );
+
+  @override
+  Future<void> pruneBackups(String target, {int keep = 5}) =>
+      backend.pruneBackups(target, keep: keep);
+
+  @override
   Future<Map<String, dynamic>?> hostInfo() => backend.hostInfo();
 
   @override

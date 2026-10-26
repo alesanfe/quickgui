@@ -75,6 +75,19 @@ abstract class VirtualizationBackend {
   /// Restores a VM from the backend trash (`--trash-restore <vm>`).
   Future<void> restoreFromTrash(String vm);
 
+  /// Verified backups for [target] (`--backup-list`): path, size and
+  /// checksum state per archive.
+  Future<List<Map<String, dynamic>>> listBackups(String target);
+
+  /// Creates a verified archive of the VM (`--backup`).
+  Future<void> createBackup(String target);
+
+  /// Restores the VM from a backup archive (`--backup-restore <file>`).
+  Future<void> restoreBackup(String target, String backupFile);
+
+  /// Keeps the newest [keep] archives for the VM (`--backup-prune`).
+  Future<void> pruneBackups(String target, {int keep = 5});
+
   /// Host inventory from `--host-info` (kernel, KVM, IOMMU, qemu and
   /// dependency flags in one machine-readable call). Null when the
   /// backend predates the structured contract.

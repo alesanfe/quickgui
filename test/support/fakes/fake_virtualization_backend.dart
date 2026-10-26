@@ -121,6 +121,25 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
   Future<void> restoreFromTrash(String vm) async =>
       trashItems.removeWhere((i) => i['vm'] == vm || i['name'] == vm);
 
+  List<Map<String, dynamic>> backupItems = [];
+
+  @override
+  Future<List<Map<String, dynamic>>> listBackups(String target) async =>
+      backupItems;
+
+  @override
+  Future<void> createBackup(String target) async => backupItems.add({
+    'file': '$target-${DateTime.now().microsecondsSinceEpoch}.tar.gz',
+    'vm': target,
+  });
+
+  @override
+  Future<void> restoreBackup(String target, String backupFile) async {}
+
+  @override
+  Future<void> pruneBackups(String target, {int keep = 5}) async =>
+      backupItems.removeRange(0, (backupItems.length - keep).clamp(0, 1 << 30));
+
   Map<String, dynamic>? hostInfoResponse;
 
   @override
