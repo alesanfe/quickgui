@@ -1241,3 +1241,12 @@ msgstr "El tuyo"
 
 msgid "{0} key(s) need a decision before merging."
 msgstr "{0} clave(s) necesitan una decisión antes de fusionar."
+
+msgid "Needs a fresh plan — re-run from the VM actions"
+msgstr "Necesita un plan nuevo — vuelva a ejecutarla desde las acciones de la VM"
+
+msgid "Retry {0}?"
+msgstr "¿Reintentar {0}?"
+
+msgid "This operation may be destructive. Run it again?"
+msgstr "Esta operación puede ser destructiva. ¿Ejecutarla de nuevo?"

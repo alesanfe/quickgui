@@ -278,12 +278,12 @@ class OperationTile extends ConsumerWidget {
   }
 }
 
-class _HistoryTile extends StatelessWidget {
+class _HistoryTile extends ConsumerWidget {
   const _HistoryTile({required this.entry});
   final OperationHistoryEntry entry;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
     final (icon, color, statusLabel) = switch (entry.status) {
       OperationStatus.succeeded => (
@@ -320,8 +320,63 @@ class _HistoryTile extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
-      trailing: Icon(icon, color: color, semanticLabel: statusLabel),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (entry.retryable &&
+              entry.retrySpec != null &&
+              entry.retrySpec!.regeneratesPlan)
+            Tooltip(
+              message: context.t(
+                'Needs a fresh plan — re-run from the VM actions',
+              ),
+              child: Icon(Icons.refresh, color: scheme.onSurfaceVariant),
+            ),
+          if (entry.canRetry)
+            IconButton(
+              tooltip: context.t('Retry'),
+              icon: const Icon(Icons.replay),
+              onPressed: () => _retry(context, ref),
+            ),
+          Icon(icon, color: color, semanticLabel: statusLabel),
+        ],
+      ),
     );
+  }
+
+  Future<void> _retry(BuildContext context, WidgetRef ref) async {
+    final spec = entry.retrySpec;
+    if (spec == null) return;
+    if (spec.requiresConfirmation) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(context.t('Retry {0}?', args: [entry.target])),
+          content: Text(
+            context.t('This operation may be destructive. Run it again?'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(context.t('Cancel')),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(context.t('Retry')),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true || !context.mounted) return;
+    }
+    try {
+      await ref.read(activityProvider.notifier).retry(entry);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$e')));
+      }
+    }
   }
 }
 

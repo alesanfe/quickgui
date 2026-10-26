@@ -1203,3 +1203,12 @@ msgstr ""
 
 msgid "{0} key(s) need a decision before merging."
 msgstr ""
+
+msgid "Needs a fresh plan — re-run from the VM actions"
+msgstr ""
+
+msgid "Retry {0}?"
+msgstr ""
+
+msgid "This operation may be destructive. Run it again?"
+msgstr ""
