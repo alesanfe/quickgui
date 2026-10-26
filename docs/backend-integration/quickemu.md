@@ -2,7 +2,10 @@
 
 quickgui consumes quickemu/quickget strictly as an **external
 executable**, never as a library. All calls go through
-`VirtualizationBackend` (`lib/src/infrastructure/virtualization/`).
+`VirtualizationBackend`
+(`lib/features/machines/application/ports/virtualization_backend.dart`)
+implemented by `QuickemuBackend`/`StructuredQuickemu` in
+`lib/infrastructure/quickemu/`.
 
 ## Boundary
 
@@ -37,9 +40,10 @@ presentation ──> VirtualizationBackend (interface)
 
 ## What stays outside the contract
 
-- `.conf` files: quickgui reads/writes `key="value"` entries directly
-  (`confValue`/`writeConfValue` in `globals.dart`) — the file format is
-  quickemu's documented config interface.
+- `.conf` files: quickgui reads/writes `key="value"` entries through
+  `VmConfigFileStore` (`lib/infrastructure/storage/vm_config.dart`) —
+  atomic writes, fingerprints, `.bak` rotation and three-way merges —
+  the file format is quickemu's documented config interface.
 - Runtime artefacts (`*.pid`, `*.ports`, `*.sock`): parsed where the
   CLI does not expose them yet (`--list-vms`/`--status --format json`
   is preferred for liveness).
