@@ -1250,3 +1250,15 @@ msgstr "¿Reintentar {0}?"
 
 msgid "This operation may be destructive. Run it again?"
 msgstr "Esta operación puede ser destructiva. ¿Ejecutarla de nuevo?"
+
+msgid "Overwrite"
+msgstr "Sobrescribir"
+
+msgid "Overwrite {0}?"
+msgstr "¿Sobrescribir {0}?"
+
+msgid "Save a copy of {0}"
+msgstr "Guardar una copia de {0}"
+
+msgid "The file exists and will be replaced. A .bak copy is kept."
+msgstr "El archivo existe y será reemplazado. Se conserva una copia .bak."

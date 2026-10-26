@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:quickgui/infrastructure/storage/conf_document.dart';
@@ -298,10 +302,51 @@ class _ConflictDialogState extends State<_ConflictDialog> {
   }
 }
 
-/// Writes the local edit buffer to `<confPath>.quickgui-localcopy` so the
-/// user keeps their work without overwriting the externally-changed file.
-String writeLocalCopy(String confPath, String content) {
-  final copy = '$confPath.quickgui-localcopy';
-  VmConfigFileStore.unawaitedWrite(copy, content);
-  return copy;
+/// Lets the user pick where to save a copy of the edited configuration.
+///
+/// The picker suggests `<name>.conf.local` next to the VM so the copy is
+/// not picked up as a machine by the `*.conf` scanner. Existing targets
+/// need an explicit overwrite confirmation; the write is atomic and the
+/// previous file is kept as `.bak`. Returns the written path, or null
+/// when the user cancelled.
+Future<String?> pickAndSaveConfCopy(
+  BuildContext context,
+  String confPath,
+  String content,
+) async {
+  final base = confPath.split(RegExp(r'[/\\]')).last;
+  final uri = await FilePicker.saveFile(
+    dialogTitle: context.t('Save a copy of {0}', args: [base]),
+    fileName: '$base.local',
+    bytes: utf8.encode(content),
+  );
+  final path = uri?.toFilePath();
+  if (path == null || path.isEmpty || !context.mounted) return null;
+  if (File(path).existsSync() &&
+      File(path).readAsStringSync() != content) {
+    final overwrite = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.t('Overwrite {0}?', args: [path])),
+        content: Text(
+          context.t(
+            'The file exists and will be replaced. A .bak copy is kept.',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(context.t('Cancel')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(context.t('Overwrite')),
+          ),
+        ],
+      ),
+    );
+    if (overwrite != true) return null;
+  }
+  await VmConfigFileStore.writeAtomic(path, content);
+  return path;
 }

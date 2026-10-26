@@ -103,8 +103,13 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
       case ConfConflictAction.overwrite:
         return true;
       case ConfConflictAction.saveCopy:
-        final path = writeLocalCopy(widget.confPath, _editorController.text);
-        if (mounted) {
+        if (!mounted) return false;
+        final path = await pickAndSaveConfCopy(
+          context,
+          widget.confPath,
+          _editorController.text,
+        );
+        if (mounted && path != null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(context.t('Local copy saved to {0}', args: [path])),

@@ -1219,3 +1219,15 @@ msgstr "Retry {0}?"
 
 msgid "This operation may be destructive. Run it again?"
 msgstr "This operation may be destructive. Run it again?"
+
+msgid "Overwrite"
+msgstr "Overwrite"
+
+msgid "Overwrite {0}?"
+msgstr "Overwrite {0}?"
+
+msgid "Save a copy of {0}"
+msgstr "Save a copy of {0}"
+
+msgid "The file exists and will be replaced. A .bak copy is kept."
+msgstr "The file exists and will be replaced. A .bak copy is kept."

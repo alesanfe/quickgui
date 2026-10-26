@@ -1212,3 +1212,15 @@ msgstr ""
 
 msgid "This operation may be destructive. Run it again?"
 msgstr ""
+
+msgid "Overwrite"
+msgstr ""
+
+msgid "Overwrite {0}?"
+msgstr ""
+
+msgid "Save a copy of {0}"
+msgstr ""
+
+msgid "The file exists and will be replaced. A .bak copy is kept."
+msgstr ""

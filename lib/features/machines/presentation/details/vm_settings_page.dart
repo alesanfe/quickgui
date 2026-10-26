@@ -182,15 +182,17 @@ class _VmSettingsPageState extends ConsumerState<VmSettingsPage> {
           case ConfConflictAction.overwrite:
             break;
           case ConfConflictAction.saveCopy:
-            final path = writeLocalCopy(_confPath, merged);
+            final path = await pickAndSaveConfCopy(context, _confPath, merged);
             if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  context.t('Local copy saved to {0}', args: [path]),
+            if (path != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    context.t('Local copy saved to {0}', args: [path]),
+                  ),
                 ),
-              ),
-            );
+              );
+            }
             return;
           case ConfConflictAction.cancel:
           case null:
