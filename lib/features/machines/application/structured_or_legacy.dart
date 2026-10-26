@@ -21,6 +21,6 @@ Future<ProcessResult> runVmActionOrLegacy(
     return ProcessResult(0, 0, '', '');
   } on AppFailure catch (e) {
     if (!isBackendEnvelopeMissing(e)) rethrow;
-    return backend.runAction(arguments);
+    return await backend.runAction(arguments);
   }
 }

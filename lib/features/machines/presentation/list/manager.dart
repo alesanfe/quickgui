@@ -25,6 +25,7 @@ import 'package:quickgui/core/constants/preference_keys.dart';
 import 'package:quickgui/core/extensions/preferences_repository_x.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
 import 'package:quickgui/features/machines/application/delete_vm.dart';
+import 'package:quickgui/features/machines/application/structured_or_legacy.dart';
 import 'package:quickgui/features/machines/application/inspect_vm.dart';
 import 'package:quickgui/features/machines/application/list_vms.dart';
 import 'package:quickgui/features/machines/application/start_vm.dart';
@@ -181,16 +182,25 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
           }
           final result = action == 'export'
               ? await _backend.exportVm(name)
-              : await _backend.runAction([
-                  '--vm',
-                  conf,
+              : await runVmActionOrLegacy(
+                  _backend,
                   switch (action) {
-                    'stop' => '--powerdown',
-                    'pause' => '--pause',
-                    'resume' => '--resume',
-                    _ => '--doctor',
+                    'stop' => 'powerdown',
+                    'pause' => 'pause',
+                    'resume' => 'resume',
+                    _ => 'doctor',
                   },
-                ]);
+                  [
+                    '--vm',
+                    conf,
+                    switch (action) {
+                      'stop' => '--powerdown',
+                      'pause' => '--pause',
+                      'resume' => '--resume',
+                      _ => '--doctor',
+                    },
+                  ],
+                );
           if (result.exitCode != 0) failures.add(name);
         } catch (_) {
           failures.add(name);
@@ -560,13 +570,17 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
       );
       if (confirmed != true) return;
     }
-    final results = await _backend.runAction([
-      '--vm',
-      confPath,
-      '--snapshot',
-      selection.action,
-      if (selection.tag.isNotEmpty) selection.tag,
-    ]);
+    final results = await runVmActionOrLegacy(
+      _backend,
+      'snapshot-${selection.action}',
+      [
+        '--vm',
+        confPath,
+        '--snapshot',
+        selection.action,
+        if (selection.tag.isNotEmpty) selection.tag,
+      ],
+    );
     if (!mounted) return;
     _showProcessOutput([results]);
   }
@@ -656,7 +670,11 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
           '$currentVm.conf',
           '--delete-$result',
         ];
-        await _backend.runAction(command.sublist(1));
+        await runVmActionOrLegacy(
+          _backend,
+          'delete-$result',
+          command.sublist(1),
+        );
       }
     });
   }
@@ -672,7 +690,7 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
       message: (context, e) => context.vmNameError(e),
     );
     if (name == null || name.isEmpty || !mounted) return;
-    final r = await _backend.runAction([
+    final r = await runVmActionOrLegacy(_backend, 'clone', [
       '--vm',
       _vmConfFiles[currentVm] ?? '$currentVm.conf',
       '--clone',
@@ -752,7 +770,7 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
     if (choice == 'shutdown') {
       // ACPI powerdown via the QEMU monitor socket; the
       // VM keeps running until the guest OS finishes.
-      final r = await _backend.runAction([
+      final r = await runVmActionOrLegacy(_backend, 'monitor-cmd', [
         '--vm',
         _vmConfFiles[currentVm] ?? '$currentVm.conf',
         '--monitor-cmd',
@@ -829,7 +847,7 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
       message: (context, e) => context.sizeError(e),
     );
     if (size == null || size.isEmpty || !mounted) return;
-    final r = await _backend.runAction([
+    final r = await runVmActionOrLegacy(_backend, 'disk-resize', [
       '--vm',
       _vmConfFiles[currentVm] ?? '$currentVm.conf',
       '--disk-resize',
@@ -1429,27 +1447,31 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                       'display': context.t('Display'),
                     }, title: context.t('Devices'));
                   case 'pause':
-                    await _backend.runAction([
+                    await runVmActionOrLegacy(_backend, 'pause', [
                       '--vm',
                       _vmConfFiles[currentVm] ?? '$currentVm.conf',
                       '--pause',
                     ]);
                   case 'resume':
-                    await _backend.runAction([
+                    await runVmActionOrLegacy(_backend, 'resume', [
                       '--vm',
                       _vmConfFiles[currentVm] ?? '$currentVm.conf',
                       '--resume',
                     ]);
                   case 'screenshot':
-                    final r = await _backend.runAction([
-                      '--vm',
-                      _vmConfFiles[currentVm] ?? '$currentVm.conf',
-                      '--screenshot',
-                    ]);
+                    final r = await runVmActionOrLegacy(
+                      _backend,
+                      'screenshot',
+                      [
+                        '--vm',
+                        _vmConfFiles[currentVm] ?? '$currentVm.conf',
+                        '--screenshot',
+                      ],
+                    );
                     if (!context.mounted) return;
                     _showProcessOutput([r]);
                   case 'send-keys':
-                    final r = await _backend.runAction([
+                    final r = await runVmActionOrLegacy(_backend, 'send-keys', [
                       '--vm',
                       _vmConfFiles[currentVm] ?? '$currentVm.conf',
                       '--send-keys',
@@ -1483,16 +1505,20 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                       ),
                     );
                     if (confirm != true) return;
-                    final resetResult = await _backend.runAction([
-                      '--vm',
-                      _vmConfFiles[currentVm] ?? '$currentVm.conf',
-                      '--monitor-cmd',
-                      'system_reset',
-                    ]);
+                    final resetResult = await runVmActionOrLegacy(
+                      _backend,
+                      'monitor-cmd',
+                      [
+                        '--vm',
+                        _vmConfFiles[currentVm] ?? '$currentVm.conf',
+                        '--monitor-cmd',
+                        'system_reset',
+                      ],
+                    );
                     if (!context.mounted) return;
                     _showProcessOutput([resetResult]);
                   case 'doctor':
-                    final r = await _backend.runAction([
+                    final r = await runVmActionOrLegacy(_backend, 'doctor', [
                       '--vm',
                       _vmConfFiles[currentVm] ?? '$currentVm.conf',
                       '--doctor',
