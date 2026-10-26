@@ -37,8 +37,7 @@ class LegacyTelemetry {
   static final List<LegacyTelemetryEntry> _entries = [];
 
   /// Bounded fallback log, newest first.
-  static List<LegacyTelemetryEntry> get entries =>
-      List.unmodifiable(_entries);
+  static List<LegacyTelemetryEntry> get entries => List.unmodifiable(_entries);
 
   /// Number of legacy fallbacks seen since app start.
   static int get count => _entries.length;
@@ -68,8 +67,9 @@ class LegacyTelemetry {
   }
 
   /// Exportable, already-redacted summary for diagnostics reports.
-  static List<Map<String, dynamic>> toJson() =>
-      [for (final e in _entries) e.toJson()];
+  static List<Map<String, dynamic>> toJson() => [
+    for (final e in _entries) e.toJson(),
+  ];
 
   /// Test hook — clears the recorded entries.
   static void reset() => _entries.clear();

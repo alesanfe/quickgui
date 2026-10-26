@@ -7,17 +7,20 @@ void main() {
       OperationState.idle(),
       OperationState.validating(),
       OperationState.waitingForConfirmation(),
+      OperationState.queued(),
       OperationState.running(progress: 0.5),
+      OperationState.paused(progress: 0.5),
       OperationState.cancelling(),
       OperationState.cancelled(),
       OperationState.succeeded(1),
       OperationState.failed(code: 'X', message: 'boom'),
+      OperationState.interrupted(),
     ];
     for (final s in states) {
       expect(s.isBusy && s.isTerminal, isFalse, reason: '$s');
     }
-    expect(states.where((s) => s.isBusy), hasLength(3));
-    expect(states.where((s) => s.isTerminal), hasLength(3));
+    expect(states.where((s) => s.isBusy), hasLength(5));
+    expect(states.where((s) => s.isTerminal), hasLength(4));
   });
 
   test('value equality and copyWith come from Freezed', () {
