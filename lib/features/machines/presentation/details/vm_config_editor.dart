@@ -55,8 +55,7 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
   Future<void> _onPopAttempt() async {
     if (_allowPop) return;
     if (!_isDirty) {
-      setState(() => _allowPop = true);
-      Navigator.of(context).pop();
+      _releaseAndPop();
       return;
     }
     final choice = await showDialog<String>(
@@ -84,13 +83,22 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
     );
     if (!mounted || choice == null || choice == 'cancel') return;
     if (choice == 'discard') {
-      setState(() => _allowPop = true);
-      Navigator.of(context).pop();
+      _releaseAndPop();
       return;
     }
-    // 'save': allow the internal pop performed by _save().
+    // 'save': the flag is visible by the time _save() reaches its
+    // internal Navigator.pop — the method awaits before popping.
     setState(() => _allowPop = true);
-    _save();
+    await _save();
+  }
+
+  /// Releases the pop guard, then pops the dialog once the PopScope has
+  /// rebuilt with `canPop: true`.
+  void _releaseAndPop() {
+    setState(() => _allowPop = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) Navigator.of(context).pop();
+    });
   }
 
   @override
@@ -104,7 +112,7 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
     });
   }
 
-  void _save() async {
+  Future<void> _save() async {
     final badLine = _firstInvalidLine(_editorController.text);
     if (badLine != null) {
       setState(() {
@@ -122,8 +130,9 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
         .read(vmConfigStoreProvider)
         .saveRaw(widget.confPath, _editorController.text);
     _fingerprint = VmConfigFileStore.fingerprint(widget.confPath);
+    _initialContent = _editorController.text; // saved — no longer dirty
     if (!mounted) return;
-    Navigator.of(context).pop();
+    _releaseAndPop();
   }
 
   /// Detects an external modification since the editor was opened and

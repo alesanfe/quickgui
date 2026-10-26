@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
+import 'package:quickgui/core/telemetry/legacy_telemetry.dart';
 import 'package:quickgui/features/diagnostics/domain/diagnostics_report.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
 import 'package:quickgui/shared/widgets/bytes_formatter.dart';
@@ -83,6 +84,24 @@ class _ReportView extends StatelessWidget {
         ]),
         _Section(context.t('Tools'), [
           for (final e in r.tools.entries) _Status(e.key, ok: e.value),
+        ]),
+        _Section(context.t('Backend compatibility'), [
+          _Status(
+            context.t('Structured contract'),
+            ok: r.contractCompatible,
+            detail: r.contractVersion?.toString() ?? context.t('None'),
+          ),
+          _Info(context.t('Legacy fallbacks used'), '${LegacyTelemetry.count}'),
+          if (LegacyTelemetry.commands.isNotEmpty)
+            _Info(
+              context.t('Commands without envelope'),
+              LegacyTelemetry.commands.join(', '),
+            ),
+          if (LegacyTelemetry.last != null)
+            _Info(
+              context.t('Last fallback'),
+              '${LegacyTelemetry.last!.command} — ${LegacyTelemetry.last!.reason}',
+            ),
         ]),
         if (r.capabilities.isNotEmpty)
           _Section(context.t('Capabilities'), [

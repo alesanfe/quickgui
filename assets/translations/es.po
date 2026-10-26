@@ -1277,3 +1277,18 @@ msgstr "¿Descartar los cambios sin guardar?"
 
 msgid "Your edits to this configuration have not been saved."
 msgstr "Los cambios de esta configuración no se han guardado."
+
+msgid "Backend compatibility"
+msgstr ""
+
+msgid "Commands without envelope"
+msgstr ""
+
+msgid "Last fallback"
+msgstr ""
+
+msgid "Legacy fallbacks used"
+msgstr ""
+
+msgid "Structured contract"
+msgstr ""

@@ -1246,3 +1246,18 @@ msgstr "Discard unsaved changes?"
 
 msgid "Your edits to this configuration have not been saved."
 msgstr "Your edits to this configuration have not been saved."
+
+msgid "Backend compatibility"
+msgstr "Backend compatibility"
+
+msgid "Commands without envelope"
+msgstr "Commands without envelope"
+
+msgid "Last fallback"
+msgstr "Last fallback"
+
+msgid "Legacy fallbacks used"
+msgstr "Legacy fallbacks used"
+
+msgid "Structured contract"
+msgstr "Structured contract"

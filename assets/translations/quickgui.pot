@@ -1239,3 +1239,18 @@ msgstr ""
 
 msgid "Your edits to this configuration have not been saved."
 msgstr ""
+
+msgid "Backend compatibility"
+msgstr ""
+
+msgid "Commands without envelope"
+msgstr ""
+
+msgid "Last fallback"
+msgstr ""
+
+msgid "Legacy fallbacks used"
+msgstr ""
+
+msgid "Structured contract"
+msgstr ""
