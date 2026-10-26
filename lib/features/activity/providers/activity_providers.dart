@@ -184,6 +184,9 @@ class ActivityController extends Notifier<ActivityState> {
       retrySpec: retrySpec,
       retryOf: retryOf,
     );
+    // The op was registered in `queued` — mark it running now that the
+    // work actually begins, so the UI never shows a stale queue state.
+    update(operation, const OperationState.running());
     try {
       final result = await action(operation);
       if (result is ProcessResult) {

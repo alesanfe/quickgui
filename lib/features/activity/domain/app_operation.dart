@@ -33,7 +33,7 @@ class AppOperation {
     required this.kind,
     required this.target,
     required this.startedAt,
-    this.state = const OperationState.running(),
+    this.state = const OperationState.queued(),
     this.onCancel,
     this.retrySpec,
     this.retryOf,
