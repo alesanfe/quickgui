@@ -1292,3 +1292,12 @@ msgstr ""
 
 msgid "Structured contract"
 msgstr ""
+
+msgid "Queued"
+msgstr "En cola"
+
+msgid "Validating"
+msgstr "Validando"
+
+msgid "Waiting for confirmation"
+msgstr "Esperando confirmación"

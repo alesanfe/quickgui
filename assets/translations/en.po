@@ -1261,3 +1261,12 @@ msgstr "Legacy fallbacks used"
 
 msgid "Structured contract"
 msgstr "Structured contract"
+
+msgid "Queued"
+msgstr "Queued"
+
+msgid "Validating"
+msgstr "Validating"
+
+msgid "Waiting for confirmation"
+msgstr "Waiting for confirmation"

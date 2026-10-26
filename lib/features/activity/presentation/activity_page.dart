@@ -213,12 +213,19 @@ class OperationTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final progress = switch (op.state) {
       OperationRunning(:final progress?) => progress,
+      OperationPaused(:final progress?) => progress,
       _ => null,
     };
     final subtitle = switch (op.state) {
       OperationRunning(:final progress?) => '${(progress * 100).toInt()}%',
       OperationRunning() => context.t('Running'),
+      OperationQueued() => context.t('Queued'),
+      OperationPaused() => context.t('Paused'),
       OperationCancelling() => context.t('Cancelling'),
+      OperationValidating() => context.t('Validating'),
+      OperationWaitingForConfirmation() => context.t(
+        'Waiting for confirmation',
+      ),
       _ => context.t('Running'),
     };
     return Card(

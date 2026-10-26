@@ -1254,3 +1254,12 @@ msgstr ""
 
 msgid "Structured contract"
 msgstr ""
+
+msgid "Queued"
+msgstr ""
+
+msgid "Validating"
+msgstr ""
+
+msgid "Waiting for confirmation"
+msgstr ""
