@@ -57,6 +57,7 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
 
   List<String> _currentVms = [];
   String _vmFilter = '';
+  Timer? _searchDebounce;
   String _vmSort = 'name';
   String _statusFilter = 'all';
   String? _tagFilter;
@@ -283,6 +284,7 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     refreshTimer?.cancel();
+    _searchDebounce?.cancel();
     super.dispose();
   }
 
@@ -1071,8 +1073,9 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
             isDense: true,
           ),
           onChanged: (value) {
-            setState(() {
-              _vmFilter = value;
+            _searchDebounce?.cancel();
+            _searchDebounce = Timer(const Duration(milliseconds: 250), () {
+              if (mounted) setState(() => _vmFilter = value);
             });
           },
         ),
