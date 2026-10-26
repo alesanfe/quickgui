@@ -22,10 +22,14 @@ import 'package:quickgui/features/home/presentation/left_menu.dart';
 import 'package:quickgui/features/settings/presentation/settings_page.dart';
 import 'package:quickgui/features/create/presentation/create_page.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_page.dart';
+import 'package:quickgui/features/machines/presentation/shared/vm_snapshots_view.dart';
+import 'package:quickgui/features/catalog/presentation/operating_system_selection.dart';
 import 'package:quickgui/features/home/presentation/left_menu.dart';
 import 'package:quickgui/features/settings/presentation/settings_page.dart';
 import 'package:quickgui/features/create/presentation/create_page.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_page.dart';
+import 'package:quickgui/features/machines/presentation/shared/vm_snapshots_view.dart';
+import 'package:quickgui/features/catalog/presentation/operating_system_selection.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
 import 'package:quickgui/features/machines/presentation/list/manager.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
@@ -240,6 +244,33 @@ void main() {
     testWidgets('negative: unknown VM name shows error state',
         (t) async {
       await open(t, const VmPage(vmName: 'does-not-exist'));
+      expect(t.takeException(), isNull);
+    });
+  });
+
+  group('VmSnapshotsView', () {
+    testWidgets('positive: snapshot view renders', (t) async {
+      await open(t,
+          const VmSnapshotsView(vm: 'vm1', confPath: 'vm1.conf'));
+      expect(t.takeException(), isNull);
+    });
+    testWidgets('boundary: empty snapshot list renders', (t) async {
+      final b = FakeVirtualizationBackend()..snapshots = const [];
+      await open(
+          t, const VmSnapshotsView(vm: 'vm1', confPath: 'vm1.conf'),
+          backend: b);
+      expect(t.takeException(), isNull);
+    });
+  });
+
+  group('OperatingSystemSelection', () {
+    testWidgets('positive: renders the OS list', (t) async {
+      await open(t, const OperatingSystemSelection());
+      expect(t.takeException(), isNull);
+    });
+    testWidgets('boundary: empty catalogue shows empty state',
+        (t) async {
+      await open(t, const OperatingSystemSelection());
       expect(t.takeException(), isNull);
     });
   });
