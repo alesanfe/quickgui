@@ -287,5 +287,34 @@ void main() {
       expect(r.operationId, 'op-42');
       expect(r.requestId, 'req-7');
     });
+
+    // Per-command parity: command const + required data keys come
+    // straight from the sibling repo's schemas/v1/*.schema.json.
+    for (final (invoked, emitted, data) in [
+      (
+        'delete-plan',
+        'vm.delete-plan',
+        '{"vm":"x","delete":["x/disk.qcow2","x/x.conf"]}',
+      ),
+      (
+        'snapshot-list',
+        'vm.snapshot.list',
+        '{"vm":"x","snapshots":[{"tag":"s1"}]}',
+      ),
+      (
+        'status',
+        'vm.status',
+        '{"name":"x","state":"running","pid":123,"allowedOps":[]}',
+      ),
+      ('execution-plan', 'vm.plan', '{"vm":"x","command":"start"}'),
+    ]) {
+      test('$emitted payload parses as a valid $invoked response', () async {
+        final r = await _exec(
+          ProcessResult(1, 0, _envelope(command: emitted, data: data), ''),
+        ).run(invoked, []);
+        expect(r.command, emitted);
+        expect(r.dataMap, isNotNull, reason: 'data must decode to a map');
+      });
+    }
   });
 }
