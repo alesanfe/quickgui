@@ -553,7 +553,7 @@ class QuickemuBackend implements VirtualizationBackend {
   /// process, so we spawn quickemu directly on the same contract.
   @override
   Stream<Map<String, dynamic>> watchOperations(String target) async* {
-    final proc = await Process.start('quickemu', [
+    final proc = await _process.startQuickemu([
       '--vm',
       '$target.conf',
       '--op-watch',

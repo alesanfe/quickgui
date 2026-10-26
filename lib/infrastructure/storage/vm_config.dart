@@ -79,11 +79,12 @@ class VmConfigFileStore implements VmConfigStore {
   }
 
   /// Resolves a symlinked conf to its target so the atomic rename swaps
-  /// the real file and the link keeps pointing at it.
+  /// the real file and the link keeps pointing at it — also for
+  /// dangling links whose target does not exist yet.
   static File _resolve(File file) {
-    if (!file.existsSync()) return file;
-    if (file.statSync().type != FileSystemEntityType.link) return file;
-    return File(file.resolveSymbolicLinksSync());
+    final type = FileSystemEntity.typeSync(file.path, followLinks: false);
+    if (type != FileSystemEntityType.link) return file;
+    return File(Link(file.path).targetSync());
   }
 
   /// Atomically replaces [confPath] with [content] (async facade over the
