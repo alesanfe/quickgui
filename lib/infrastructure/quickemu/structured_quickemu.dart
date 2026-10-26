@@ -131,14 +131,25 @@ class StructuredQuickemu {
     final stdout = '${result.stdout}';
     final stderr = '${result.stderr}';
     final exitCode = result.exitCode;
-    final capped = stdout.length > maxStdoutBytes
-        ? stdout.substring(0, maxStdoutBytes)
-        : stdout;
+    // An over-limit envelope would be truncated mid-JSON — surface the
+    // real cause instead of a misleading MALFORMED_JSON.
+    if (stdout.length > maxStdoutBytes) {
+      throw AppFailure(
+        AppFailureKind.backendContract,
+        'BACKEND_OUTPUT_TOO_LARGE',
+        'The backend returned more output than the supported limit.',
+        technical:
+            'command=$command stdoutBytes=${stdout.length} '
+            'limit=$maxStdoutBytes',
+        vm: vm,
+        operation: operation,
+      );
+    }
 
     QuickemuResponse response;
     try {
       response = QuickemuResponse.parse(
-        capped,
+        stdout,
         command: command,
         exitCode: exitCode,
         stderr: stderr,

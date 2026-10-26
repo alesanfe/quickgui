@@ -190,4 +190,31 @@ void main() {
       );
     });
   });
+  group('output limits', () {
+    test('stdout over the limit throws BACKEND_OUTPUT_TOO_LARGE', () async {
+      final big = 'x' * 128;
+      final e = StructuredQuickemu(
+        QuickemuProcess(_FakeRunner(ProcessResult(1, 0, big, ''))),
+        maxStdoutBytes: 16,
+      );
+      await expectLater(
+        e.run('status', []),
+        throwsA(
+          isA<AppFailure>()
+              .having((f) => f.code, 'code', 'BACKEND_OUTPUT_TOO_LARGE')
+              .having((f) => f.kind, 'kind', AppFailureKind.backendContract),
+        ),
+      );
+    });
+
+    test('stdout at exactly the limit is parsed normally', () async {
+      final envelope = _envelope();
+      final e = StructuredQuickemu(
+        QuickemuProcess(_FakeRunner(ProcessResult(1, 0, envelope, ''))),
+        maxStdoutBytes: envelope.length,
+      );
+      final r = await e.run('status', []);
+      expect(r.success, isTrue);
+    });
+  });
 }
