@@ -910,14 +910,14 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
   }
 
   bool _isValidConf(String conf) {
-    final List<String> lines = File(conf).readAsLinesSync();
-    for (final line in lines) {
-      final List<String> parts = line.split('=');
-      if (parts[0] == 'guest_os') {
-        return true;
-      }
+    // Route through the config store — a single parser and the
+    // fingerprint-aware read path, no raw file scans here.
+    try {
+      final value = ref.read(vmConfigStoreProvider).read(conf, 'guest_os');
+      return value != null && value.isNotEmpty;
+    } catch (_) {
+      return false;
     }
-    return false;
   }
 
   void _getVms() async {
