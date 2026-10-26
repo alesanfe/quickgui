@@ -8,6 +8,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quickgui/features/machines/presentation/list/manager.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
+import '../support/fakes/fake_host_probe.dart';
+import '../support/fakes/fake_preferences_repository.dart';
+import '../support/fakes/test_app.dart';
 import 'package:quickgui/infrastructure/quickemu/quickemu_backend.dart';
 import 'package:quickgui/infrastructure/process/system_process_runner.dart';
 
@@ -21,12 +24,18 @@ void main() {
 
     final backend = QuickemuBackend(SystemProcessRunner());
     await t.pumpWidget(ProviderScope(
-      overrides: [backendProvider.overrideWithValue(backend)],
-      child: const MaterialApp(home: Scaffold(body: Manager())),
+      overrides: [
+        backendProvider.overrideWithValue(backend),
+        hostProbeProvider.overrideWithValue(FakeHostProbe()),
+        preferencesRepositoryProvider
+            .overrideWithValue(FakePreferencesRepository()),
+        osIconsProvider.overrideWithValue({}),
+        osCatalogueProvider.overrideWithValue(Future.value([])),
+      ],
+      child: testApp(home: const Scaffold(body: Manager())),
     ));
-    // Manager spawns a refresh timer; pump bounded frames, not settle
-    await t.runAsync(() => Future.delayed(const Duration(seconds: 3)));
-    await t.pump(const Duration(milliseconds: 500));
+    await t.pump();
+    await t.pump(const Duration(seconds: 2));
 
     final cliOut = await Process.run('quickemu',
         ['--vm', '${tmp.path}/realvm.conf', '--status', '--format', 'json'],
