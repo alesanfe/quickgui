@@ -20,7 +20,7 @@ final trackedBackendProvider = Provider<VirtualizationBackend>(
 typedef _Track = Future<T> Function<T>(
   OperationKind,
   String,
-  Future<T> Function(), {
+  Future<T> Function(AppOperation operation), {
   RetrySpec? retrySpec,
   Future<void> Function()? onCancel,
 });
@@ -100,7 +100,7 @@ class _TrackedBackend implements VirtualizationBackend {
     return track(
       kind,
       target,
-      () => backend.runAction(arguments),
+      (op) => backend.runAction(arguments),
       retrySpec: retrySpec,
     );
   }
@@ -119,6 +119,7 @@ class _TrackedBackend implements VirtualizationBackend {
     String command,
     List<String> arguments, {
     Future<void>? cancelSignal,
+    void Function(String? operationId)? onMeta,
   }) {
     // Infer the activity kind/target from the quickemu arg tail — same
     // conventions as runAction.
@@ -157,10 +158,14 @@ class _TrackedBackend implements VirtualizationBackend {
     return track<Map<String, dynamic>>(
       kind,
       target,
-      () => backend.runVmJson(
+      (op) => backend.runVmJson(
         command,
         arguments,
         cancelSignal: cancelSignal ?? cancel?.future,
+        onMeta: (id) {
+          op.backendOperationId = id;
+          onMeta?.call(id);
+        },
       ),
       retrySpec: retrySpec,
       onCancel: cancel == null ? null : () async => cancel.complete(),
@@ -173,21 +178,21 @@ class _TrackedBackend implements VirtualizationBackend {
       ? track(
           OperationKind.import,
           arguments.length > 1 ? arguments[1] : '',
-          () => backend.runQuickget(arguments),
+          (op) => backend.runQuickget(arguments),
         )
       : backend.runQuickget(arguments);
   @override
   Future<ProcessResult> exportVm(String vmName) =>
-      track(OperationKind.export, vmName, () => backend.exportVm(vmName));
+      track(OperationKind.export, vmName, (op) => backend.exportVm(vmName));
   @override
   Future<ProcessResult> verifyImage(String isoPath) => track(
     OperationKind.verify,
     p.basename(isoPath),
-    () => backend.verifyImage(isoPath),
+    (op) => backend.verifyImage(isoPath),
   );
   @override
   Future<ProcessResult> killVmProcess(String vmName) =>
-      track(OperationKind.stop, vmName, () => backend.killVmProcess(vmName));
+      track(OperationKind.stop, vmName, (op) => backend.killVmProcess(vmName));
   @override
   Future<ProcessResult> openVmFolder(String vmName) =>
       backend.openVmFolder(vmName);
@@ -199,7 +204,7 @@ class _TrackedBackend implements VirtualizationBackend {
   }) => track(
     OperationKind.command,
     'SPICE :$spicePort',
-    () => backend.launchSpiceViewer(
+    (op) => backend.launchSpiceViewer(
       spicePort,
       viewer: viewer,
       fullscreen: fullscreen,
@@ -216,7 +221,7 @@ class _TrackedBackend implements VirtualizationBackend {
   }) => track(
     OperationKind.command,
     'SSH :$sshPort',
-    () => backend.connectSsh(
+    (op) => backend.connectSsh(
       terminalEmulator: terminalEmulator,
       user: user,
       sshPort: sshPort,
@@ -226,13 +231,13 @@ class _TrackedBackend implements VirtualizationBackend {
   Future<ProcessResult> diagnosticsReport() => track(
     OperationKind.command,
     'Quickemu report',
-    backend.diagnosticsReport,
+    (op) => backend.diagnosticsReport(),
   );
   @override
   Future<ProcessResult> convertDiskImage(String inputPath, String outputPath) =>
       track(
         OperationKind.convert,
         p.basename(outputPath),
-        () => backend.convertDiskImage(inputPath, outputPath),
+        (op) => backend.convertDiskImage(inputPath, outputPath),
       );
 }

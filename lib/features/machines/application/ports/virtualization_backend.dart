@@ -50,11 +50,14 @@ abstract class VirtualizationBackend {
   /// `--format json` is appended by the backend; do not repeat it.
   /// [cancelSignal] completes when the caller wants the underlying
   /// process terminated; the executor then throws a `cancelled`
-  /// `AppFailure` after graceful-then-forced termination.
+  /// `AppFailure` after graceful-then-forced termination. [onMeta] is
+  /// invoked once the envelope arrives with its `meta.operationId`
+  /// (null when the backend did not emit one).
   Future<Map<String, dynamic>> runVmJson(
     String command,
     List<String> arguments, {
     Future<void>? cancelSignal,
+    void Function(String? operationId)? onMeta,
   });
 
   /// Runs a quickget action (e.g. ['--create-config','name','/path.iso']).

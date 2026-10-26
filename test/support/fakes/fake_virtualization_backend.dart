@@ -83,6 +83,7 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
     String command,
     List<String> arguments, {
     Future<void>? cancelSignal,
+    void Function(String? operationId)? onMeta,
   }) async {
     jsonCalls.add([command, ...arguments]);
     final response = jsonResponses[command];

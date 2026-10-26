@@ -58,6 +58,11 @@ class AppOperation {
   /// downloader kills its process). Null = not cancellable.
   final Future<void> Function()? onCancel;
 
+  /// Operation id emitted by the backend envelope (`meta.operationId`)
+  /// — set by the executor once the response arrives; used to
+  /// correlate retries, interrupted-state reconciliation and reports.
+  String? backendOperationId;
+
   bool get isTerminal => state.isTerminal;
 }
 
@@ -129,6 +134,7 @@ class OperationHistoryEntry {
     this.retryable = false,
     this.retrySpec,
     this.retryOf,
+    this.backendOperationId,
   });
 
   final OperationKind kind;
@@ -158,6 +164,11 @@ class OperationHistoryEntry {
   /// Id of the original operation when this entry is itself a retry.
   final String? retryOf;
 
+  /// Backend-side `meta.operationId` when the structured envelope
+  /// provided one — lets a future `operation-status` command resume
+  /// or query the async-operation registry.
+  final String? backendOperationId;
+
   /// True when the entry can be re-dispatched directly (typed args and
   /// no plan regeneration required). Destructive retries that need a
   /// fresh plan stay retryable but must go through the plan flow first.
@@ -176,6 +187,7 @@ class OperationHistoryEntry {
     if (retryable) 'retryable': true,
     if (retrySpec != null) 'retrySpec': retrySpec!.toJson(),
     if (retryOf != null) 'retryOf': retryOf,
+    if (backendOperationId != null) 'backendOperationId': backendOperationId,
   };
 
   static OperationHistoryEntry? fromJson(Map<String, dynamic> json) {
@@ -200,6 +212,9 @@ class OperationHistoryEntry {
       retryable: json['retryable'] == true,
       retrySpec: RetrySpec.fromJson(json['retrySpec']),
       retryOf: json['retryOf'] is String ? json['retryOf'] as String : null,
+      backendOperationId: json['backendOperationId'] is String
+          ? json['backendOperationId'] as String
+          : null,
     );
   }
 }

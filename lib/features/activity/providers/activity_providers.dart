@@ -167,10 +167,12 @@ class ActivityController extends Notifier<ActivityState> {
     return op;
   }
 
+  /// The action receives the registered operation so backends can
+  /// attach late metadata (e.g. the envelope `meta.operationId`).
   Future<T> run<T>(
     OperationKind kind,
     String target,
-    Future<T> Function() action, {
+    Future<T> Function(AppOperation operation) action, {
     RetrySpec? retrySpec,
     String? retryOf,
     Future<void> Function()? onCancel,
@@ -183,7 +185,7 @@ class ActivityController extends Notifier<ActivityState> {
       retryOf: retryOf,
     );
     try {
-      final result = await action();
+      final result = await action(operation);
       if (result is ProcessResult) {
         final raw = '${result.stdout}\n${result.stderr}'.trim();
         final output = raw.length > 65536
@@ -268,6 +270,7 @@ class ActivityController extends Notifier<ActivityState> {
             },
             retrySpec: op.retrySpec,
             retryOf: op.retryOf,
+            backendOperationId: op.backendOperationId,
           ),
           ...state.history,
         ].take(_historyLimit).toList(),
@@ -336,7 +339,7 @@ class ActivityController extends Notifier<ActivityState> {
     return await run(
       entry.kind,
       entry.target,
-      () => runVmActionOrLegacy(
+      (op) => runVmActionOrLegacy(
         ref.read(backendProvider),
         spec.command,
         spec.arguments,

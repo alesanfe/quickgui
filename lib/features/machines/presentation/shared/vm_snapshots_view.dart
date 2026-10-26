@@ -73,7 +73,7 @@ class _VmSnapshotsViewState extends ConsumerState<VmSnapshotsView> {
       final results = await ref.read(activityProvider.notifier).run(
         OperationKind.snapshot,
         widget.vm,
-        () {
+        (op) {
           final args = [
             '--vm',
             widget.confPath,

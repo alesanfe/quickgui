@@ -34,7 +34,7 @@ void main() {
       ctrl.run(
         OperationKind.start,
         'vm1',
-        () async => throw const AppFailure(
+        (op) async => throw const AppFailure(
           AppFailureKind.timeout,
           'BACKEND_TIMEOUT',
           'Timed out',
@@ -60,7 +60,7 @@ void main() {
     final r = await ctrl.run(
       OperationKind.stop,
       'vm1',
-      () async => ProcessResult(0, 3, '', 'boom'),
+      (op) async => ProcessResult(0, 3, '', 'boom'),
     );
     expect(r.exitCode, 3);
     final entry = c.read(activityProvider).history.single;

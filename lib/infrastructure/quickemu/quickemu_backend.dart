@@ -164,12 +164,14 @@ class QuickemuBackend implements VirtualizationBackend {
     String command,
     List<String> arguments, {
     Future<void>? cancelSignal,
+    void Function(String? operationId)? onMeta,
   }) async {
     final response = await _structured.run(
       command,
       arguments,
       cancelSignal: cancelSignal,
     );
+    onMeta?.call(response.operationId);
     final data = response.dataMap;
     if (data == null) {
       throw AppFailure(
