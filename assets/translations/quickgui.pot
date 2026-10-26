@@ -1224,3 +1224,9 @@ msgstr ""
 
 msgid "The file exists and will be replaced. A .bak copy is kept."
 msgstr ""
+
+msgid "Backup restored"
+msgstr ""
+
+msgid "Restore backup"
+msgstr ""

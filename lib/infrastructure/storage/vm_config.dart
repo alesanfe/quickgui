@@ -92,6 +92,24 @@ class VmConfigFileStore implements VmConfigStore {
   static Future<void> writeAtomic(String confPath, String content) async =>
       unawaitedWrite(confPath, content);
 
+  /// Existing backups for [confPath], newest first — `.bak`, then
+  /// `.bak.1` … `.bak.N` after rotation.
+  static List<File> listBackups(String confPath) {
+    final file = _resolve(File(confPath));
+    final backups = <File>[];
+    for (var i = 0; i < _maxBackups; i++) {
+      final f = File(i == 0 ? '${file.path}.bak' : '${file.path}.bak.$i');
+      if (f.existsSync()) backups.add(f);
+    }
+    return backups;
+  }
+
+  /// Restores [backupPath] onto [confPath] atomically. The current
+  /// content is backed up first (normal rotation), so the restore can
+  /// itself be undone from the fresh `.bak`.
+  static void restoreBackup(String confPath, String backupPath) =>
+      unawaitedWrite(confPath, File(backupPath).readAsStringSync());
+
   @override
   void write(String confPath, String key, String value) {
     final file = File(confPath);

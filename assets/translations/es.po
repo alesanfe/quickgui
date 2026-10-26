@@ -1262,3 +1262,9 @@ msgstr "Guardar una copia de {0}"
 
 msgid "The file exists and will be replaced. A .bak copy is kept."
 msgstr "El archivo existe y será reemplazado. Se conserva una copia .bak."
+
+msgid "Backup restored"
+msgstr "Copia de seguridad restaurada"
+
+msgid "Restore backup"
+msgstr "Restaurar copia de seguridad"

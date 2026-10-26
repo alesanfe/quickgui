@@ -81,4 +81,28 @@ void main() {
       );
     },
   );
+  group('backups', () {
+    test('listBackups returns rotated backups newest first', () async {
+      await store.saveRaw(path, 'v1');
+      await store.saveRaw(path, 'v2');
+      await store.saveRaw(path, 'v3');
+      final backups = VmConfigFileStore.listBackups(path);
+      expect(backups, isNotEmpty);
+      expect(backups.first.readAsStringSync(), 'v2');
+    });
+
+    test(
+      'restoreBackup restores content and keeps current as backup',
+      () async {
+        await store.saveRaw(path, 'v1');
+        await store.saveRaw(path, 'v2');
+        final backup = VmConfigFileStore.listBackups(path).first;
+        VmConfigFileStore.restoreBackup(path, backup.path);
+        expect(await store.loadRaw(path), 'v1');
+        // The restore itself backed up 'v2' first — undoable.
+        final after = VmConfigFileStore.listBackups(path);
+        expect(after.first.readAsStringSync(), 'v2');
+      },
+    );
+  });
 }

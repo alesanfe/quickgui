@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
@@ -123,6 +125,50 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
     }
   }
 
+  /// Lists rotated .bak files, previews the chosen one and restores it
+  /// atomically — the current content is backed up first so the restore
+  /// is itself undoable.
+  Future<void> _restoreBackup() async {
+    final backups = VmConfigFileStore.listBackups(widget.confPath);
+    if (backups.isEmpty) return;
+    final chosen = await showDialog<String>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text(context.t('Restore backup')),
+        children: [
+          for (final f in backups)
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, f.path),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(f.path.split(RegExp(r'[/\\]')).last),
+                  Text(
+                    f.readAsStringSync(),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+    if (chosen == null || !mounted) return;
+    VmConfigFileStore.restoreBackup(widget.confPath, chosen);
+    _editorController.text =
+        VmConfigFileStore.fingerprint(widget.confPath).isNotEmpty
+        ? File(widget.confPath).readAsStringSync()
+        : _editorController.text;
+    _initialContent = _editorController.text;
+    _fingerprint = VmConfigFileStore.fingerprint(widget.confPath);
+    if (mounted) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(context.t('Backup restored'))));
+    }
+  }
+
   void _openDocs() async {
     const url =
         'https://github.com/quickemu-project/quickemu/blob/master/docs/quickemu_conf.5.md';
@@ -206,6 +252,12 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: Text(context.t('Cancel')),
         ),
+        if (VmConfigFileStore.listBackups(widget.confPath).isNotEmpty)
+          TextButton.icon(
+            onPressed: _restoreBackup,
+            icon: const Icon(Icons.restore),
+            label: Text(context.t('Restore backup')),
+          ),
         ElevatedButton(onPressed: _save, child: Text(context.t('Save'))),
       ],
     );
