@@ -1,0 +1,24 @@
+name: e2e-ui
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - name: deps
+        run: flutter pub get
+      - name: install xvfb + real quickemu
+        run: |
+          sudo apt-get install -y xvfb x11-utils
+          git clone --depth 1 https://github.com/alesanfe/quickemu.git /tmp/quickemu
+          echo "/tmp/quickemu/bin" >> "$GITHUB_PATH"
+      - name: widget e2e under xvfb (the app actually used, not just rendered)
+        run: xvfb-run -a flutter test test/integration/ui_uses_real_cli_test.dart
+      - name: golden captures
+        run: xvfb-run -a flutter test test/capture/
