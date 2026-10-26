@@ -44,6 +44,55 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
   String _initialContent = '';
   String _fingerprint = '';
 
+  /// PopScope flag — set once the user explicitly accepts leaving
+  /// (discard or successful save) so internal pops are not re-blocked.
+  bool _allowPop = false;
+
+  bool get _isDirty => _editorController.text != _initialContent;
+
+  /// Intercepts closing (Escape/system back/Cancel) while edits are
+  /// unsaved — offers Save, Discard and Cancel.
+  Future<void> _onPopAttempt() async {
+    if (_allowPop) return;
+    if (!_isDirty) {
+      setState(() => _allowPop = true);
+      Navigator.of(context).pop();
+      return;
+    }
+    final choice = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.t('Discard unsaved changes?')),
+        content: Text(
+          context.t('Your edits to this configuration have not been saved.'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'cancel'),
+            child: Text(context.t('Keep editing')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'discard'),
+            child: Text(context.t('Discard')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, 'save'),
+            child: Text(context.t('Save')),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || choice == null || choice == 'cancel') return;
+    if (choice == 'discard') {
+      setState(() => _allowPop = true);
+      Navigator.of(context).pop();
+      return;
+    }
+    // 'save': allow the internal pop performed by _save().
+    setState(() => _allowPop = true);
+    _save();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -180,86 +229,90 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(context.t('Edit VM: {0}', args: [widget.vmName])),
-      content: _loading
-          ? const SizedBox(
-              height: 100,
-              child: Center(child: CircularProgressIndicator()),
-            )
-          : SizedBox(
-              width: double.maxFinite,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    widget.confPath,
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton.icon(
-                      icon: const Icon(Icons.help_outline),
-                      label: Text(context.t('Open config documentation')),
-                      onPressed: _openDocs,
+    return PopScope(
+      canPop: _allowPop,
+      onPopInvokedWithResult: (_, _) => _onPopAttempt(),
+      child: AlertDialog(
+        title: Text(context.t('Edit VM: {0}', args: [widget.vmName])),
+        content: _loading
+            ? const SizedBox(
+                height: 100,
+                child: Center(child: CircularProgressIndicator()),
+              )
+            : SizedBox(
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      widget.confPath,
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Flexible(
-                    child: TextField(
-                      controller: _editorController,
-                      maxLines: null,
-                      keyboardType: TextInputType.multiline,
-                      style: const TextStyle(fontFamily: 'monospace'),
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.all(8),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton.icon(
+                        icon: const Icon(Icons.help_outline),
+                        label: Text(context.t('Open config documentation')),
+                        onPressed: _openDocs,
                       ),
-                      onChanged: (_) {
-                        if (_error != null) {
-                          setState(() => _error = null);
-                        }
-                      },
                     ),
-                  ),
-                  if (_error != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.error_outline,
-                            size: 16,
-                            color: Theme.of(context).colorScheme.error,
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              _error!,
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.error,
+                    const SizedBox(height: 8),
+                    Flexible(
+                      child: TextField(
+                        controller: _editorController,
+                        maxLines: null,
+                        keyboardType: TextInputType.multiline,
+                        style: const TextStyle(fontFamily: 'monospace'),
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.all(8),
+                        ),
+                        onChanged: (_) {
+                          if (_error != null) {
+                            setState(() => _error = null);
+                          }
+                        },
+                      ),
+                    ),
+                    if (_error != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 16,
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                _error!,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
-            ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(context.t('Cancel')),
-        ),
-        if (VmConfigFileStore.listBackups(widget.confPath).isNotEmpty)
-          TextButton.icon(
-            onPressed: _restoreBackup,
-            icon: const Icon(Icons.restore),
-            label: Text(context.t('Restore backup')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(context.t('Cancel')),
           ),
-        ElevatedButton(onPressed: _save, child: Text(context.t('Save'))),
-      ],
+          if (VmConfigFileStore.listBackups(widget.confPath).isNotEmpty)
+            TextButton.icon(
+              onPressed: _restoreBackup,
+              icon: const Icon(Icons.restore),
+              label: Text(context.t('Restore backup')),
+            ),
+          ElevatedButton(onPressed: _save, child: Text(context.t('Save'))),
+        ],
+      ),
     );
   }
 }

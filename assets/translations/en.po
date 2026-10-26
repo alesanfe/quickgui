@@ -1237,3 +1237,12 @@ msgstr "Backup restored"
 
 msgid "Restore backup"
 msgstr "Restore backup"
+
+msgid "Discard"
+msgstr "Discard"
+
+msgid "Discard unsaved changes?"
+msgstr "Discard unsaved changes?"
+
+msgid "Your edits to this configuration have not been saved."
+msgstr "Your edits to this configuration have not been saved."
