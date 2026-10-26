@@ -35,6 +35,7 @@ class _VmPageState extends ConsumerState<VmPage> {
   String get _confPath => '${widget.vmName}.conf';
   Map<String, dynamic> _status = const {};
   List<Map<String, dynamic>> _ops = const [];
+  List<Map<String, dynamic>> _events = const [];
   bool _busy = false;
   String _logFilter = '';
 
@@ -49,10 +50,15 @@ class _VmPageState extends ConsumerState<VmPage> {
       final backend = ref.read(backendProvider);
       final status = await backend.inspectVirtualMachine(widget.vmName);
       final ops = await backend.listOperations(widget.vmName);
+      final events = await backend.readEvents(
+        widget.vmName,
+        cursor: _events.isEmpty ? 0 : (_events.last['seq'] as int? ?? 0),
+      );
       if (mounted) {
         setState(() {
           _status = status;
           _ops = ops;
+          _events = [..._events, ...events].take(200).toList();
         });
       }
     } catch (error) {
@@ -521,7 +527,7 @@ class _VmPageState extends ConsumerState<VmPage> {
   /// distinct from local Activity: these ops live in quickemu itself
   /// and can still be running after the app restarted.
   Widget _buildOps() {
-    if (_ops.isEmpty) {
+    if (_ops.isEmpty && _events.isEmpty) {
       return Center(
         child: Text(context.t('No backend operations for this machine.')),
       );
@@ -529,6 +535,24 @@ class _VmPageState extends ConsumerState<VmPage> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        if (_events.isNotEmpty) ...[
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              context.t('Events'),
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+          ),
+          for (final e in _events.reversed.take(10))
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: Text(
+                '${e['seq']} · ${e['type'] ?? e['event'] ?? e}',
+                style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+              ),
+            ),
+          const Divider(),
+        ],
         for (final op in _ops)
           Card(
             child: ListTile(

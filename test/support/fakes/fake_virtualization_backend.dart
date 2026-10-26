@@ -126,6 +126,17 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
   @override
   Future<Map<String, dynamic>?> hostInfo() async => hostInfoResponse;
 
+  List<Map<String, dynamic>> eventRecords = [];
+
+  @override
+  Future<List<Map<String, dynamic>>> readEvents(
+    String target, {
+    int cursor = 0,
+  }) async => [
+    for (final e in eventRecords)
+      if ((e['seq'] as int? ?? 0) > cursor) e,
+  ];
+
   final List<String> cancelledOperations = [];
 
   @override

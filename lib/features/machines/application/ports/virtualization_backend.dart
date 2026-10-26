@@ -89,6 +89,13 @@ abstract class VirtualizationBackend {
   /// cancelled and terminates its worker when possible.
   Future<void> cancelOperation(String target, String operationId);
 
+  /// Structured VM event tail (`--events <cursor>`): JSONL records with
+  /// `seq > cursor` for resumable reading. Empty when unsupported.
+  Future<List<Map<String, dynamic>>> readEvents(
+    String target, {
+    int cursor = 0,
+  });
+
   /// Runs a quickget action (e.g. ['--create-config','name','/path.iso']).
   Future<ProcessResult> runQuickget(List<String> arguments);
 
