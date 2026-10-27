@@ -2,6 +2,8 @@ app-id: io.github.quickemu_project.Quickgui
 runtime: org.freedesktop.Platform
 runtime-version: '24.08'
 sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.llvm18
 command: quickgui
 
 finish-args:
@@ -21,16 +23,24 @@ finish-args:
 modules:
   - name: quickgui
     buildsystem: simple
+    build-options:
+      build-args:
+        - --share=network
+      env:
+        PUB_CACHE: /run/build/quickgui/.flatpak-pub-cache
+        PATH: /usr/lib/sdk/llvm18/bin:/app/bin:/usr/bin
     build-commands:
-      - export PATH="${PWD}/flutter/bin:${PATH}"
       - git config --global --add safe.directory "${PWD}/flutter"
-      - flutter config --no-analytics --enable-linux-desktop
-      - flutter pub get
-      - flutter build linux --release
+      - rm -rf build .dart_tool
+      - ${PWD}/flutter/bin/flutter config --no-analytics --enable-linux-desktop
+      - ${PWD}/flutter/bin/flutter pub get
+      - ${PWD}/flutter/bin/flutter build linux --release
       - install -Dm755 build/linux/x64/release/bundle/quickgui /app/bin/quickgui
       - cp -r build/linux/x64/release/bundle/lib /app/bin/lib
       - cp -r build/linux/x64/release/bundle/data /app/bin/data
       - install -Dm644 assets/resources/quickgui.desktop
+        /app/share/applications/${FLATPAK_ID}.desktop
+      - sed -i "s/^Icon=.*/Icon=${FLATPAK_ID}/"
         /app/share/applications/${FLATPAK_ID}.desktop
       - install -Dm644 assets/resources/quickgui_512.png
         /app/share/icons/hicolor/512x512/apps/${FLATPAK_ID}.png
