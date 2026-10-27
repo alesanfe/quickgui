@@ -9,13 +9,24 @@ import 'package:quickgui/infrastructure/quickemu/quickemu_backend.dart';
 import 'package:quickgui/infrastructure/process/system_process_runner.dart';
 
 void main() {
+  // Returning before any test registers leaves zero tests = clean skip;
+  // an early return inside setUpAll would still run every test against an
+  // uninitialized backend.
+  if (Process.runSync('which', ['quickemu']).exitCode != 0) {
+    test(
+      'battery requires quickemu on PATH',
+      () {},
+      skip: 'quickemu not found on PATH',
+    );
+    return;
+  }
+
   late Directory tmp;
   late String conf;
   late String vmPath; // path without .conf
   late QuickemuBackend backend;
 
   setUpAll(() async {
-    if (Process.runSync('which', ['quickemu']).exitCode != 0) return;
     tmp = Directory.systemTemp.createTempSync('qg_battery_');
     conf = '${tmp.path}/battery.conf';
     vmPath = '${tmp.path}/battery';

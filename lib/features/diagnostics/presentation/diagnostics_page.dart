@@ -265,7 +265,6 @@ class _VfioScanSectionState extends ConsumerState<_VfioScanSection> {
   ]);
 }
 
-
 /// The global VM inventory the backend keeps (vms.json).
 class _InventorySection extends ConsumerWidget {
   const _InventorySection();

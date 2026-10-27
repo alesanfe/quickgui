@@ -553,13 +553,20 @@ class QuickemuBackend implements VirtualizationBackend {
   /// process, so we spawn quickemu directly on the same contract.
   @override
   Stream<Map<String, dynamic>> watchOperations(String target) async* {
-    final proc = await _process.startQuickemu([
-      '--vm',
-      '$target.conf',
-      '--op-watch',
-      '--format',
-      'json',
-    ]);
+    // A missing/unspawnable backend makes the watch a no-op rather than a
+    // stream error — callers fall back to --op-list polling as designed.
+    final Process proc;
+    try {
+      proc = await _process.startQuickemu([
+        '--vm',
+        '$target.conf',
+        '--op-watch',
+        '--format',
+        'json',
+      ]);
+    } on ProcessException {
+      return;
+    }
     yield* proc.stdout
         .transform(const Utf8Decoder())
         .transform(const LineSplitter())

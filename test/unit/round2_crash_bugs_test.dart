@@ -36,7 +36,7 @@ void main() {
       // Diagnostics data can carry non-map values for some keys.
       const map = {'key': 'scalar'};
       expect(
-        () => map['key'] as Map,
+        () => map['key']! as Map,
         throwsA(isA<TypeError>()),
       );
     });
