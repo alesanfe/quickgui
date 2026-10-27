@@ -1494,3 +1494,6 @@ msgstr ""
 
 msgid "Required"
 msgstr ""
+
+msgid "Welcome — pick an OS in Create, then manage your VMs here."
+msgstr ""

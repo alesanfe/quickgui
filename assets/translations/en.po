@@ -1492,3 +1492,6 @@ msgstr "Snapshot info…"
 
 msgid "Move to trash"
 msgstr "Move to trash"
+
+msgid "Welcome — pick an OS in Create, then manage your VMs here."
+msgstr "Welcome — pick an OS in Create, then manage your VMs here."

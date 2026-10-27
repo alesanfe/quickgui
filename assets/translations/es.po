@@ -1523,3 +1523,6 @@ msgstr "Info de snapshot…"
 
 msgid "Move to trash"
 msgstr "Mover a la papelera"
+
+msgid "Welcome — pick an OS in Create, then manage your VMs here."
+msgstr "Bienvenido — elige un SO en Crear y gestiona aquí tus VMs."

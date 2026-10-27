@@ -228,6 +228,23 @@ Future<void> _capture(
       await t.pump(const Duration(milliseconds: 200));
     }
   }
+  // Transient snackbars (first-run hint, batch results) live ~4s — past
+  // the pump budget — and would poison the pixel comparison. Clear any
+  // pending one so every capture is a stable, snackbar-free frame.
+  if (find.byType(ScaffoldMessenger).evaluate().isNotEmpty) {
+    t
+        .state<ScaffoldMessengerState>(find.byType(ScaffoldMessenger).first)
+        .clearSnackBars();
+    // The dismiss animation must fully settle — a half-hidden bar still
+    // diffs against the golden.
+    for (
+      var i = 0;
+      i < 15 && find.byType(SnackBar).evaluate().isNotEmpty;
+      i++
+    ) {
+      await t.pump(const Duration(milliseconds: 200));
+    }
+  }
   // matchesGoldenFile rasterizes the whole window via captureImage; run with
   // --update-goldens so the PNG is written next to this file under out/.
   await expectLater(
@@ -273,16 +290,28 @@ void main() {
     for (var i = 0; i < 6; i++) {
       await t.pump(const Duration(milliseconds: 200));
     }
-    // The details pane repeats labels such as 'Snapshots', 'Configure'
-    // and 'Delete' in its own buttons: the popup menu lives in the
-    // overlay, built later in tree order, so `.last` on both the text
-    // finder and the Scrollable selects the menu's copies.
-    final item = find.text(label).last;
-    await t.scrollUntilVisible(
-      item,
-      -250,
-      scrollable: find.byType(Scrollable).last,
+    // The VmActionsMenu renders rows as MenuItemButton inside a
+    // MenuAnchor — and the details pane repeats labels such as
+    // 'Snapshots' and 'Display viewer' in non-interactive rows, so the
+    // finder must be scoped to the menu's own buttons.
+    final menuItems = find.descendant(
+      of: find.byType(MenuItemButton),
+      matching: find.text(label),
     );
+    final firstRow = find.text('Edit configuration').last;
+    final scrollable = find
+        .ancestor(of: firstRow, matching: find.byType(Scrollable))
+        .first;
+    // Rows near the menu's clip edge count as laid-out but their centre
+    // is not hittable — centre the target inside the menu's viewport.
+    final item = menuItems.last;
+    final state = t.state<ScrollableState>(scrollable);
+    final itemRect = t.getRect(item);
+    final scrollRect = t.getRect(scrollable);
+    state.position.jumpTo(
+      state.position.pixels + itemRect.center.dy - scrollRect.center.dy,
+    );
+    await t.pumpAndSettle();
     await t.tap(item);
     // The popup closes via a Future chain (onSelected -> _editVmConfValues
     // -> File.readAsLines, whose open/read/close steps each need a real
