@@ -26,6 +26,7 @@ class _OptionSelectionState extends State<OptionSelection> {
   @override
   void dispose() {
     _scrollController.dispose();
+    focusNode.dispose();
     super.dispose();
   }
 

@@ -32,6 +32,7 @@ class _OperatingSystemSelectionState
   @override
   void dispose() {
     _scrollController.dispose();
+    focusNode.dispose();
     super.dispose();
   }
 
