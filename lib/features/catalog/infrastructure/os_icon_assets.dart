@@ -11,7 +11,8 @@ Future<Map<String, String>> loadOsIcons() async {
   final icons = <String, String>{};
   for (final imagePath in imagePaths) {
     final String filename = imagePath.split('/').last;
-    final String id = filename.substring(0, filename.lastIndexOf('.'));
+    final int dot = filename.lastIndexOf('.');
+    final String id = dot == -1 ? filename : filename.substring(0, dot);
     icons[id] = imagePath;
   }
   return icons;
