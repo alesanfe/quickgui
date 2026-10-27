@@ -1475,3 +1475,51 @@ msgstr "Comando HMP (p. ej. info status)"
 
 msgid "Send"
 msgstr "Enviar"
+
+msgid "Restart"
+msgstr "Reiniciar"
+
+msgid "Kill"
+msgstr "Matar"
+
+msgid "Send keys…"
+msgstr "Enviar teclas…"
+
+msgid "Type text…"
+msgstr "Escribir texto…"
+
+msgid "Save state to conf"
+msgstr "Guardar estado en conf"
+
+msgid "Create extra disk"
+msgstr "Crear disco extra"
+
+msgid "Commit disk resize"
+msgstr "Confirmar redimensión"
+
+msgid "Toggle public dir"
+msgstr "Alternar dir. público"
+
+msgid "Open display viewer"
+msgstr "Abrir visor"
+
+msgid "VNC viewer"
+msgstr "Visor VNC"
+
+msgid "SPICE console"
+msgstr "Consola SPICE"
+
+msgid "Fullscreen viewer"
+msgstr "Visor pantalla completa"
+
+msgid "Ignore MSRs (once)"
+msgstr "Ignorar MSRs (una vez)"
+
+msgid "Ignore MSRs (always)"
+msgstr "Ignorar MSRs (siempre)"
+
+msgid "Snapshot info…"
+msgstr "Info de snapshot…"
+
+msgid "Move to trash"
+msgstr "Mover a la papelera"

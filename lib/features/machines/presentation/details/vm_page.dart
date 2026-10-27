@@ -6,6 +6,7 @@ import 'package:quickgui/features/machines/application/structured_or_legacy.dart
 import 'package:quickgui/features/machines/providers/tracked_backend_provider.dart';
 
 import 'package:quickgui/features/machines/presentation/details/vm_connection_view.dart';
+import 'package:quickgui/features/machines/domain/forms/vm_inputs.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_settings_page.dart';
 import 'package:quickgui/shared/dialogs/validated_text_dialog.dart';
 import 'package:quickgui/features/machines/presentation/shared/stop_vm_dialog.dart';
@@ -252,15 +253,21 @@ class _VmPageState extends ConsumerState<VmPage> {
       case 'send-keys':
       case 'type':
       case 'snapshot-info':
-        final arg = await showValidatedTextDialog(
+        final arg = await showValidatedTextDialog<NonEmptyError>(
           context: context,
           title: context.t(switch (cmd) {
             'send-keys' => 'Send keys (e.g. ctrl-alt-delete)',
             'type' => 'Type text',
             _ => 'Snapshot name',
           }),
+          label: context.t('Value'),
+          confirmLabel: context.t('Send'),
+          initialValue: '',
+          dirty: NonEmptyInput.dirty,
+          message: (context, e) =>
+              e == NonEmptyError.empty ? context.t('Required') : null,
         );
-        if (arg == null || arg.isEmpty) return;
+        if (arg == null || arg.isEmpty || !context.mounted) return;
         await _run(['--$cmd', arg], confirm: true);
       case 'kill':
         await _run(['--kill'], confirm: true);

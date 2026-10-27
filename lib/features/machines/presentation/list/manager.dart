@@ -267,6 +267,20 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
     _getTerminalEmulator();
     _detectSpice();
     _setNewVmName();
+    _prefs.getAs<bool>(prefFirstRunHintShown).then((seen) {
+      if (seen == true || !mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text(
+            context.t(
+              'Welcome — pick an OS in Create, then manage your VMs here.',
+            ),
+          ),
+        ),
+      );
+      _prefs.set(prefFirstRunHintShown, true);
+    });
     _prefs.getAs<String>(prefWorkingDirectory).then((pref) async {
       if (!mounted) return;
       final writable = await _probe.canWriteToDirectory(Directory.current.path);

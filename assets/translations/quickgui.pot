@@ -1440,3 +1440,57 @@ msgstr ""
 
 msgid "Advanced"
 msgstr ""
+
+msgid "Restart"
+msgstr ""
+
+msgid "Kill"
+msgstr ""
+
+msgid "Send keys…"
+msgstr ""
+
+msgid "Type text…"
+msgstr ""
+
+msgid "Save state to conf"
+msgstr ""
+
+msgid "Create extra disk"
+msgstr ""
+
+msgid "Commit disk resize"
+msgstr ""
+
+msgid "Toggle public dir"
+msgstr ""
+
+msgid "Open display viewer"
+msgstr ""
+
+msgid "VNC viewer"
+msgstr ""
+
+msgid "SPICE console"
+msgstr ""
+
+msgid "Fullscreen viewer"
+msgstr ""
+
+msgid "Ignore MSRs (once)"
+msgstr ""
+
+msgid "Ignore MSRs (always)"
+msgstr ""
+
+msgid "Snapshot info…"
+msgstr ""
+
+msgid "Move to trash"
+msgstr ""
+
+msgid "Value"
+msgstr ""
+
+msgid "Required"
+msgstr ""

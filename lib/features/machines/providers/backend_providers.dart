@@ -47,6 +47,7 @@ final FutureProvider<List<String>> backendPluginsProvider =
     );
 
 /// Per-VM QMP metrics (`--stats`). Null when the VM isn't running.
+// ignore: specify_nonobvious_property_types
 final vmStatsProvider = FutureProvider.family<Map<String, dynamic>?, String>(
   (ref, vm) => ref.watch(backendProvider).vmStats(vm),
 );

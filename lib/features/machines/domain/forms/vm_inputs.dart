@@ -63,3 +63,15 @@ class CpuCoresInput extends FormzInput<String, CpuCoresError> {
     return n < 1 || n > max ? CpuCoresError.outOfRange : null;
   }
 }
+
+enum NonEmptyError { empty }
+
+/// Free-form text that only requires a non-empty value.
+class NonEmptyInput extends FormzInput<String, NonEmptyError> {
+  const NonEmptyInput.pure() : super.pure('');
+  const NonEmptyInput.dirty(super.value) : super.dirty();
+
+  @override
+  NonEmptyError? validator(String value) =>
+      value.trim().isEmpty ? NonEmptyError.empty : null;
+}

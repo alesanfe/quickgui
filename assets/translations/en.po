@@ -1444,3 +1444,51 @@ msgstr "HMP command (e.g. info status)"
 
 msgid "Send"
 msgstr "Send"
+
+msgid "Restart"
+msgstr "Restart"
+
+msgid "Kill"
+msgstr "Kill"
+
+msgid "Send keys…"
+msgstr "Send keys…"
+
+msgid "Type text…"
+msgstr "Type text…"
+
+msgid "Save state to conf"
+msgstr "Save state to conf"
+
+msgid "Create extra disk"
+msgstr "Create extra disk"
+
+msgid "Commit disk resize"
+msgstr "Commit disk resize"
+
+msgid "Toggle public dir"
+msgstr "Toggle public dir"
+
+msgid "Open display viewer"
+msgstr "Open display viewer"
+
+msgid "VNC viewer"
+msgstr "VNC viewer"
+
+msgid "SPICE console"
+msgstr "SPICE console"
+
+msgid "Fullscreen viewer"
+msgstr "Fullscreen viewer"
+
+msgid "Ignore MSRs (once)"
+msgstr "Ignore MSRs (once)"
+
+msgid "Ignore MSRs (always)"
+msgstr "Ignore MSRs (always)"
+
+msgid "Snapshot info…"
+msgstr "Snapshot info…"
+
+msgid "Move to trash"
+msgstr "Move to trash"
