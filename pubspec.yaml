@@ -87,4 +87,5 @@ flutter:
   assets:
     - assets/images/
     - assets/translations/
+    - assets/capabilities/
     - assets/icons/quickemu/

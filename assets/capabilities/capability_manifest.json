@@ -1,0 +1,2653 @@
+{
+  "schema_version": 1,
+  "backend": {
+    "name": "quickemu",
+    "provider": "alesanfe/quickemu",
+    "upstream": "quickemu-project/quickemu",
+    "minimum_version": "4.9.8",
+    "contract_version": 1
+  },
+  "capabilities": [
+    {
+      "id": "vm.lifecycle.start",
+      "domain": "lifecycle",
+      "title": "Start VM",
+      "criticality": "critical",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "launch",
+        "flags": [
+          "--vm"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "vm_list.context_menu.start",
+          "vm_details.primary_action"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runAction"
+      },
+      "testing": {
+        "surfaces": [
+          "test/integration/ui_backend_battery_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.lifecycle.status",
+      "domain": "lifecycle",
+      "title": "VM state query",
+      "criticality": "critical",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--status",
+        "flags": [
+          "--status"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "vm_list.state_badge",
+          "vm_details.state"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "inspectVirtualMachine"
+      },
+      "testing": {
+        "surfaces": [
+          "test/integration/ui_backend_battery_test.dart",
+          "test/integration/real_backend_contract_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.lifecycle.shutdown",
+      "domain": "lifecycle",
+      "title": "Graceful shutdown",
+      "criticality": "critical",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--shutdown",
+        "flags": [
+          "--shutdown"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "vm_list.context_menu.stop",
+          "vm_details.stop"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runAction"
+      },
+      "testing": {
+        "surfaces": [
+          "test/integration/ui_backend_battery_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.lifecycle.kill",
+      "domain": "lifecycle",
+      "title": "Force stop",
+      "criticality": "critical",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--kill",
+        "flags": [
+          "--kill"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.force_stop",
+          "vm_menu.stop_confirm.force"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runAction"
+      },
+      "testing": {
+        "surfaces": [
+          "test/integration/ui_backend_battery_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.lifecycle.reset",
+      "domain": "lifecycle",
+      "title": "Hard reset",
+      "criticality": "high",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--reset",
+        "flags": [
+          "--reset"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.lifecycle.reset"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runAction"
+      },
+      "testing": {
+        "surfaces": [
+          "test/widget/manager_workflows_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.lifecycle.pause",
+      "domain": "lifecycle",
+      "title": "Pause VM",
+      "criticality": "high",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--pause",
+        "flags": [
+          "--pause"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.lifecycle.pause"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runAction"
+      },
+      "testing": {
+        "surfaces": [
+          "test/integration/ui_backend_battery_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.lifecycle.resume",
+      "domain": "lifecycle",
+      "title": "Resume VM",
+      "criticality": "high",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--resume",
+        "flags": [
+          "--resume"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.lifecycle.resume"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runAction"
+      },
+      "testing": {
+        "surfaces": [
+          "test/integration/ui_backend_battery_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.lifecycle.fullscreen",
+      "domain": "lifecycle",
+      "title": "Fullscreen launch",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--fullscreen",
+        "flags": [
+          "--fullscreen",
+          "--full-screen"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.display_viewer.fullscreen",
+          "settings.preferred_viewer"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "launchSpiceViewer"
+      },
+      "testing": {
+        "surfaces": [
+          "test/capture/interface_capture_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.lifecycle.statusQuo",
+      "domain": "lifecycle",
+      "title": "Ephemeral run (status-quo)",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--status-quo",
+        "flags": [
+          "--status-quo"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.maintenance.check_vm"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runAction"
+      },
+      "testing": {
+        "surfaces": [
+          "test/widget/manager_workflows_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.lifecycle.offline",
+      "domain": "lifecycle",
+      "title": "Offline network mode",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--offline",
+        "flags": [
+          "--offline"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "vm_settings.network_key"
+        ],
+        "justification": "Equivalent reachable via the 'network' conf key the settings editor exposes"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/vm_config_file_store_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.lifecycle.restart",
+      "domain": "lifecycle",
+      "title": "Restart VM",
+      "criticality": "low",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "restart",
+        "flags": [
+          "--restart"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "planned",
+        "justification": "Composite op (stop+start); dedicated UI action not yet exposed"
+      }
+    },
+    {
+      "id": "vm.library.list",
+      "domain": "library",
+      "title": "List VMs",
+      "criticality": "critical",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--list-vms",
+        "flags": [
+          "--list-vms"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "machines.list",
+          "dashboard.vm_cards"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "listVirtualMachines"
+      },
+      "testing": {
+        "surfaces": [
+          "test/integration/ui_backend_battery_test.dart",
+          "test/e2e/e2e_interfaces_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.library.inspectConf",
+      "domain": "library",
+      "title": "Inspect configuration",
+      "criticality": "high",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--inspect-conf",
+        "flags": [
+          "--inspect-conf"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "vm_settings.all_dialog",
+          "vm_page.configuration"
+        ],
+        "justification": "Config surfaced via VmConfigFileStore editor; --inspect-conf exercised in contract tests"
+      },
+      "testing": {
+        "surfaces": [
+          "test/integration/real_backend_contract_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.library.doctor",
+      "domain": "library",
+      "title": "Config doctor",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--doctor",
+        "flags": [
+          "--doctor"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "diagnostics.host_checks",
+          "vm_page.doctor_action",
+          "vm_menu.maintenance.check_vm"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runAction"
+      },
+      "testing": {
+        "surfaces": [
+          "test/golden/diagnostics_page_golden_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.library.doctorFix",
+      "domain": "library",
+      "title": "Doctor auto-fix",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--doctor --fix",
+        "flags": [
+          "--fix"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "planned",
+        "justification": "Auto-rewrite of conf not yet offered; read-only doctor only"
+      }
+    },
+    {
+      "id": "vm.snapshot.create",
+      "domain": "snapshots",
+      "title": "Create snapshot",
+      "criticality": "high",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--snapshot create",
+        "flags": [
+          "--snapshot"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.snapshots.create"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runAction"
+      },
+      "testing": {
+        "surfaces": [
+          "test/capture/interface_capture_test.dart",
+          "test/widget/manager_workflows_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.snapshot.apply",
+      "domain": "snapshots",
+      "title": "Apply snapshot",
+      "criticality": "high",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--snapshot apply"
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.snapshots.apply"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runAction"
+      },
+      "testing": {
+        "surfaces": [
+          "test/capture/interface_capture_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.snapshot.delete",
+      "domain": "snapshots",
+      "title": "Delete snapshot",
+      "criticality": "high",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--snapshot delete"
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.snapshots.delete"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runAction"
+      },
+      "testing": {
+        "surfaces": [
+          "test/capture/interface_capture_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.snapshot.info",
+      "domain": "snapshots",
+      "title": "Snapshot info/list",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--snapshot info"
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.snapshots.info"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "listSnapshots"
+      },
+      "testing": {
+        "surfaces": [
+          "test/widget/manager_workflows_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.snapshot.tree",
+      "domain": "snapshots",
+      "title": "Snapshot dependency tree",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--snapshot-tree",
+        "flags": [
+          "--snapshot-tree"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.snapshots.tree"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "snapshotTree"
+      },
+      "testing": {
+        "surfaces": [
+          "test/integration/ui_backend_battery_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.snapshot.verify",
+      "domain": "snapshots",
+      "title": "Verify snapshot",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--snapshot-verify",
+        "flags": [
+          "--snapshot-verify"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "planned",
+        "justification": "Integrity check exposed by backend but no UI surface yet"
+      }
+    },
+    {
+      "id": "vm.delete.plan",
+      "domain": "deletion",
+      "title": "Delete plan review",
+      "criticality": "critical",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--delete-plan",
+        "flags": [
+          "--delete-plan"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.delete.plan_dialog"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runVmJson"
+      },
+      "testing": {
+        "surfaces": [
+          "test/integration/real_backend_contract_test.dart",
+          "test/capture/interface_capture_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.delete.vm",
+      "domain": "deletion",
+      "title": "Delete VM",
+      "criticality": "critical",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--delete-vm",
+        "flags": [
+          "--delete-vm",
+          "--plan-id",
+          "--trash"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.delete.confirm"
+        ],
+        "justification": "plan-id/trash are parameters of the guarded delete flow"
+      },
+      "architecture": {
+        "adapter_method": "runVmJson"
+      },
+      "testing": {
+        "surfaces": [
+          "test/integration/real_backend_contract_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.delete.disk",
+      "domain": "deletion",
+      "title": "Delete disk image",
+      "criticality": "high",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--delete-disk",
+        "flags": [
+          "--delete-disk"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.delete.disk_option"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runAction"
+      },
+      "testing": {
+        "surfaces": [
+          "test/capture/interface_capture_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.trash.list",
+      "domain": "deletion",
+      "title": "List trash",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--trash-list",
+        "flags": [
+          "--trash-list"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.maintenance.trash"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "listTrash"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart",
+          "test/integration/real_backend_surface_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.trash.restore",
+      "domain": "deletion",
+      "title": "Restore from trash",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--trash-restore",
+        "flags": [
+          "--trash-restore"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.maintenance.trash_restore"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "restoreFromTrash"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.trash.empty",
+      "domain": "deletion",
+      "title": "Empty trash",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--trash-empty",
+        "flags": [
+          "--trash-empty"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "planned",
+        "justification": "Bulk trash purge not yet exposed; restore/list are"
+      }
+    },
+    {
+      "id": "desktop.shortcut",
+      "domain": "desktop",
+      "title": "Desktop shortcut",
+      "criticality": "low",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--shortcut",
+        "flags": [
+          "--shortcut",
+          "--delete-shortcut"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "unsupported",
+        "justification": "Quickgui manages its own launcher UX; desktop .desktop files out of scope"
+      }
+    },
+    {
+      "id": "vm.backup.create",
+      "domain": "backup",
+      "title": "Create backup",
+      "criticality": "high",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--backup",
+        "flags": [
+          "--backup"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.maintenance.backups.create"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "createBackup"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.backup.list",
+      "domain": "backup",
+      "title": "List backups",
+      "criticality": "high",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--backup-list",
+        "flags": [
+          "--backup-list"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.maintenance.backups.list"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "listBackups"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart",
+          "test/integration/real_backend_surface_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.backup.restore",
+      "domain": "backup",
+      "title": "Restore backup",
+      "criticality": "high",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--backup-restore",
+        "flags": [
+          "--backup-restore"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.maintenance.backups.restore"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "restoreBackup"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.backup.prune",
+      "domain": "backup",
+      "title": "Prune backups",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--backup-prune",
+        "flags": [
+          "--backup-prune"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.maintenance.backups.prune"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "pruneBackups"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.backup.verify",
+      "domain": "backup",
+      "title": "Verify backup",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--backup-verify",
+        "flags": [
+          "--backup-verify"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "planned",
+        "justification": "List surfaces checksum state; explicit verify action pending"
+      }
+    },
+    {
+      "id": "vm.clone",
+      "domain": "migration",
+      "title": "Clone VM",
+      "criticality": "high",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--clone",
+        "flags": [
+          "--clone",
+          "--full"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.clone"
+        ],
+        "justification": "'--full' exposed as the copy-mode toggle in the clone dialog"
+      },
+      "architecture": {
+        "adapter_method": "runAction"
+      },
+      "testing": {
+        "surfaces": [
+          "test/capture/interface_capture_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.linkedClone",
+      "domain": "migration",
+      "title": "Linked (COW) clone",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--linked-clone",
+        "flags": [
+          "--linked-clone"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.clone.linked"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "linkedClone"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.rename",
+      "domain": "migration",
+      "title": "Rename VM",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--rename",
+        "flags": [
+          "--rename"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.rename"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "renameVm"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.move",
+      "domain": "migration",
+      "title": "Move VM directory",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--move",
+        "flags": [
+          "--move"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.move"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "moveVm"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.export",
+      "domain": "migration",
+      "title": "Export VM archive",
+      "criticality": "high",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--export",
+        "flags": [
+          "--export"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.export",
+          "vm_list.batch.export"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "exportVm"
+      },
+      "testing": {
+        "surfaces": [
+          "test/widget/manager_workflows_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.import",
+      "domain": "migration",
+      "title": "Import VM archive",
+      "criticality": "high",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--import",
+        "flags": [
+          "--import"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "create.import.drop",
+          "create.import.picker"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runAction"
+      },
+      "testing": {
+        "surfaces": [
+          "test/e2e/e2e_interfaces_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.disk.resize",
+      "domain": "disks",
+      "title": "Resize disk",
+      "criticality": "high",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--disk-resize",
+        "flags": [
+          "--disk-resize"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.resize"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runAction"
+      },
+      "testing": {
+        "surfaces": [
+          "test/capture/interface_capture_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.disk.compact",
+      "domain": "disks",
+      "title": "Compact disk",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--disk-compact",
+        "flags": [
+          "--disk-compact"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.maintenance.disk_compact"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "diskCompact"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.disk.create",
+      "domain": "disks",
+      "title": "Create standalone disk",
+      "criticality": "low",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "create-disk",
+        "flags": [
+          "--create-disk"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "planned",
+        "justification": "Extra disks not yet creatable from the UI"
+      }
+    },
+    {
+      "id": "vm.disk.resizeCommit",
+      "domain": "disks",
+      "title": "Commit pending resize",
+      "criticality": "low",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "disk-resize-commit",
+        "flags": [
+          "--resize-commit"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "planned",
+        "justification": "Two-phase resize commit not surfaced"
+      }
+    },
+    {
+      "id": "vm.image.verify",
+      "domain": "disks",
+      "title": "Verify downloaded image",
+      "criticality": "medium",
+      "backend": {
+        "executable": "external",
+        "operation": "chunkcheck"
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.maintenance.verify_image"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "verifyImage"
+      },
+      "testing": {
+        "surfaces": [
+          "test/widget/manager_workflows_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.monitor.cmd",
+      "domain": "monitor",
+      "title": "Monitor command",
+      "criticality": "high",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--monitor-cmd",
+        "flags": [
+          "--monitor-cmd"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.maintenance.monitor_cmd"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "monitorCommand"
+      },
+      "testing": {
+        "surfaces": [
+          "test/integration/ui_backend_battery_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.input.sendKeys",
+      "domain": "monitor",
+      "title": "Send keys",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--send-keys",
+        "flags": [
+          "--send-keys"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.maintenance.send_keys"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runAction"
+      },
+      "testing": {
+        "surfaces": [
+          "test/integration/ui_backend_battery_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.input.type",
+      "domain": "monitor",
+      "title": "Type text",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--type",
+        "flags": [
+          "--type"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.maintenance.type_text"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runAction"
+      },
+      "testing": {
+        "surfaces": [
+          "test/integration/ui_backend_battery_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.monitor.screenshot",
+      "domain": "monitor",
+      "title": "Screenshot",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--screenshot",
+        "flags": [
+          "--screenshot"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.maintenance.screenshot"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runAction"
+      },
+      "testing": {
+        "surfaces": [
+          "test/integration/ui_backend_battery_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.hotplug.usb",
+      "domain": "hotplug",
+      "title": "Hotplug USB",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--hotplug-usb",
+        "flags": [
+          "--hotplug-usb"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.devices.hotplug_usb"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "hotplugUsb"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.hotplug.disk",
+      "domain": "hotplug",
+      "title": "Hotplug disk",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--hotplug-disk",
+        "flags": [
+          "--hotplug-disk"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.devices.hotplug_disk"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "hotplugDisk"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.hotplug.unplug",
+      "domain": "hotplug",
+      "title": "Hot-unplug device",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--hotunplug",
+        "flags": [
+          "--hotunplug"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "planned",
+        "justification": "Unplugging hot devices not yet exposed"
+      }
+    },
+    {
+      "id": "vm.hotplug.persist",
+      "domain": "hotplug",
+      "title": "Persist hotplug",
+      "criticality": "low",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--persist",
+        "flags": [
+          "--persist"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "partiallyImplemented",
+        "entry_points": [
+          "vm_menu.devices.hotplug_*"
+        ],
+        "justification": "Hotplug works but the persist-to-config modifier is not offered"
+      }
+    },
+    {
+      "id": "ops.events",
+      "domain": "operations",
+      "title": "VM event tail",
+      "criticality": "high",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--events",
+        "flags": [
+          "--events"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "activity.events_feed"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "readEvents"
+      },
+      "testing": {
+        "surfaces": [
+          "test/integration/ui_backend_battery_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "ops.status",
+      "domain": "operations",
+      "title": "Async op status",
+      "criticality": "high",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--op-status",
+        "flags": [
+          "--op-status"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "activity.operation_tile"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "operationStatus"
+      },
+      "testing": {
+        "surfaces": [
+          "test/integration/real_backend_contract_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "ops.list",
+      "domain": "operations",
+      "title": "List async ops",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--op-list",
+        "flags": [
+          "--op-list"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "activity.list"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "listOperations"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart",
+          "test/integration/real_backend_surface_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "ops.watch",
+      "domain": "operations",
+      "title": "Watch ops stream",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--op-watch",
+        "flags": [
+          "--op-watch"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "activity.live_updates"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "watchOperations"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "ops.cancel",
+      "domain": "operations",
+      "title": "Cancel async op",
+      "criticality": "high",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--op-cancel",
+        "flags": [
+          "--op-cancel"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "activity.operation_tile.cancel"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "cancelOperation"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/features/downloads/download_tasks_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "ops.aliasLong",
+      "domain": "operations",
+      "title": "Long op aliases",
+      "criticality": "low",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--operation-*",
+        "flags": [
+          "--operation-status",
+          "--operation-list",
+          "--operation-cancel",
+          "--operation-watch"
+        ]
+      },
+      "gui": {
+        "requirement": "not_applicable",
+        "status": "notApplicable",
+        "justification": "Spellings alias the covered --op-* surface"
+      }
+    },
+    {
+      "id": "backend.inventory",
+      "domain": "registry",
+      "title": "Global VM inventory",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--inventory",
+        "flags": [
+          "--inventory"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "diagnostics.inventory",
+          "machines.library_sync"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "listInventory"
+      },
+      "testing": {
+        "surfaces": [
+          "test/integration/real_backend_contract_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "backend.plugins.list",
+      "domain": "plugins",
+      "title": "List plugins",
+      "criticality": "low",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--plugins",
+        "flags": [
+          "--plugins"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "diagnostics.plugins"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "listPlugins"
+      },
+      "testing": {
+        "surfaces": [
+          "test/integration/ui_backend_battery_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "backend.plugins.dispatch",
+      "domain": "plugins",
+      "title": "Run plugin",
+      "criticality": "low",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--plugin <name>",
+        "flags": [
+          "--plugin"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "planned",
+        "justification": "Plugin listing shown; invoking a plugin not yet wired"
+      }
+    },
+    {
+      "id": "vm.stats",
+      "domain": "monitor",
+      "title": "Per-VM metrics",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--stats",
+        "flags": [
+          "--stats"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "vm_details.stats"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "vmStats"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart",
+          "test/integration/real_backend_surface_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.profile",
+      "domain": "config",
+      "title": "Start with profile",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--profile",
+        "flags": [
+          "--profile"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "create_wizard.hardware_profiles",
+          "vm_menu.start_profile"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "startWithProfile"
+      },
+      "testing": {
+        "surfaces": [
+          "test/e2e/e2e_interfaces_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.config.migrateToml",
+      "domain": "config",
+      "title": "Migrate conf to TOML",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--migrate-conf",
+        "flags": [
+          "--migrate-conf"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.migrate_toml"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "migrateConfToToml"
+      },
+      "testing": {
+        "surfaces": [
+          "test/widget/manager_workflows_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "backend.hostInfo",
+      "domain": "diagnostics",
+      "title": "Host inventory",
+      "criticality": "high",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--host-info",
+        "flags": [
+          "--host-info"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "diagnostics.host_section"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "hostInfo"
+      },
+      "testing": {
+        "surfaces": [
+          "test/integration/ui_backend_battery_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "backend.capabilities",
+      "domain": "diagnostics",
+      "title": "Capability descriptor",
+      "criticality": "critical",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--capabilities",
+        "flags": [
+          "--capabilities"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "diagnostics.capabilities_section",
+          "app.feature_gating"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "getCapabilities"
+      },
+      "testing": {
+        "surfaces": [
+          "test/integration/real_backend_contract_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "backend.vfioScan",
+      "domain": "diagnostics",
+      "title": "VFIO/IOMMU scan",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--vfio-scan",
+        "flags": [
+          "--vfio-scan"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "diagnostics.vfio_scan"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "vfioScan"
+      },
+      "testing": {
+        "surfaces": [
+          "test/integration/ui_backend_battery_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "backend.version",
+      "domain": "diagnostics",
+      "title": "Backend version",
+      "criticality": "high",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--version",
+        "flags": [
+          "--version"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "diagnostics.version_line",
+          "settings.about"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "version"
+      },
+      "testing": {
+        "surfaces": [
+          "test/e2e/e2e_interfaces_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "backend.report",
+      "domain": "diagnostics",
+      "title": "Diagnostics report",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickreport",
+        "operation": "quickreport"
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "diagnostics.copy_report",
+          "settings.quickemu_report"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "diagnosticsReport"
+      },
+      "testing": {
+        "surfaces": [
+          "test/capture/interface_capture_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "backend.contract.json",
+      "domain": "internal",
+      "title": "JSON contract envelope",
+      "criticality": "critical",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--format json",
+        "flags": [
+          "--format"
+        ]
+      },
+      "gui": {
+        "requirement": "not_applicable",
+        "status": "notApplicable",
+        "justification": "Contract selector appended by StructuredQuickemu; boundary mechanism, not a user action"
+      }
+    },
+    {
+      "id": "backend.dryRun",
+      "domain": "internal",
+      "title": "Dry run / echo",
+      "criticality": "low",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--dry-run",
+        "flags": [
+          "--dry-run",
+          "--echo"
+        ]
+      },
+      "gui": {
+        "requirement": "not_applicable",
+        "status": "notApplicable",
+        "justification": "Developer flag; the app never asks for a dry run"
+      }
+    },
+    {
+      "id": "backend.external",
+      "domain": "internal",
+      "title": "--external flag",
+      "criticality": "low",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--external",
+        "flags": [
+          "--external"
+        ]
+      },
+      "gui": {
+        "requirement": "not_applicable",
+        "status": "notApplicable",
+        "justification": "Dead option upstream: parsed, never read"
+      }
+    },
+    {
+      "id": "backend.param.vm",
+      "domain": "internal",
+      "title": "--vm selector",
+      "criticality": "low",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--vm"
+      },
+      "gui": {
+        "requirement": "not_applicable",
+        "status": "notApplicable",
+        "justification": "Universal target parameter of every VM action"
+      }
+    },
+    {
+      "id": "backend.param.planId",
+      "domain": "internal",
+      "title": "--plan-id parameter",
+      "criticality": "low",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--plan-id"
+      },
+      "gui": {
+        "requirement": "not_applicable",
+        "status": "notApplicable",
+        "justification": "Guard parameter inside the delete flow"
+      }
+    },
+    {
+      "id": "backend.alias",
+      "domain": "internal",
+      "title": "Single-dash & bareword aliases",
+      "criticality": "low",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "aliases",
+        "flags": [
+          "--list",
+          "--vms",
+          "--conf",
+          "--plan",
+          "--scan",
+          "--keys",
+          "--cmd",
+          "--disk",
+          "--watch",
+          "--cancel",
+          "--restore",
+          "--verify",
+          "--quo",
+          "--msrs",
+          "--msrs-always",
+          "--apply",
+          "--info",
+          "--create",
+          "--delete",
+          "--resize",
+          "--console",
+          "--vnc",
+          "--spice-console",
+          "--publicdir",
+          "--snapshot-list",
+          "--snapshot-apply",
+          "--snapshot-create",
+          "--snapshot-delete",
+          "--snapshot-info",
+          "--ignore-msrs"
+        ]
+      },
+      "gui": {
+        "requirement": "not_applicable",
+        "status": "notApplicable",
+        "justification": "Aliases map onto the covered canonical commands"
+      }
+    },
+    {
+      "id": "cli.help",
+      "domain": "internal",
+      "title": "Help text",
+      "criticality": "low",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--help",
+        "flags": [
+          "--help"
+        ]
+      },
+      "gui": {
+        "requirement": "not_applicable",
+        "status": "notApplicable",
+        "justification": "CLI self-documentation; the GUI is the documentation surface"
+      }
+    },
+    {
+      "id": "launch.display",
+      "domain": "launch",
+      "title": "Display backend",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--display",
+        "flags": [
+          "--display"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "vm_settings.display_key",
+          "settings.preferred_viewer"
+        ],
+        "justification": "Resolved through the 'display' conf key + preferred-viewer setting"
+      },
+      "architecture": {
+        "adapter_method": "launchSpiceViewer"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "launch.viewer",
+      "domain": "launch",
+      "title": "SPICE viewer choice",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--viewer",
+        "flags": [
+          "--viewer"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "settings.preferred_viewer",
+          "vm_settings.viewer_key"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "launchSpiceViewer"
+      },
+      "testing": {
+        "surfaces": [
+          "test/capture/interface_capture_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "launch.publicDir",
+      "domain": "launch",
+      "title": "Shared folder",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--public-dir",
+        "flags": [
+          "--public-dir"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "vm_settings.public_dir_key"
+        ],
+        "justification": "Exposed as the 'public_dir' conf key in settings"
+      },
+      "testing": {
+        "surfaces": [
+          "test/capture/interface_capture_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "launch.usbPassthrough",
+      "domain": "launch",
+      "title": "USB passthrough list",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--usb-passthrough",
+        "flags": [
+          "--usb-passthrough"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "vm_settings.usb_devices_key"
+        ],
+        "justification": "Exposed as the 'usb_devices' conf key"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/vm_config_file_store_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "launch.soundCard",
+      "domain": "launch",
+      "title": "Sound card model",
+      "criticality": "low",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--sound-card",
+        "flags": [
+          "--sound-card",
+          "--sound-duplex"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "partiallyImplemented",
+        "entry_points": [
+          "vm_settings.sound_key"
+        ],
+        "justification": "The 'sound' conf key is editable; duplex variants are not broken out"
+      }
+    },
+    {
+      "id": "launch.geometry",
+      "domain": "launch",
+      "title": "Screen width/height",
+      "criticality": "low",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--width/--height",
+        "flags": [
+          "--width",
+          "--height"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "notApplicable",
+        "justification": "Display geometry delegated to the viewer/QEMU"
+      }
+    },
+    {
+      "id": "launch.netTuning",
+      "domain": "launch",
+      "title": "Network/SSH/SPICE tuning",
+      "criticality": "low",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "net flags",
+        "flags": [
+          "--ssh-port",
+          "--spice-port",
+          "--ssh-access",
+          "--access"
+        ]
+      },
+      "gui": {
+        "requirement": "not_applicable",
+        "status": "notApplicable",
+        "justification": "Ports auto-allocated by the port registry; access modes are internal launch modifiers"
+      }
+    },
+    {
+      "id": "launch.hwTuning",
+      "domain": "launch",
+      "title": "Input/sound/monitor hardware tuning",
+      "criticality": "low",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "hw flags",
+        "flags": [
+          "--monitor",
+          "--monitor-telnet-host",
+          "--monitor-telnet-port",
+          "--serial",
+          "--serial-telnet-host",
+          "--serial-telnet-port",
+          "--keyboard",
+          "--keyboard_layout",
+          "--mouse",
+          "--usb-controller"
+        ]
+      },
+      "gui": {
+        "requirement": "not_applicable",
+        "status": "notApplicable",
+        "justification": "Per-launch QEMU tuning; backend defaults apply"
+      }
+    },
+    {
+      "id": "launch.quirks",
+      "domain": "launch",
+      "title": "Hardware quirk flags",
+      "criticality": "low",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "quirk flags",
+        "flags": [
+          "--cpu-pinning",
+          "--braille",
+          "--ignore-msrs-always",
+          "--ignore-tsc-warning"
+        ]
+      },
+      "gui": {
+        "requirement": "not_applicable",
+        "status": "notApplicable",
+        "justification": "Host quirk workarounds; backend decides"
+      }
+    },
+    {
+      "id": "launch.extraArgs",
+      "domain": "launch",
+      "title": "Arbitrary QEMU args",
+      "criticality": "low",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--extra_args",
+        "flags": [
+          "--extra_args"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "unsupported",
+        "justification": "Deliberately not exposed: raw QEMU args bypass validation and are a support/security surface"
+      }
+    },
+    {
+      "id": "vm.autostart",
+      "domain": "desktop",
+      "title": "Systemd autostart unit",
+      "criticality": "low",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--autostart",
+        "flags": [
+          "--autostart"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "planned",
+        "justification": "Boot-time autostart could live in VM settings; not built"
+      }
+    },
+    {
+      "id": "catalog.list",
+      "domain": "catalog",
+      "title": "OS catalogue",
+      "criticality": "critical",
+      "backend": {
+        "executable": "quickget",
+        "operation": "--list-json",
+        "flags": [
+          "--list-json",
+          "--list",
+          "--list-csv"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "create.catalog",
+          "home.quick_create"
+        ],
+        "justification": "--list/--list-csv are the legacy/fallback wire formats of the same capability"
+      },
+      "architecture": {
+        "adapter_method": "listOperatingSystems"
+      },
+      "testing": {
+        "surfaces": [
+          "test/widget/catalog_workflows_test.dart",
+          "test/e2e/e2e_interfaces_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "catalog.show",
+      "domain": "catalog",
+      "title": "OS detail (--show)",
+      "criticality": "low",
+      "backend": {
+        "executable": "quickget",
+        "operation": "--show",
+        "flags": [
+          "--show"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "planned",
+        "justification": "Catalogue rows already carry release/edition metadata"
+      }
+    },
+    {
+      "id": "download.image",
+      "domain": "downloads",
+      "title": "Download OS image",
+      "criticality": "critical",
+      "backend": {
+        "executable": "quickget",
+        "operation": "download",
+        "flags": [
+          "--download"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "create.download",
+          "download_tasks"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "startDownloadImage"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/features/downloads/download_tasks_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "download.check",
+      "domain": "downloads",
+      "title": "Pre-download check",
+      "criticality": "high",
+      "backend": {
+        "executable": "quickget",
+        "operation": "--check",
+        "flags": [
+          "--check"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "create.download.preflight",
+          "download_controls.check"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runQuickget"
+      },
+      "testing": {
+        "surfaces": [
+          "test/widget/catalog_workflows_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "download.checkAllArch",
+      "domain": "downloads",
+      "title": "Check all architectures",
+      "criticality": "low",
+      "backend": {
+        "executable": "quickget",
+        "operation": "--check-all-arch",
+        "flags": [
+          "--check-all-arch"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "planned",
+        "justification": "Single-arch check is wired; all-arch sweep is not"
+      }
+    },
+    {
+      "id": "download.createConfig",
+      "domain": "downloads",
+      "title": "Create conf from image",
+      "criticality": "high",
+      "backend": {
+        "executable": "quickget",
+        "operation": "--create-config",
+        "flags": [
+          "--create-config"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "create.import.flow"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runQuickget"
+      },
+      "testing": {
+        "surfaces": [
+          "test/widget/home_workflows_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "download.arch",
+      "domain": "downloads",
+      "title": "Architecture selection",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickget",
+        "operation": "--arch",
+        "flags": [
+          "--arch"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "partiallyImplemented",
+        "entry_points": [
+          "create_wizard.system"
+        ],
+        "justification": "Downloads default to amd64; arm64 selection not yet exposed"
+      }
+    },
+    {
+      "id": "download.unattended",
+      "domain": "downloads",
+      "title": "Unattended install",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickget",
+        "operation": "--unattended",
+        "flags": [
+          "--unattended",
+          "--disable-unattended"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "planned",
+        "justification": "Unattended provisioning is a roadmap feature"
+      }
+    },
+    {
+      "id": "download.cloudInit",
+      "domain": "downloads",
+      "title": "Cloud-init seed",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickget",
+        "operation": "--cloud-init",
+        "flags": [
+          "--cloud-init"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "planned",
+        "justification": "Cloud-init customisation planned with unattended installs"
+      }
+    },
+    {
+      "id": "download.update",
+      "domain": "downloads",
+      "title": "Refresh download data",
+      "criticality": "low",
+      "backend": {
+        "executable": "quickget",
+        "operation": "--update",
+        "flags": [
+          "--update"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "planned",
+        "justification": "Catalogue data refresh not yet exposed"
+      }
+    },
+    {
+      "id": "download.openHomepage",
+      "domain": "downloads",
+      "title": "Open OS homepage",
+      "criticality": "low",
+      "backend": {
+        "executable": "quickget",
+        "operation": "--open-homepage",
+        "flags": [
+          "--open-homepage"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "planned",
+        "justification": "Could be an external-link action on catalogue rows"
+      }
+    },
+    {
+      "id": "download.urlOverride",
+      "domain": "internal",
+      "title": "URL override",
+      "criticality": "low",
+      "backend": {
+        "executable": "quickget",
+        "operation": "--url",
+        "flags": [
+          "--url"
+        ]
+      },
+      "gui": {
+        "requirement": "not_applicable",
+        "status": "notApplicable",
+        "justification": "Internal/testing override, not a user feature"
+      }
+    },
+    {
+      "id": "download.insecure",
+      "domain": "security",
+      "title": "Insecure TLS downloads",
+      "criticality": "low",
+      "backend": {
+        "executable": "quickget",
+        "operation": "--insecure",
+        "flags": [
+          "--insecure"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "unsupported",
+        "justification": "TLS bypass is a deliberate security exclusion"
+      }
+    },
+    {
+      "id": "quickget.version",
+      "domain": "diagnostics",
+      "title": "quickget version",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickget",
+        "operation": "--version"
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "diagnostics.version_line"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "version"
+      },
+      "testing": {
+        "surfaces": [
+          "test/integration/ui_backend_battery_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "config.document.edit",
+      "domain": "config",
+      "title": "Safe conf editing",
+      "criticality": "critical",
+      "backend": {
+        "executable": "internal",
+        "operation": "VmConfigFileStore"
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "vm_settings.all_dialog"
+        ],
+        "justification": "Atomic writes, backups, conflict detection and selective merge over .conf"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/vm_config_file_store_test.dart",
+          "test/performance/parser_perf_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "library.state.refresh",
+      "domain": "library",
+      "title": "Live state refresh",
+      "criticality": "high",
+      "backend": {
+        "executable": "internal",
+        "operation": "VmLibraryProvider"
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "machines.list.state_badges"
+        ],
+        "justification": "5s visibility-aware refresh reconciles backend state"
+      },
+      "testing": {
+        "surfaces": [
+          "test/e2e/e2e_interfaces_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "activity.auditTrail",
+      "domain": "operations",
+      "title": "Activity audit trail",
+      "criticality": "high",
+      "backend": {
+        "executable": "internal",
+        "operation": "ActivityProvider"
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "activity.list",
+          "activity.operation_tile"
+        ],
+        "justification": "Typed states, retry, cancel, output inspection"
+      },
+      "testing": {
+        "surfaces": [
+          "test/widget/activity_page_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "app.downloadNotifications",
+      "domain": "operations",
+      "title": "Download notifications",
+      "criticality": "low",
+      "backend": {
+        "executable": "internal",
+        "operation": "AppShell"
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "system.desktop_notification"
+        ],
+        "justification": "Best-effort desktop notification on download completion"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/features/activity/download_notification_policy_test.dart"
+        ]
+      }
+    }
+  ]
+}

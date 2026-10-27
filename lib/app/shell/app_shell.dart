@@ -8,6 +8,7 @@ import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:go_router/go_router.dart';
 import 'package:window_manager/window_manager.dart';
 
+import 'package:quickgui/features/activity/application/download_notification_policy.dart';
 import 'package:quickgui/features/activity/domain/app_operation.dart';
 import 'package:quickgui/features/activity/providers/activity_providers.dart';
 import 'package:quickgui/features/settings/providers/ui_preferences_providers.dart';
@@ -30,7 +31,8 @@ class _AppShellState extends ConsumerState<AppShell> {
   final NotificationsClient? _notificationsClient = Platform.isLinux
       ? NotificationsClient()
       : null;
-  final Set<String> _notifiedOps = {};
+  final DownloadNotificationPolicy _notificationPolicy =
+      DownloadNotificationPolicy();
 
   /// Fires a desktop notification when a download reaches a terminal
   /// state. The activity history is the canonical record — each finished
@@ -40,10 +42,9 @@ class _AppShellState extends ConsumerState<AppShell> {
     final client = _notificationsClient;
     if (client == null) return;
     if (!ref.read(uiPreferencesProvider).notifyOnComplete) return;
-    for (final entry in ref.read(activityProvider).history) {
-      if (entry.kind != OperationKind.download) continue;
-      final key = entry.id ?? '${entry.target}@${entry.completedAt}';
-      if (!_notifiedOps.add(key)) continue;
+    for (final entry in _notificationPolicy.pending(
+      ref.read(activityProvider).history,
+    )) {
       final (title, body) = switch (entry.status) {
         OperationStatus.succeeded => (
           context.t('Download finished.'),
@@ -76,9 +77,6 @@ class _AppShellState extends ConsumerState<AppShell> {
           } catch (_) {}
         }, (_, _) {}),
       );
-    }
-    if (_notifiedOps.length > 200) {
-      _notifiedOps.clear();
     }
   }
 

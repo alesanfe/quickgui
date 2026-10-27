@@ -1,0 +1,399 @@
+#!/usr/bin/env python3
+"""Generates assets/capabilities/capability_manifest.json.
+
+Every public quickemu / quickget CLI option is classified here once. The
+manifest is the source of truth consumed by test/capabilities gates and by
+tool/generate_capability_matrix.dart.
+"""
+import json
+import os
+
+# (id, domain, title, criticality, executable, operation, flags,
+#  requirement, status, entry_points|None, adapter|None, tests|[], justification|None)
+C = [
+    # ---------------- quickemu: core lifecycle ----------------
+    ("vm.lifecycle.start", "lifecycle", "Start VM", "critical", "quickemu", "launch", ["--vm"],
+     "required", "implemented", ["vm_list.context_menu.start", "vm_details.primary_action"],
+     "runAction", ["test/integration/ui_backend_battery_test.dart"], None),
+    ("vm.lifecycle.status", "lifecycle", "VM state query", "critical", "quickemu", "--status", ["--status"],
+     "required", "implemented", ["vm_list.state_badge", "vm_details.state"],
+     "inspectVirtualMachine", ["test/integration/ui_backend_battery_test.dart", "test/integration/real_backend_contract_test.dart"], None),
+    ("vm.lifecycle.shutdown", "lifecycle", "Graceful shutdown", "critical", "quickemu", "--shutdown", ["--shutdown"],
+     "required", "implemented", ["vm_list.context_menu.stop", "vm_details.stop"],
+     "runAction", ["test/integration/ui_backend_battery_test.dart"], None),
+    ("vm.lifecycle.kill", "lifecycle", "Force stop", "critical", "quickemu", "--kill", ["--kill"],
+     "required", "implemented", ["vm_menu.force_stop", "vm_menu.stop_confirm.force"],
+     "runAction", ["test/integration/ui_backend_battery_test.dart"], None),
+    ("vm.lifecycle.reset", "lifecycle", "Hard reset", "high", "quickemu", "--reset", ["--reset"],
+     "required", "implemented", ["vm_menu.lifecycle.reset"],
+     "runAction", ["test/widget/manager_workflows_test.dart"], None),
+    ("vm.lifecycle.pause", "lifecycle", "Pause VM", "high", "quickemu", "--pause", ["--pause"],
+     "required", "implemented", ["vm_menu.lifecycle.pause"],
+     "runAction", ["test/integration/ui_backend_battery_test.dart"], None),
+    ("vm.lifecycle.resume", "lifecycle", "Resume VM", "high", "quickemu", "--resume", ["--resume"],
+     "required", "implemented", ["vm_menu.lifecycle.resume"],
+     "runAction", ["test/integration/ui_backend_battery_test.dart"], None),
+    ("vm.lifecycle.fullscreen", "lifecycle", "Fullscreen launch", "medium", "quickemu", "--fullscreen", ["--fullscreen", "--full-screen"],
+     "optional", "implemented", ["vm_menu.display_viewer.fullscreen", "settings.preferred_viewer"],
+     "launchSpiceViewer", ["test/capture/interface_capture_test.dart"], None),
+    ("vm.lifecycle.statusQuo", "lifecycle", "Ephemeral run (status-quo)", "medium", "quickemu", "--status-quo", ["--status-quo"],
+     "optional", "implemented", ["vm_menu.maintenance.check_vm"],
+     "runAction", ["test/widget/manager_workflows_test.dart"], None),
+    ("vm.lifecycle.offline", "lifecycle", "Offline network mode", "medium", "quickemu", "--offline", ["--offline"],
+     "optional", "implemented", ["vm_settings.network_key"],
+     None, ["test/unit/infrastructure/vm_config_file_store_test.dart"],
+     "Equivalent reachable via the 'network' conf key the settings editor exposes"),
+    ("vm.lifecycle.restart", "lifecycle", "Restart VM", "low", "quickemu", "restart", ["--restart"],
+     "optional", "planned", None, None, [], "Composite op (stop+start); dedicated UI action not yet exposed"),
+
+    # ---------------- library / inspection ----------------
+    ("vm.library.list", "library", "List VMs", "critical", "quickemu", "--list-vms", ["--list-vms"],
+     "required", "implemented", ["machines.list", "dashboard.vm_cards"],
+     "listVirtualMachines", ["test/integration/ui_backend_battery_test.dart", "test/e2e/e2e_interfaces_test.dart"], None),
+    ("vm.library.inspectConf", "library", "Inspect configuration", "high", "quickemu", "--inspect-conf", ["--inspect-conf"],
+     "required", "implemented", ["vm_settings.all_dialog", "vm_page.configuration"],
+     None, ["test/integration/real_backend_contract_test.dart"], "Config surfaced via VmConfigFileStore editor; --inspect-conf exercised in contract tests"),
+    ("vm.library.doctor", "library", "Config doctor", "medium", "quickemu", "--doctor", ["--doctor"],
+     "optional", "implemented", ["diagnostics.host_checks", "vm_page.doctor_action", "vm_menu.maintenance.check_vm"],
+     "runAction", ["test/golden/diagnostics_page_golden_test.dart"], None),
+    ("vm.library.doctorFix", "library", "Doctor auto-fix", "medium", "quickemu", "--doctor --fix", ["--fix"],
+     "optional", "planned", None, None, [], "Auto-rewrite of conf not yet offered; read-only doctor only"),
+
+    # ---------------- snapshots ----------------
+    ("vm.snapshot.create", "snapshots", "Create snapshot", "high", "quickemu", "--snapshot create", ["--snapshot"],
+     "required", "implemented", ["vm_menu.snapshots.create"],
+     "runAction", ["test/capture/interface_capture_test.dart", "test/widget/manager_workflows_test.dart"], None),
+    ("vm.snapshot.apply", "snapshots", "Apply snapshot", "high", "quickemu", "--snapshot apply", [],
+     "required", "implemented", ["vm_menu.snapshots.apply"],
+     "runAction", ["test/capture/interface_capture_test.dart"], None),
+    ("vm.snapshot.delete", "snapshots", "Delete snapshot", "high", "quickemu", "--snapshot delete", [],
+     "required", "implemented", ["vm_menu.snapshots.delete"],
+     "runAction", ["test/capture/interface_capture_test.dart"], None),
+    ("vm.snapshot.info", "snapshots", "Snapshot info/list", "medium", "quickemu", "--snapshot info", [],
+     "optional", "implemented", ["vm_menu.snapshots.info"],
+     "listSnapshots", ["test/widget/manager_workflows_test.dart"], None),
+    ("vm.snapshot.tree", "snapshots", "Snapshot dependency tree", "medium", "quickemu", "--snapshot-tree", ["--snapshot-tree"],
+     "optional", "implemented", ["vm_menu.snapshots.tree"],
+     "snapshotTree", ["test/integration/ui_backend_battery_test.dart"], None),
+    ("vm.snapshot.verify", "snapshots", "Verify snapshot", "medium", "quickemu", "--snapshot-verify", ["--snapshot-verify"],
+     "optional", "planned", None, None, [], "Integrity check exposed by backend but no UI surface yet"),
+
+    # ---------------- deletion / trash ----------------
+    ("vm.delete.plan", "deletion", "Delete plan review", "critical", "quickemu", "--delete-plan", ["--delete-plan"],
+     "required", "implemented", ["vm_menu.delete.plan_dialog"],
+     "runVmJson", ["test/integration/real_backend_contract_test.dart", "test/capture/interface_capture_test.dart"], None),
+    ("vm.delete.vm", "deletion", "Delete VM", "critical", "quickemu", "--delete-vm", ["--delete-vm", "--plan-id", "--trash"],
+     "required", "implemented", ["vm_menu.delete.confirm"],
+     "runVmJson", ["test/integration/real_backend_contract_test.dart"], "plan-id/trash are parameters of the guarded delete flow"),
+    ("vm.delete.disk", "deletion", "Delete disk image", "high", "quickemu", "--delete-disk", ["--delete-disk"],
+     "required", "implemented", ["vm_menu.delete.disk_option"],
+     "runAction", ["test/capture/interface_capture_test.dart"], None),
+    ("vm.trash.list", "deletion", "List trash", "medium", "quickemu", "--trash-list", ["--trash-list"],
+     "optional", "implemented", ["vm_menu.maintenance.trash"],
+     "listTrash", ["test/unit/infrastructure/quickemu/quickemu_backend_test.dart",
+      "test/integration/real_backend_surface_test.dart"], None),
+    ("vm.trash.restore", "deletion", "Restore from trash", "medium", "quickemu", "--trash-restore", ["--trash-restore"],
+     "optional", "implemented", ["vm_menu.maintenance.trash_restore"],
+     "restoreFromTrash", ["test/unit/infrastructure/quickemu/quickemu_backend_test.dart"], None),
+    ("vm.trash.empty", "deletion", "Empty trash", "medium", "quickemu", "--trash-empty", ["--trash-empty"],
+     "optional", "planned", None, None, [], "Bulk trash purge not yet exposed; restore/list are"),
+    ("desktop.shortcut", "desktop", "Desktop shortcut", "low", "quickemu", "--shortcut", ["--shortcut", "--delete-shortcut"],
+     "optional", "unsupported", None, None, [],
+     "Quickgui manages its own launcher UX; desktop .desktop files out of scope"),
+
+    # ---------------- backups ----------------
+    ("vm.backup.create", "backup", "Create backup", "high", "quickemu", "--backup", ["--backup"],
+     "required", "implemented", ["vm_menu.maintenance.backups.create"],
+     "createBackup", ["test/unit/infrastructure/quickemu/quickemu_backend_test.dart"], None),
+    ("vm.backup.list", "backup", "List backups", "high", "quickemu", "--backup-list", ["--backup-list"],
+     "required", "implemented", ["vm_menu.maintenance.backups.list"],
+     "listBackups", ["test/unit/infrastructure/quickemu/quickemu_backend_test.dart",
+      "test/integration/real_backend_surface_test.dart"], None),
+    ("vm.backup.restore", "backup", "Restore backup", "high", "quickemu", "--backup-restore", ["--backup-restore"],
+     "required", "implemented", ["vm_menu.maintenance.backups.restore"],
+     "restoreBackup", ["test/unit/infrastructure/quickemu/quickemu_backend_test.dart"], None),
+    ("vm.backup.prune", "backup", "Prune backups", "medium", "quickemu", "--backup-prune", ["--backup-prune"],
+     "optional", "implemented", ["vm_menu.maintenance.backups.prune"],
+     "pruneBackups", ["test/unit/infrastructure/quickemu/quickemu_backend_test.dart"], None),
+    ("vm.backup.verify", "backup", "Verify backup", "medium", "quickemu", "--backup-verify", ["--backup-verify"],
+     "optional", "planned", None, None, [], "List surfaces checksum state; explicit verify action pending"),
+
+    # ---------------- clone / move / import / export ----------------
+    ("vm.clone", "migration", "Clone VM", "high", "quickemu", "--clone", ["--clone", "--full"],
+     "required", "implemented", ["vm_menu.clone"],
+     "runAction", ["test/capture/interface_capture_test.dart"], "'--full' exposed as the copy-mode toggle in the clone dialog"),
+    ("vm.linkedClone", "migration", "Linked (COW) clone", "medium", "quickemu", "--linked-clone", ["--linked-clone"],
+     "optional", "implemented", ["vm_menu.clone.linked"],
+     "linkedClone", ["test/unit/infrastructure/quickemu/quickemu_backend_test.dart"], None),
+    ("vm.rename", "migration", "Rename VM", "medium", "quickemu", "--rename", ["--rename"],
+     "required", "implemented", ["vm_menu.rename"],
+     "renameVm", ["test/unit/infrastructure/quickemu/quickemu_backend_test.dart"], None),
+    ("vm.move", "migration", "Move VM directory", "medium", "quickemu", "--move", ["--move"],
+     "optional", "implemented", ["vm_menu.move"],
+     "moveVm", ["test/unit/infrastructure/quickemu/quickemu_backend_test.dart"], None),
+    ("vm.export", "migration", "Export VM archive", "high", "quickemu", "--export", ["--export"],
+     "required", "implemented", ["vm_menu.export", "vm_list.batch.export"],
+     "exportVm", ["test/widget/manager_workflows_test.dart"], None),
+    ("vm.import", "migration", "Import VM archive", "high", "quickemu", "--import", ["--import"],
+     "required", "implemented", ["create.import.drop", "create.import.picker"],
+     "runAction", ["test/e2e/e2e_interfaces_test.dart"], None),
+
+    # ---------------- disks ----------------
+    ("vm.disk.resize", "disks", "Resize disk", "high", "quickemu", "--disk-resize", ["--disk-resize"],
+     "required", "implemented", ["vm_menu.resize"],
+     "runAction", ["test/capture/interface_capture_test.dart"], None),
+    ("vm.disk.compact", "disks", "Compact disk", "medium", "quickemu", "--disk-compact", ["--disk-compact"],
+     "optional", "implemented", ["vm_menu.maintenance.disk_compact"],
+     "diskCompact", ["test/unit/infrastructure/quickemu/quickemu_backend_test.dart"], None),
+    ("vm.disk.create", "disks", "Create standalone disk", "low", "quickemu", "create-disk", ["--create-disk"],
+     "optional", "planned", None, None, [], "Extra disks not yet creatable from the UI"),
+    ("vm.disk.resizeCommit", "disks", "Commit pending resize", "low", "quickemu", "disk-resize-commit", ["--resize-commit"],
+     "optional", "planned", None, None, [], "Two-phase resize commit not surfaced"),
+    ("vm.image.verify", "disks", "Verify downloaded image", "medium", "external", "chunkcheck", [],
+     "optional", "implemented", ["vm_menu.maintenance.verify_image"],
+     "verifyImage", ["test/widget/manager_workflows_test.dart"], None),
+
+    # ---------------- monitor / input ----------------
+    ("vm.monitor.cmd", "monitor", "Monitor command", "high", "quickemu", "--monitor-cmd", ["--monitor-cmd"],
+     "required", "implemented", ["vm_menu.maintenance.monitor_cmd"],
+     "monitorCommand", ["test/integration/ui_backend_battery_test.dart"], None),
+    ("vm.input.sendKeys", "monitor", "Send keys", "medium", "quickemu", "--send-keys", ["--send-keys"],
+     "required", "implemented", ["vm_menu.maintenance.send_keys"],
+     "runAction", ["test/integration/ui_backend_battery_test.dart"], None),
+    ("vm.input.type", "monitor", "Type text", "medium", "quickemu", "--type", ["--type"],
+     "optional", "implemented", ["vm_menu.maintenance.type_text"],
+     "runAction", ["test/integration/ui_backend_battery_test.dart"], None),
+    ("vm.monitor.screenshot", "monitor", "Screenshot", "medium", "quickemu", "--screenshot", ["--screenshot"],
+     "optional", "implemented", ["vm_menu.maintenance.screenshot"],
+     "runAction", ["test/integration/ui_backend_battery_test.dart"], None),
+
+    # ---------------- hotplug ----------------
+    ("vm.hotplug.usb", "hotplug", "Hotplug USB", "medium", "quickemu", "--hotplug-usb", ["--hotplug-usb"],
+     "optional", "implemented", ["vm_menu.devices.hotplug_usb"],
+     "hotplugUsb", ["test/unit/infrastructure/quickemu/quickemu_backend_test.dart"], None),
+    ("vm.hotplug.disk", "hotplug", "Hotplug disk", "medium", "quickemu", "--hotplug-disk", ["--hotplug-disk"],
+     "optional", "implemented", ["vm_menu.devices.hotplug_disk"],
+     "hotplugDisk", ["test/unit/infrastructure/quickemu/quickemu_backend_test.dart"], None),
+    ("vm.hotplug.unplug", "hotplug", "Hot-unplug device", "medium", "quickemu", "--hotunplug", ["--hotunplug"],
+     "optional", "planned", None, None, [], "Unplugging hot devices not yet exposed"),
+    ("vm.hotplug.persist", "hotplug", "Persist hotplug", "low", "quickemu", "--persist", ["--persist"],
+     "optional", "partiallyImplemented", ["vm_menu.devices.hotplug_*"],
+     None, [], "Hotplug works but the persist-to-config modifier is not offered"),
+
+    # ---------------- operations / events ----------------
+    ("ops.events", "operations", "VM event tail", "high", "quickemu", "--events", ["--events"],
+     "required", "implemented", ["activity.events_feed"],
+     "readEvents", ["test/integration/ui_backend_battery_test.dart"], None),
+    ("ops.status", "operations", "Async op status", "high", "quickemu", "--op-status", ["--op-status"],
+     "required", "implemented", ["activity.operation_tile"],
+     "operationStatus", ["test/integration/real_backend_contract_test.dart"], None),
+    ("ops.list", "operations", "List async ops", "medium", "quickemu", "--op-list", ["--op-list"],
+     "optional", "implemented", ["activity.list"],
+     "listOperations", ["test/unit/infrastructure/quickemu/quickemu_backend_test.dart",
+      "test/integration/real_backend_surface_test.dart"], None),
+    ("ops.watch", "operations", "Watch ops stream", "medium", "quickemu", "--op-watch", ["--op-watch"],
+     "optional", "implemented", ["activity.live_updates"],
+     "watchOperations", ["test/unit/infrastructure/quickemu/quickemu_backend_test.dart"], None),
+    ("ops.cancel", "operations", "Cancel async op", "high", "quickemu", "--op-cancel", ["--op-cancel"],
+     "required", "implemented", ["activity.operation_tile.cancel"],
+     "cancelOperation", ["test/unit/features/downloads/download_tasks_test.dart"], None),
+    ("ops.aliasLong", "operations", "Long op aliases", "low", "quickemu", "--operation-*", ["--operation-status", "--operation-list", "--operation-cancel", "--operation-watch"],
+     "not_applicable", "notApplicable", None, None, [], "Spellings alias the covered --op-* surface"),
+
+    # ---------------- inventory / plugins / stats ----------------
+    ("backend.inventory", "registry", "Global VM inventory", "medium", "quickemu", "--inventory", ["--inventory"],
+     "optional", "implemented", ["diagnostics.inventory", "machines.library_sync"],
+     "listInventory", ["test/integration/real_backend_contract_test.dart"], None),
+    ("backend.plugins.list", "plugins", "List plugins", "low", "quickemu", "--plugins", ["--plugins"],
+     "optional", "implemented", ["diagnostics.plugins"],
+     "listPlugins", ["test/integration/ui_backend_battery_test.dart"], None),
+    ("backend.plugins.dispatch", "plugins", "Run plugin", "low", "quickemu", "--plugin <name>", ["--plugin"],
+     "optional", "planned", None, None, [], "Plugin listing shown; invoking a plugin not yet wired"),
+    ("vm.stats", "monitor", "Per-VM metrics", "medium", "quickemu", "--stats", ["--stats"],
+     "optional", "implemented", ["vm_details.stats"],
+     "vmStats", ["test/unit/infrastructure/quickemu/quickemu_backend_test.dart",
+      "test/integration/real_backend_surface_test.dart"], None),
+    ("vm.profile", "config", "Start with profile", "medium", "quickemu", "--profile", ["--profile"],
+     "optional", "implemented", ["create_wizard.hardware_profiles", "vm_menu.start_profile"],
+     "startWithProfile", ["test/e2e/e2e_interfaces_test.dart"], None),
+
+    # ---------------- migration / config ----------------
+    ("vm.config.migrateToml", "config", "Migrate conf to TOML", "medium", "quickemu", "--migrate-conf", ["--migrate-conf"],
+     "optional", "implemented", ["vm_menu.migrate_toml"],
+     "migrateConfToToml", ["test/widget/manager_workflows_test.dart"], None),
+
+    # ---------------- diagnostics ----------------
+    ("backend.hostInfo", "diagnostics", "Host inventory", "high", "quickemu", "--host-info", ["--host-info"],
+     "required", "implemented", ["diagnostics.host_section"],
+     "hostInfo", ["test/integration/ui_backend_battery_test.dart"], None),
+    ("backend.capabilities", "diagnostics", "Capability descriptor", "critical", "quickemu", "--capabilities", ["--capabilities"],
+     "required", "implemented", ["diagnostics.capabilities_section", "app.feature_gating"],
+     "getCapabilities", ["test/integration/real_backend_contract_test.dart"], None),
+    ("backend.vfioScan", "diagnostics", "VFIO/IOMMU scan", "medium", "quickemu", "--vfio-scan", ["--vfio-scan"],
+     "optional", "implemented", ["diagnostics.vfio_scan"],
+     "vfioScan", ["test/integration/ui_backend_battery_test.dart"], None),
+    ("backend.version", "diagnostics", "Backend version", "high", "quickemu", "--version", ["--version"],
+     "required", "implemented", ["diagnostics.version_line", "settings.about"],
+     "version", ["test/e2e/e2e_interfaces_test.dart"], None),
+    ("backend.report", "diagnostics", "Diagnostics report", "medium", "quickreport", "quickreport", [],
+     "optional", "implemented", ["diagnostics.copy_report", "settings.quickemu_report"],
+     "diagnosticsReport", ["test/capture/interface_capture_test.dart"], None),
+
+    # ---------------- structured plumbing (internal) ----------------
+    ("backend.contract.json", "internal", "JSON contract envelope", "critical", "quickemu", "--format json", ["--format"],
+     "not_applicable", "notApplicable", None, None, [],
+     "Contract selector appended by StructuredQuickemu; boundary mechanism, not a user action"),
+    ("backend.dryRun", "internal", "Dry run / echo", "low", "quickemu", "--dry-run", ["--dry-run", "--echo"],
+     "not_applicable", "notApplicable", None, None, [], "Developer flag; the app never asks for a dry run"),
+    ("backend.external", "internal", "--external flag", "low", "quickemu", "--external", ["--external"],
+     "not_applicable", "notApplicable", None, None, [], "Dead option upstream: parsed, never read"),
+    ("backend.param.vm", "internal", "--vm selector", "low", "quickemu", "--vm", [],
+     "not_applicable", "notApplicable", None, None, [], "Universal target parameter of every VM action"),
+    ("backend.param.planId", "internal", "--plan-id parameter", "low", "quickemu", "--plan-id", [],
+     "not_applicable", "notApplicable", None, None, [], "Guard parameter inside the delete flow"),
+    ("backend.alias", "internal", "Single-dash & bareword aliases", "low", "quickemu", "aliases", [
+        "--list", "--vms", "--conf", "--plan", "--scan", "--keys", "--cmd", "--disk", "--watch", "--cancel",
+        "--restore", "--verify", "--quo", "--msrs", "--msrs-always", "--apply", "--info", "--create", "--delete",
+        "--resize", "--console", "--vnc", "--spice-console",
+        "--publicdir", "--snapshot-list", "--snapshot-apply", "--snapshot-create", "--snapshot-delete",
+        "--snapshot-info", "--ignore-msrs"],
+     "not_applicable", "notApplicable", None, None, [],
+     "Aliases map onto the covered canonical commands"),
+    ("cli.help", "internal", "Help text", "low", "quickemu", "--help", ["--help"],
+     "not_applicable", "notApplicable", None, None, [], "CLI self-documentation; the GUI is the documentation surface"),
+
+    # ---------------- launch-time modifiers ----------------
+    ("launch.display", "launch", "Display backend", "medium", "quickemu", "--display", ["--display"],
+     "optional", "implemented", ["vm_settings.display_key", "settings.preferred_viewer"],
+     "launchSpiceViewer", ["test/unit/infrastructure/quickemu/quickemu_backend_test.dart"],
+     "Resolved through the 'display' conf key + preferred-viewer setting"),
+    ("launch.viewer", "launch", "SPICE viewer choice", "medium", "quickemu", "--viewer", ["--viewer"],
+     "optional", "implemented", ["settings.preferred_viewer", "vm_settings.viewer_key"],
+     "launchSpiceViewer", ["test/capture/interface_capture_test.dart"], None),
+    ("launch.publicDir", "launch", "Shared folder", "medium", "quickemu", "--public-dir", ["--public-dir"],
+     "optional", "implemented", ["vm_settings.public_dir_key"],
+     None, ["test/capture/interface_capture_test.dart"], "Exposed as the 'public_dir' conf key in settings"),
+    ("launch.usbPassthrough", "launch", "USB passthrough list", "medium", "quickemu", "--usb-passthrough", ["--usb-passthrough"],
+     "optional", "implemented", ["vm_settings.usb_devices_key"],
+     None, ["test/unit/infrastructure/vm_config_file_store_test.dart"],
+     "Exposed as the 'usb_devices' conf key"),
+    ("launch.soundCard", "launch", "Sound card model", "low", "quickemu", "--sound-card", ["--sound-card", "--sound-duplex"],
+     "optional", "partiallyImplemented", ["vm_settings.sound_key"],
+     None, [], "The 'sound' conf key is editable; duplex variants are not broken out"),
+    ("launch.geometry", "launch", "Screen width/height", "low", "quickemu", "--width/--height", ["--width", "--height"],
+     "optional", "notApplicable", None, None, [], "Display geometry delegated to the viewer/QEMU"),
+    ("launch.netTuning", "launch", "Network/SSH/SPICE tuning", "low", "quickemu", "net flags", [
+        "--ssh-port", "--spice-port", "--ssh-access", "--access"],
+     "not_applicable", "notApplicable", None, None, [],
+     "Ports auto-allocated by the port registry; access modes are internal launch modifiers"),
+    ("launch.hwTuning", "launch", "Input/sound/monitor hardware tuning", "low", "quickemu", "hw flags", [
+        "--monitor", "--monitor-telnet-host", "--monitor-telnet-port", "--serial", "--serial-telnet-host",
+        "--serial-telnet-port", "--keyboard", "--keyboard_layout", "--mouse", "--usb-controller"],
+     "not_applicable", "notApplicable", None, None, [], "Per-launch QEMU tuning; backend defaults apply"),
+    ("launch.quirks", "launch", "Hardware quirk flags", "low", "quickemu", "quirk flags", [
+        "--cpu-pinning", "--braille", "--ignore-msrs-always", "--ignore-tsc-warning"],
+     "not_applicable", "notApplicable", None, None, [], "Host quirk workarounds; backend decides"),
+    ("launch.extraArgs", "launch", "Arbitrary QEMU args", "low", "quickemu", "--extra_args", ["--extra_args"],
+     "optional", "unsupported", None, None, [],
+     "Deliberately not exposed: raw QEMU args bypass validation and are a support/security surface"),
+    ("vm.autostart", "desktop", "Systemd autostart unit", "low", "quickemu", "--autostart", ["--autostart"],
+     "optional", "planned", None, None, [], "Boot-time autostart could live in VM settings; not built"),
+
+    # ---------------- quickget: catalogue & downloads ----------------
+    ("catalog.list", "catalog", "OS catalogue", "critical", "quickget", "--list-json", ["--list-json", "--list", "--list-csv"],
+     "required", "implemented", ["create.catalog", "home.quick_create"],
+     "listOperatingSystems", ["test/widget/catalog_workflows_test.dart", "test/e2e/e2e_interfaces_test.dart"],
+     "--list/--list-csv are the legacy/fallback wire formats of the same capability"),
+    ("catalog.show", "catalog", "OS detail (--show)", "low", "quickget", "--show", ["--show"],
+     "optional", "planned", None, None, [], "Catalogue rows already carry release/edition metadata"),
+    ("download.image", "downloads", "Download OS image", "critical", "quickget", "download", ["--download"],
+     "required", "implemented", ["create.download", "download_tasks"],
+     "startDownloadImage", ["test/unit/features/downloads/download_tasks_test.dart"], None),
+    ("download.check", "downloads", "Pre-download check", "high", "quickget", "--check", ["--check"],
+     "required", "implemented", ["create.download.preflight", "download_controls.check"],
+     "runQuickget", ["test/widget/catalog_workflows_test.dart"], None),
+    ("download.checkAllArch", "downloads", "Check all architectures", "low", "quickget", "--check-all-arch", ["--check-all-arch"],
+     "optional", "planned", None, None, [], "Single-arch check is wired; all-arch sweep is not"),
+    ("download.createConfig", "downloads", "Create conf from image", "high", "quickget", "--create-config", ["--create-config"],
+     "required", "implemented", ["create.import.flow"],
+     "runQuickget", ["test/widget/home_workflows_test.dart"], None),
+    ("download.arch", "downloads", "Architecture selection", "medium", "quickget", "--arch", ["--arch"],
+     "optional", "partiallyImplemented", ["create_wizard.system"],
+     None, [], "Downloads default to amd64; arm64 selection not yet exposed"),
+    ("download.unattended", "downloads", "Unattended install", "medium", "quickget", "--unattended", ["--unattended", "--disable-unattended"],
+     "optional", "planned", None, None, [], "Unattended provisioning is a roadmap feature"),
+    ("download.cloudInit", "downloads", "Cloud-init seed", "medium", "quickget", "--cloud-init", ["--cloud-init"],
+     "optional", "planned", None, None, [], "Cloud-init customisation planned with unattended installs"),
+    ("download.update", "downloads", "Refresh download data", "low", "quickget", "--update", ["--update"],
+     "optional", "planned", None, None, [], "Catalogue data refresh not yet exposed"),
+    ("download.openHomepage", "downloads", "Open OS homepage", "low", "quickget", "--open-homepage", ["--open-homepage"],
+     "optional", "planned", None, None, [], "Could be an external-link action on catalogue rows"),
+    ("download.urlOverride", "internal", "URL override", "low", "quickget", "--url", ["--url"],
+     "not_applicable", "notApplicable", None, None, [], "Internal/testing override, not a user feature"),
+    ("download.insecure", "security", "Insecure TLS downloads", "low", "quickget", "--insecure", ["--insecure"],
+     "optional", "unsupported", None, None, [], "TLS bypass is a deliberate security exclusion"),
+    ("quickget.version", "diagnostics", "quickget version", "medium", "quickget", "--version", [],
+     "required", "implemented", ["diagnostics.version_line"],
+     "version", ["test/integration/ui_backend_battery_test.dart"], None),
+
+    # ---------------- GUI-side capabilities (no CLI flag) ----------------
+    ("config.document.edit", "config", "Safe conf editing", "critical", "internal", "VmConfigFileStore", [],
+     "required", "implemented", ["vm_settings.all_dialog"],
+     None, ["test/unit/infrastructure/vm_config_file_store_test.dart", "test/performance/parser_perf_test.dart"],
+     "Atomic writes, backups, conflict detection and selective merge over .conf"),
+    ("library.state.refresh", "library", "Live state refresh", "high", "internal", "VmLibraryProvider", [],
+     "required", "implemented", ["machines.list.state_badges"],
+     None, ["test/e2e/e2e_interfaces_test.dart"], "5s visibility-aware refresh reconciles backend state"),
+    ("activity.auditTrail", "operations", "Activity audit trail", "high", "internal", "ActivityProvider", [],
+     "required", "implemented", ["activity.list", "activity.operation_tile"],
+     None, ["test/widget/activity_page_test.dart"], "Typed states, retry, cancel, output inspection"),
+    ("app.downloadNotifications", "operations", "Download notifications", "low", "internal", "AppShell", [],
+     "optional", "implemented", ["system.desktop_notification"],
+     None, ["test/unit/features/activity/download_notification_policy_test.dart"],
+     "Best-effort desktop notification on download completion"),
+]
+
+
+def cap(row):
+    (cid, domain, title, crit, exe, op, flags, req, status,
+     entries, adapter, tests, just) = row
+    c = {
+        "id": cid,
+        "domain": domain,
+        "title": title,
+        "criticality": crit,
+        "backend": {"executable": exe, "operation": op},
+        "gui": {"requirement": req, "status": status},
+    }
+    if flags:
+        c["backend"]["flags"] = flags
+    if entries:
+        c["gui"]["entry_points"] = entries
+    if adapter:
+        c["architecture"] = {"adapter_method": adapter}
+    if tests:
+        c["testing"] = {"surfaces": tests}
+    if just:
+        c["gui"]["justification"] = just
+    return c
+
+
+manifest = {
+    "schema_version": 1,
+    "backend": {
+        "name": "quickemu",
+        "provider": "alesanfe/quickemu",
+        "upstream": "quickemu-project/quickemu",
+        "minimum_version": "4.9.8",
+        "contract_version": 1,
+    },
+    "capabilities": [cap(r) for r in C],
+}
+
+out = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                   "assets", "capabilities", "capability_manifest.json")
+os.makedirs(os.path.dirname(out), exist_ok=True)
+with open(out, "w", encoding="utf-8", newline="\n") as f:
+    json.dump(manifest, f, indent=2, ensure_ascii=False)
+    f.write("\n")
+print(f"{out}: {len(manifest['capabilities'])} capabilities")
