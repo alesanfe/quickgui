@@ -75,7 +75,8 @@ class _VmConnectionViewState extends ConsumerState<VmConnectionView> {
         return;
       }
       if (ssh) {
-        if (!await probe.isSshAlive(int.parse(port))) {
+        final portNum = int.tryParse(port);
+        if (portNum != null && !await probe.isSshAlive(portNum)) {
           if (mounted) {
             setState(
               () => _message = context.t(
@@ -113,7 +114,7 @@ class _VmConnectionViewState extends ConsumerState<VmConnectionView> {
         }
         final socket = await Socket.connect(
           '127.0.0.1',
-          int.parse(port),
+          int.tryParse(port) ?? 0,
           timeout: const Duration(seconds: 2),
         );
         socket.destroy();

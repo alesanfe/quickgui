@@ -50,9 +50,9 @@ class DownloadTasks {
         final matches = RegExp(r'([0-9]+(?:\.[0-9]+)?)%')
             .allMatches(chunk)
             .toList();
-        final progress = matches.isEmpty
-            ? null
-            : double.tryParse(matches.last[1]!)! / 100;
+        final last = matches.isEmpty ? null : matches.last[1];
+        final parsed = last == null ? null : double.tryParse(last);
+        final progress = parsed == null ? null : parsed / 100;
         activity.update(
           operation,
           cancelled

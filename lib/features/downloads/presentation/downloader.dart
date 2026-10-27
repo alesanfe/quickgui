@@ -94,8 +94,10 @@ class _DownloaderState extends ConsumerState<Downloader> {
     if (matches.isNotEmpty) {
       final percent = matches[0].group(1);
       if (percent != null) {
-        final value = double.parse(percent.replaceAll('%', '')) / 100.0;
-        _emit(OperationState.running(progress: value));
+        final value = double.tryParse(percent.replaceAll('%', ''));
+        if (value != null) {
+          _emit(OperationState.running(progress: value / 100.0));
+        }
       }
     }
   }

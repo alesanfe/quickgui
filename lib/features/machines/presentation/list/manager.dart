@@ -1329,7 +1329,7 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
       }
       if (vmInfo.sshPort != null && _terminalEmulator != null) {
         connectInfo += '${context.t('SSH port')}: ${vmInfo.sshPort!} ';
-        _detectSsh(int.parse(vmInfo.sshPort!)).then((sshRunning) {
+        _detectSsh(int.tryParse(vmInfo.sshPort!) ?? 0).then((sshRunning) {
           if (sshRunning && !sshy) {
             setState(() {
               _sshVms.add(currentVm);
