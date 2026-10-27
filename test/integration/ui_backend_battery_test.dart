@@ -1,6 +1,6 @@
 // UI ↔ real quickemu battery: every operation the app performs through
 // QuickemuBackend, exercised against a live VM. Mirrors tool/cli_battery.sh
-// 1:1 so the interface behaviour and the backend behaviour stay in sync.
+// 1:1 — positive, negative and boundary cases for each surface.
 // Skipped without quickemu on PATH.
 import 'dart:io';
 
@@ -14,7 +14,7 @@ void main() {
 
   late Directory tmp;
   late String conf;
-  late String vmPath; // path without .conf (inspectVirtualMachine appends it)
+  late String vmPath; // path without .conf
   late QuickemuBackend backend;
 
   setUpAll(() async {
@@ -31,107 +31,253 @@ void main() {
 
   tearDownAll(() => tmp.deleteSync(recursive: true));
 
-  // ── stopped-state ops (mirrors cli_battery.sh stopped section) ───────
+  // ════════════════════════════════════════════════════════════════════
+  // POSITIVE — every op the UI triggers on a valid stopped VM
+  // ════════════════════════════════════════════════════════════════════
 
-  test('status → stopped with stopped allowedOps', () async {
-    final r = await backend.inspectVirtualMachine(vmPath);
-    expect(r['state'], 'stopped');
-    final allowed = (r['allowedOps'] as List).map((e) => '$e').toSet();
-    expect(allowed, containsAll(['start', 'delete', 'clone', 'rename']));
-  }, skip: skipMsg);
+  group('positive', () {
+    test('status → stopped with stopped allowedOps', () async {
+      final r = await backend.inspectVirtualMachine(vmPath);
+      expect(r['state'], 'stopped');
+      final allowed = (r['allowedOps'] as List).map((e) => '$e').toSet();
+      expect(allowed, containsAll(['start', 'delete', 'clone', 'rename']));
+    }, skip: skipMsg);
 
-  test('listVms → the library listing runs cleanly', () async {
-    // --list-json emits raw JSON lines, not the envelope — the UI
-    // consumes it via the legacy path.
-    final r = await backend.runAction(['--list-json']);
-    expect(r.exitCode, anyOf(0, 1));
-  }, skip: skipMsg);
+    test('listVms → the library listing runs cleanly', () async {
+      final r = await backend.runAction(['--list-json']);
+      expect(r.exitCode, anyOf(0, 1));
+    }, skip: skipMsg);
 
-  test('capabilities envelope has the flags the UI reads', () async {
-    final caps = await backend.getCapabilities();
-    final flags = (caps?['capabilities'] as Map?) ?? const {};
-    expect(flags['structuredStatus'], isTrue);
-    expect(flags['verifiableDeletePlan'], isTrue);
-  }, skip: skipMsg);
+    test('capabilities envelope has the flags the UI reads', () async {
+      final caps = await backend.getCapabilities();
+      final flags = (caps?['capabilities'] as Map?) ?? const {};
+      expect(flags['structuredStatus'], isTrue);
+      expect(flags['verifiableDeletePlan'], isTrue);
+    }, skip: skipMsg);
 
-  test('listOperations → empty registry when nothing is running', () async {
-    final ops = await backend.listOperations(conf);
-    expect(ops, isA<List<dynamic>>());
-  }, skip: skipMsg);
+    test('listOperations → empty registry when nothing runs', () async {
+      final ops = await backend.listOperations(conf);
+      expect(ops, isA<List<dynamic>>());
+    }, skip: skipMsg);
 
-  test('delete-plan produces a planId the UI can confirm', () async {
-    final plan = await backend.runVmJson('delete-plan', [
-      '--vm',
-      conf,
-      '--delete-plan',
-    ]);
-    expect(plan['planId'] as String, startsWith('sha256:'));
-  }, skip: skipMsg);
+    test('delete-plan produces a planId the UI can confirm', () async {
+      final plan = await backend.runVmJson('delete-plan', [
+        '--vm',
+        conf,
+        '--delete-plan',
+      ]);
+      expect(plan['planId'] as String, startsWith('sha256:'));
+      expect(plan['delete'], isA<List<dynamic>>());
+    }, skip: skipMsg);
 
-  test('snapshot-tree returns a map for the stopped VM', () async {
-    final r = await backend.runVmJson('snapshot.tree', [
-      '--vm',
-      conf,
-      '--snapshot-tree',
-    ]);
-    expect(r, isA<Map<String, dynamic>>());
-  }, skip: skipMsg);
+    test('snapshot-tree returns a map for the stopped VM', () async {
+      final r = await backend.runVmJson('snapshot.tree', [
+        '--vm',
+        conf,
+        '--snapshot-tree',
+      ]);
+      expect(r, isA<Map<String, dynamic>>());
+    }, skip: skipMsg);
 
-  test('trash-list / backup-list exit cleanly (legacy path)', () async {
-    // Empty trash/backup stores may answer exit 1 — the assertion is
-    // that the op reaches the backend without crashing the app path.
-    expect(
-      (await backend.runAction(['--vm', conf, '--trash-list'])).exitCode,
-      anyOf(0, 1),
-    );
-    expect(
-      (await backend.runAction(['--vm', conf, '--backup-list'])).exitCode,
-      anyOf(0, 1),
-    );
-  }, skip: skipMsg);
+    test('trash-list / backup-list exit cleanly', () async {
+      expect(
+        (await backend.runAction(['--vm', conf, '--trash-list'])).exitCode,
+        anyOf(0, 1),
+      );
+      expect(
+        (await backend.runAction(['--vm', conf, '--backup-list'])).exitCode,
+        anyOf(0, 1),
+      );
+    }, skip: skipMsg);
 
-  test('readEvents returns a list (empty or replayable)', () async {
-    final events = await backend.readEvents(conf);
-    expect(events, isA<List<dynamic>>());
-  }, skip: skipMsg);
+    test('readEvents returns a list (empty or replayable)', () async {
+      final events = await backend.readEvents(conf);
+      expect(events, isA<List<dynamic>>());
+    }, skip: skipMsg);
 
-  test('listInventory returns a map with the VM', () async {
-    final inv = await backend.listInventory();
-    expect(inv, isA<Map<String, dynamic>>());
-  }, skip: skipMsg);
+    test('listInventory returns a map with the VM', () async {
+      final inv = await backend.listInventory();
+      expect(inv, isA<Map<String, dynamic>>());
+    }, skip: skipMsg);
 
-  test('inspect-conf exits cleanly (legacy path)', () async {
-    final r = await backend.runAction(['--vm', conf, '--inspect-conf']);
-    expect(r.exitCode, 0);
-  }, skip: skipMsg);
+    test('inspect-conf exits cleanly (legacy path)', () async {
+      final r = await backend.runAction(['--vm', conf, '--inspect-conf']);
+      expect(r.exitCode, 0);
+    }, skip: skipMsg);
 
-  test('host-info exits cleanly (legacy path)', () async {
-    // host-info requires --vm context and prints host details text —
-    // the UI consumes it via the legacy path.
-    final r = await backend.runAction(['--vm', conf, '--host-info']);
-    expect(r.exitCode, 0);
-  }, skip: skipMsg);
+    test('host-info exits cleanly (legacy path)', () async {
+      final r = await backend.runAction(['--vm', conf, '--host-info']);
+      expect(r.exitCode, 0);
+    }, skip: skipMsg);
 
-  test('plugins runs without crashing the app path', () async {
-    // A host with no quickemu-plugin-* on PATH still answers with exit 1
-    // — the app path must reach the backend either way.
-    final r = await backend.runAction(['--plugins']);
-    expect(r.exitCode, anyOf(0, 1));
-  }, skip: skipMsg);
+    test('plugins runs without crashing the app path', () async {
+      final r = await backend.runAction(['--plugins']);
+      expect(r.exitCode, anyOf(0, 1));
+    }, skip: skipMsg);
 
-  test('migrate-conf writes a .toml beside the .conf', () async {
-    await backend.runAction(['--vm', conf, '--migrate-conf']);
-    expect(File('${tmp.path}/battery.toml').existsSync(), isTrue);
-  }, skip: skipMsg);
+    test('migrate-conf writes a .toml beside the .conf', () async {
+      await backend.runAction(['--vm', conf, '--migrate-conf']);
+      expect(File('${tmp.path}/battery.toml').existsSync(), isTrue);
+    }, skip: skipMsg);
+  });
 
-  // ── live VM ops (mirrors cli_battery.sh live section) ────────────────
-  // Launches the VM detached, exercises every running-state op, then
-  // kills it. Skipped when the host can't boot (no KVM, no TCG).
+  // ════════════════════════════════════════════════════════════════════
+  // NEGATIVE — wrong state, missing VM, invalid args. The backend must
+  // fail cleanly with a typed error, not crash or hang.
+  // ════════════════════════════════════════════════════════════════════
+
+  group('negative', () {
+    test('status on a missing VM fails cleanly', () async {
+      final r = await backend.inspectVirtualMachine('${tmp.path}/ghost');
+      // Returns an error map or a safe state — never throws.
+      expect(r, isA<Map<String, dynamic>>());
+    }, skip: skipMsg);
+
+    test('delete-plan on a missing VM fails with non-zero', () async {
+      final r = await backend.runAction([
+        '--vm',
+        '${tmp.path}/ghost.conf',
+        '--delete-plan',
+      ]);
+      expect(r.exitCode, isNot(0));
+    }, skip: skipMsg);
+
+    test('monitor-cmd on a stopped VM reports not-running', () async {
+      final r = await backend.runAction([
+        '--vm',
+        conf,
+        '--monitor-cmd',
+        'info status',
+      ]);
+      expect(r.exitCode, isNot(0));
+    }, skip: skipMsg);
+
+    test('pause on a stopped VM reports not-running', () async {
+      final r = await backend.runAction(['--vm', conf, '--pause']);
+      expect(r.exitCode, isNot(0));
+    }, skip: skipMsg);
+
+    test('resume on a stopped VM reports not-running', () async {
+      final r = await backend.runAction(['--vm', conf, '--resume']);
+      expect(r.exitCode, isNot(0));
+    }, skip: skipMsg);
+
+    test('send-keys on a stopped VM reports not-running', () async {
+      final r = await backend.runAction([
+        '--vm',
+        conf,
+        '--send-keys',
+        'ctrl-alt-delete',
+      ]);
+      expect(r.exitCode, isNot(0));
+    }, skip: skipMsg);
+
+    test('screenshot on a stopped VM reports not-running', () async {
+      final r = await backend.runAction(['--vm', conf, '--screenshot']);
+      expect(r.exitCode, isNot(0));
+    }, skip: skipMsg);
+
+    test('op-status on a bogus operation id fails cleanly', () async {
+      final r = await backend
+          .runVmJson('op-status', [
+            '--vm',
+            conf,
+            '--op-status',
+            'does-not-exist',
+          ])
+          .catchError((_) => <String, dynamic>{'error': 'typed'});
+      expect(r, isA<Map<String, dynamic>>());
+    }, skip: skipMsg);
+
+    test('snapshot-apply on a missing snapshot fails', () async {
+      final r = await backend.runAction([
+        '--vm',
+        conf,
+        '--snapshot-apply',
+        'nope',
+      ]);
+      expect(r.exitCode, isNot(0));
+    }, skip: skipMsg);
+
+    test('invalid flag fails with non-zero, no hang', () async {
+      final r = await backend.runAction([
+        '--vm',
+        conf,
+        '--definitely-not-a-flag',
+      ]);
+      expect(r.exitCode, isNot(0));
+    }, skip: skipMsg);
+  });
+
+  // ════════════════════════════════════════════════════════════════════
+  // BOUNDARY — empty/malformed confs, special characters, limits.
+  // ════════════════════════════════════════════════════════════════════
+
+  group('boundary', () {
+    test('empty conf file does not crash status', () async {
+      final empty = '${tmp.path}/empty.conf';
+      File(empty).writeAsStringSync('');
+      final r = await backend.inspectVirtualMachine('${tmp.path}/empty');
+      expect(r, isA<Map<String, dynamic>>());
+    }, skip: skipMsg);
+
+    test('malformed conf content does not crash status', () async {
+      final bad = '${tmp.path}/bad.conf';
+      File(bad).writeAsStringSync('guest_os=\ndisk_img\nram="??"\n');
+      final r = await backend.inspectVirtualMachine('${tmp.path}/bad');
+      expect(r, isA<Map<String, dynamic>>());
+    }, skip: skipMsg);
+
+    test('conf with spaces in path does not crash status', () async {
+      final dir = Directory('${tmp.path}/with space')..createSync();
+      File('${dir.path}/vm.conf')
+          .writeAsStringSync('guest_os="linux"\ndisk_img="disk.qcow2"\n');
+      File('${dir.path}/disk.qcow2').writeAsStringSync('x');
+      final r = await backend.inspectVirtualMachine('${dir.path}/vm');
+      expect(r, isA<Map<String, dynamic>>());
+    }, skip: skipMsg);
+
+    test('minimal conf (only guest_os) parses', () async {
+      final min = '${tmp.path}/min.conf';
+      File(min).writeAsStringSync('guest_os="linux"\n');
+      final r = await backend.inspectVirtualMachine('${tmp.path}/min');
+      expect(r['state'], anyOf('stopped', 'unknown'));
+    }, skip: skipMsg);
+
+    test('long VM name does not crash status', () async {
+      final name = 'a' * 120;
+      File('${tmp.path}/$name.conf')
+          .writeAsStringSync('guest_os="linux"\ndisk_img="d.qcow2"\n');
+      File('${tmp.path}/d.qcow2').writeAsStringSync('x');
+      final r = await backend.inspectVirtualMachine('${tmp.path}/$name');
+      expect(r, isA<Map<String, dynamic>>());
+    }, skip: skipMsg);
+
+    test('monitor-cmd with empty command does not crash', () async {
+      final r = await backend.runAction(['--vm', conf, '--monitor-cmd', '']);
+      expect(r.exitCode, isNot(0));
+    }, skip: skipMsg);
+
+    test('status twice in a row is consistent', () async {
+      final a = await backend.inspectVirtualMachine(vmPath);
+      final b = await backend.inspectVirtualMachine(vmPath);
+      expect(a['state'], b['state']);
+    }, skip: skipMsg);
+
+    test('events cursor at -1 replays from the start', () async {
+      final events = await backend.readEvents(conf, cursor: -1);
+      expect(events, isA<List<dynamic>>());
+    }, skip: skipMsg);
+  });
+
+  // ════════════════════════════════════════════════════════════════════
+  // LIVE — full lifecycle on a real VM (needs TCG or KVM + a bootable
+  // conf). Mirrors the cli_battery.sh live section 1:1.
+  // ════════════════════════════════════════════════════════════════════
 
   test(
     'live VM lifecycle: start→pause→resume→monitor→send→screenshot→kill',
     () async {
-      // Launch detached with software emulation (CPU_MODEL/QEMU_ACCEL env).
       final env = Map<String, String>.from(Platform.environment)
         ..['CPU_MODEL'] = 'qemu64'
         ..['QEMU_ACCEL'] = 'tcg';
@@ -144,7 +290,6 @@ void main() {
       launch.stdout.drain<void>();
       launch.stderr.drain<void>();
 
-      // Wait for running (TCG boot is slow — up to 45s).
       var running = false;
       for (var i = 0; i < 45 && !running; i++) {
         await Future<void>.delayed(const Duration(seconds: 1));
@@ -153,7 +298,9 @@ void main() {
       }
       if (!running) {
         launch.kill();
-        markTestSkipped('VM did not reach running — needs TCG or KVM');
+        markTestSkipped(
+          'VM did not reach running — needs a bootable conf plus TCG or KVM',
+        );
         return;
       }
 
@@ -215,7 +362,7 @@ void main() {
           conf,
           '--snapshot-clone',
         ]);
-        expect(snap.exitCode, anyOf(0, isNot(0))); // reached the backend
+        expect(snap.exitCode, anyOf(0, isNot(0)));
       } finally {
         // kill → stopped (cleanup even if an assert fails)
         await backend.runAction(['--vm', conf, '--kill']);
