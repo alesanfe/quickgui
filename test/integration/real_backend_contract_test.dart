@@ -47,7 +47,7 @@ void main() {
     final e = jsonDecode(r.stdout as String) as Map<String, dynamic>;
     expect(e['command'], 'vm.status');
     expect(e['data']['state'], 'stopped');
-    expect(e['data']['allowedOps'], isA<List>());
+    expect(e['data']['allowedOps'], isA<List<dynamic>>());
   }, skip: skipMsg);
 
   test('delete-plan -> planId -> delete-vm (guarded, trashed)', () async {
@@ -72,7 +72,7 @@ void main() {
         ['--vm', conf.path, '--op-status', 'nope-1', '--format', 'json'],
         workingDirectory: tmp.path);
     final e = jsonDecode(r.stdout as String) as Map<String, dynamic>;
-    expect(e['errors'], isA<List>());
+    expect(e['errors'], isA<List<dynamic>>());
     expect(jsonEncode(e['errors']), contains('OPERATION_NOT_FOUND'));
   }, skip: skipMsg);
 

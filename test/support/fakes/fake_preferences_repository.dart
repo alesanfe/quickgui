@@ -11,6 +11,5 @@ class FakePreferencesRepository implements PreferencesRepository {
     store[key] = value;
   }
 
-  @override
   Future<T?> getAs<T>(String key) async => store[key] as T?;
 }

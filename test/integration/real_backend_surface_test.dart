@@ -11,32 +11,27 @@ void main() {
 
   late Directory tmp;
   late String conf;
-  Future<Map<String, dynamic>?> run(List<String> args) async {
-    final r = await Process.run('quickemu', ['--vm', conf, ...args],
-        workingDirectory: tmp.path);
-    if (r.exitCode != 0 && (r.stdout as String).isEmpty) return null;
-    try {
-      return jsonDecode(r.stdout as String) as Map<String, dynamic>;
-    } catch (_) {
-      return null;
-    }
-  }
 
   setUpAll(() {
     if (!hasQemu) return;
     tmp = Directory.systemTemp.createTempSync('qg_surf_');
     conf = '${tmp.path}/surf.conf';
     File(conf).writeAsStringSync(
-        'guest_os="linux"\ndisk_img="disk.qcow2"\nram="256M"\n');
+      'guest_os="linux"\ndisk_img="disk.qcow2"\nram="256M"\n',
+    );
     File('${tmp.path}/disk.qcow2').writeAsStringSync('x');
   });
   tearDownAll(() => tmp.deleteSync(recursive: true));
 
   void env(String cmd, List<String> args, {String? expectCommand}) {
     test(cmd, () async {
-      final r = await Process.run('quickemu',
-          ['--vm', conf, '--format', 'json', ...args],
-          workingDirectory: tmp.path);
+      final r = await Process.run('quickemu', [
+        '--vm',
+        conf,
+        '--format',
+        'json',
+        ...args,
+      ], workingDirectory: tmp.path);
       final out = r.stdout as String;
       if (out.trim().isEmpty) return; // legit empty output (e.g. events)
       // Either a v1 envelope or parseable JSONL/JSON-lines output
@@ -67,7 +62,10 @@ void main() {
   env('stats (stopped)', ['--stats']);
   env('plugins', ['--plugins'], expectCommand: 'host.plugins');
   env('op-list', ['--op-list'], expectCommand: 'vm.op-list');
-  env('op-status missing', ['--op-status', 'zzz'], expectCommand: 'vm.op-status');
+  env('op-status missing', [
+    '--op-status',
+    'zzz',
+  ], expectCommand: 'vm.op-status');
   env('events', ['--events', '0']);
   env('host-info', ['--host-info'], expectCommand: 'host.info');
   env('capabilities', ['--capabilities'], expectCommand: 'capabilities');

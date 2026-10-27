@@ -12,18 +12,12 @@ import '../support/fakes/fake_host_probe.dart';
 import '../support/fakes/fake_preferences_repository.dart';
 import '../support/fakes/fake_virtualization_backend.dart';
 import '../support/harness/test_app.dart';
-import 'package:quickgui/core/constants/preference_keys.dart';
+
 import 'package:quickgui/features/activity/presentation/activity_page.dart';
 import 'package:quickgui/features/catalog/providers/catalog_providers.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
 import 'package:quickgui/features/diagnostics/presentation/diagnostics_page.dart';
 import 'package:quickgui/features/home/presentation/downloader_menu.dart';
-import 'package:quickgui/features/home/presentation/left_menu.dart';
-import 'package:quickgui/features/settings/presentation/settings_page.dart';
-import 'package:quickgui/features/create/presentation/create_page.dart';
-import 'package:quickgui/features/machines/presentation/details/vm_page.dart';
-import 'package:quickgui/features/machines/presentation/shared/vm_snapshots_view.dart';
-import 'package:quickgui/features/catalog/presentation/operating_system_selection.dart';
 import 'package:quickgui/features/home/presentation/left_menu.dart';
 import 'package:quickgui/features/settings/presentation/settings_page.dart';
 import 'package:quickgui/features/create/presentation/create_page.dart';
@@ -38,25 +32,31 @@ import 'package:quickgui/shared/providers/preferences_providers.dart';
 
 final _host = FakeHostProbe();
 
-Future<void> open(WidgetTester tester, Widget home,
-    {VirtualizationBackend? backend,
-    Size size = const Size(1400, 1000)}) async {
+Future<void> open(
+  WidgetTester tester,
+  Widget home, {
+  VirtualizationBackend? backend,
+  Size size = const Size(1400, 1000),
+}) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
   final b = backend ?? FakeVirtualizationBackend();
-  await tester.pumpWidget(ProviderScope(
-    overrides: [
-      backendProvider.overrideWithValue(b),
-      trackedBackendProvider.overrideWithValue(b),
-      hostProbeProvider.overrideWithValue(_host),
-      preferencesRepositoryProvider
-          .overrideWithValue(FakePreferencesRepository()),
-      osIconsProvider.overrideWithValue({}),
-      osCatalogueProvider.overrideWithValue(Future.value([])),
-    ],
-    child: testApp(home: Scaffold(body: home)),
-  ));
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        backendProvider.overrideWithValue(b),
+        trackedBackendProvider.overrideWithValue(b),
+        hostProbeProvider.overrideWithValue(_host),
+        preferencesRepositoryProvider.overrideWithValue(
+          FakePreferencesRepository(),
+        ),
+        osIconsProvider.overrideWithValue({}),
+        osCatalogueProvider.overrideWithValue(Future.value([])),
+      ],
+      child: testApp(home: Scaffold(body: home)),
+    ),
+  );
   for (var i = 0; i < 12; i++) {
     await tester.pump(const Duration(milliseconds: 60));
   }
@@ -74,20 +74,23 @@ void writeVm(Directory dir, String name) {
 
 void main() {
   group('Manager — machines list', () {
-    testWidgets('positive: VMs on disk render without exception',
-        // unskipped: real fix was recursive teardown, not the timer
-        (t) async {
-      final dir = Directory.systemTemp.createTempSync('vmlib-');
-      addTearDown(() => dir.deleteSync(recursive: true));
-      for (final vm in ['debian-12', 'ubuntu-24.04']) {
-        writeVm(dir, vm);
-      }
-      await open(t, const Manager());
-      await unmount(t);
-      expect(t.takeException(), isNull);
-    });
-    testWidgets('negative: backend unavailable renders degraded state',
-        (t) async {
+    testWidgets(
+      'positive: VMs on disk render without exception',
+      // unskipped: real fix was recursive teardown, not the timer
+      (t) async {
+        final dir = Directory.systemTemp.createTempSync('vmlib-');
+        addTearDown(() => dir.deleteSync(recursive: true));
+        for (final vm in ['debian-12', 'ubuntu-24.04']) {
+          writeVm(dir, vm);
+        }
+        await open(t, const Manager());
+        await unmount(t);
+        expect(t.takeException(), isNull);
+      },
+    );
+    testWidgets('negative: backend unavailable renders degraded state', (
+      t,
+    ) async {
       final b = FakeVirtualizationBackend()..available = false;
       await open(t, const Manager(), backend: b);
       expect(t.takeException(), isNull);
@@ -97,50 +100,56 @@ void main() {
       await unmount(t);
       expect(t.takeException(), isNull);
     });
-    testWidgets('boundary: 60 VMs list scrolls without overflow',
-        // unskipped: real fix was recursive teardown, not the timer
-        (t) async {
-      final dir = Directory.systemTemp.createTempSync('vmlib-');
-      addTearDown(() => dir.deleteSync(recursive: true));
-      for (var i = 0; i < 60; i++) {
-        writeVm(dir, 'vm-${i.toString().padLeft(2, '0')}');
-      }
-      await open(t, const Manager());
-      await unmount(t);
-      expect(t.takeException(), isNull);
-    });
-    testWidgets('boundary: unicode/long VM names render',
-        // unskipped: real fix was recursive teardown, not the timer
-        (t) async {
-      final dir = Directory.systemTemp.createTempSync('vmlib-');
-      addTearDown(() => dir.deleteSync(recursive: true));
-      writeVm(dir, 'vm-ñ');
-      writeVm(dir, 'a-very-long-vm-name-that-must-truncate-${'x' * 40}');
-      await open(t, const Manager());
-      await unmount(t);
-      expect(t.takeException(), isNull);
-    });
-    testWidgets('positive: stopped VM row exists',
-        // unskipped: real fix was recursive teardown, not the timer
-        (t) async {
-      final dir = Directory.systemTemp.createTempSync('vmlib-');
-      addTearDown(() => dir.deleteSync(recursive: true));
-      writeVm(dir, 'vm1');
-      await open(t, const Manager());
-      await unmount(t);
-      expect(t.takeException(), isNull);
-    });
+    testWidgets(
+      'boundary: 60 VMs list scrolls without overflow',
+      // unskipped: real fix was recursive teardown, not the timer
+      (t) async {
+        final dir = Directory.systemTemp.createTempSync('vmlib-');
+        addTearDown(() => dir.deleteSync(recursive: true));
+        for (var i = 0; i < 60; i++) {
+          writeVm(dir, 'vm-${i.toString().padLeft(2, '0')}');
+        }
+        await open(t, const Manager());
+        await unmount(t);
+        expect(t.takeException(), isNull);
+      },
+    );
+    testWidgets(
+      'boundary: unicode/long VM names render',
+      // unskipped: real fix was recursive teardown, not the timer
+      (t) async {
+        final dir = Directory.systemTemp.createTempSync('vmlib-');
+        addTearDown(() => dir.deleteSync(recursive: true));
+        writeVm(dir, 'vm-ñ');
+        writeVm(dir, 'a-very-long-vm-name-that-must-truncate-${'x' * 40}');
+        await open(t, const Manager());
+        await unmount(t);
+        expect(t.takeException(), isNull);
+      },
+    );
+    testWidgets(
+      'positive: stopped VM row exists',
+      // unskipped: real fix was recursive teardown, not the timer
+      (t) async {
+        final dir = Directory.systemTemp.createTempSync('vmlib-');
+        addTearDown(() => dir.deleteSync(recursive: true));
+        writeVm(dir, 'vm1');
+        await open(t, const Manager());
+        await unmount(t);
+        expect(t.takeException(), isNull);
+      },
+    );
   });
 
   group('DiagnosticsPage', () {
-    testWidgets('positive: backend found + KVM + tools render',
-        (t) async {
+    testWidgets('positive: backend found + KVM + tools render', (t) async {
       await open(t, const DiagnosticsPage());
       expect(find.textContaining('Backend found'), findsWidgets);
       expect(find.textContaining('KVM'), findsWidgets);
     });
-    testWidgets('negative: backend missing still renders the report',
-        (t) async {
+    testWidgets('negative: backend missing still renders the report', (
+      t,
+    ) async {
       final b = FakeVirtualizationBackend()..available = false;
       await open(t, const DiagnosticsPage(), backend: b);
       expect(t.takeException(), isNull);
@@ -148,20 +157,24 @@ void main() {
   });
 
   group('DownloaderMenu', () {
-    testWidgets('positive: honours the stored working directory',
-        skip: true, // needs prefs repo + catalog wiring — CI/xvfb only
-        (t) async {
-      await open(t, const DownloaderMenu());
-      await unmount(t);
-      expect(t.takeException(), isNull);
-    });
-    testWidgets('boundary: empty catalogue still renders the menu',
-        skip: true, // needs prefs repo + catalog wiring — CI/xvfb only
-        (t) async {
-      await open(t, const DownloaderMenu());
-      await unmount(t);
-      expect(t.takeException(), isNull);
-    });
+    testWidgets(
+      'positive: honours the stored working directory',
+      skip: true, // needs prefs repo + catalog wiring — CI/xvfb only
+      (t) async {
+        await open(t, const DownloaderMenu());
+        await unmount(t);
+        expect(t.takeException(), isNull);
+      },
+    );
+    testWidgets(
+      'boundary: empty catalogue still renders the menu',
+      skip: true, // needs prefs repo + catalog wiring — CI/xvfb only
+      (t) async {
+        await open(t, const DownloaderMenu());
+        await unmount(t);
+        expect(t.takeException(), isNull);
+      },
+    );
   });
 
   group('ActivityPage', () {
@@ -169,8 +182,7 @@ void main() {
       await open(t, const ActivityPage());
       expect(t.takeException(), isNull);
     });
-    testWidgets('boundary: empty activity shows the empty state',
-        (t) async {
+    testWidgets('boundary: empty activity shows the empty state', (t) async {
       await open(t, const ActivityPage());
       expect(find.textContaining('activity'), findsWidgets);
     });
@@ -197,11 +209,9 @@ void main() {
       await open(t, const SizedBox(width: 420, child: LeftMenu()));
       expect(t.takeException(), isNull);
     });
-    testWidgets('negative: missing backend still renders menu',
-        (t) async {
+    testWidgets('negative: missing backend still renders menu', (t) async {
       final b = FakeVirtualizationBackend()..available = false;
-      await open(t, const SizedBox(width: 420, child: LeftMenu()),
-          backend: b);
+      await open(t, const SizedBox(width: 420, child: LeftMenu()), backend: b);
       expect(t.takeException(), isNull);
     });
     testWidgets('boundary: narrow menu does not overflow', (t) async {
@@ -215,8 +225,7 @@ void main() {
       await open(t, const SettingsPage());
       expect(t.takeException(), isNull);
     });
-    testWidgets('negative: degraded backend still shows sections',
-        (t) async {
+    testWidgets('negative: degraded backend still shows sections', (t) async {
       final b = FakeVirtualizationBackend()..available = false;
       await open(t, const SettingsPage(), backend: b);
       expect(t.takeException(), isNull);
@@ -228,8 +237,7 @@ void main() {
       await open(t, const CreatePage());
       expect(t.takeException(), isNull);
     });
-    testWidgets('negative: missing backend blocks the wizard',
-        (t) async {
+    testWidgets('negative: missing backend blocks the wizard', (t) async {
       final b = FakeVirtualizationBackend()..available = false;
       await open(t, const CreatePage(), backend: b);
       expect(t.takeException(), isNull);
@@ -241,8 +249,7 @@ void main() {
       await open(t, const VmPage(vmName: 'vm1'));
       expect(t.takeException(), isNull);
     });
-    testWidgets('negative: unknown VM name shows error state',
-        (t) async {
+    testWidgets('negative: unknown VM name shows error state', (t) async {
       await open(t, const VmPage(vmName: 'does-not-exist'));
       expect(t.takeException(), isNull);
     });
@@ -250,15 +257,16 @@ void main() {
 
   group('VmSnapshotsView', () {
     testWidgets('positive: snapshot view renders', (t) async {
-      await open(t,
-          const VmSnapshotsView(vm: 'vm1', confPath: 'vm1.conf'));
+      await open(t, const VmSnapshotsView(vm: 'vm1', confPath: 'vm1.conf'));
       expect(t.takeException(), isNull);
     });
     testWidgets('boundary: empty snapshot list renders', (t) async {
       final b = FakeVirtualizationBackend()..snapshots = const [];
       await open(
-          t, const VmSnapshotsView(vm: 'vm1', confPath: 'vm1.conf'),
-          backend: b);
+        t,
+        const VmSnapshotsView(vm: 'vm1', confPath: 'vm1.conf'),
+        backend: b,
+      );
       expect(t.takeException(), isNull);
     });
   });
@@ -268,8 +276,7 @@ void main() {
       await open(t, const OperatingSystemSelection());
       expect(t.takeException(), isNull);
     });
-    testWidgets('boundary: empty catalogue shows empty state',
-        (t) async {
+    testWidgets('boundary: empty catalogue shows empty state', (t) async {
       await open(t, const OperatingSystemSelection());
       expect(t.takeException(), isNull);
     });
