@@ -1437,3 +1437,6 @@ msgstr ""
 
 msgid "Send"
 msgstr ""
+
+msgid "Advanced"
+msgstr ""

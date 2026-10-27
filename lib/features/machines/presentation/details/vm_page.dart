@@ -7,6 +7,7 @@ import 'package:quickgui/features/machines/providers/tracked_backend_provider.da
 
 import 'package:quickgui/features/machines/presentation/details/vm_connection_view.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_settings_page.dart';
+import 'package:quickgui/shared/dialogs/validated_text_dialog.dart';
 import 'package:quickgui/features/machines/presentation/shared/stop_vm_dialog.dart';
 import 'package:quickgui/features/machines/presentation/shared/process_output_dialog.dart';
 import 'package:quickgui/shared/widgets/bytes_formatter.dart';
@@ -201,6 +202,31 @@ class _VmPageState extends ConsumerState<VmPage> {
             onPressed: _refresh,
             icon: const Icon(Icons.refresh),
           ),
+          PopupMenuButton<String>(
+            tooltip: context.t('Advanced'),
+            icon: const Icon(Icons.more_vert),
+            enabled: !_busy,
+            onSelected: _advanced,
+            itemBuilder: (context) => [
+              _menuItem('restart', 'Restart', active),
+              _menuItem('kill', 'Kill', active),
+              _menuItem('send-keys', 'Send keys…', active),
+              _menuItem('type', 'Type text…', active),
+              _menuItem('status-quo', 'Save state to conf', active),
+              _menuItem('create-disk', 'Create extra disk', !active),
+              _menuItem('disk-resize-commit', 'Commit disk resize', !active),
+              _menuItem('publicdir', 'Toggle public dir', true),
+              _menuItem('viewer', 'Open display viewer', active),
+              _menuItem('vnc', 'VNC viewer', active),
+              _menuItem('spice-console', 'SPICE console', active),
+              _menuItem('fullscreen', 'Fullscreen viewer', active),
+              _menuItem('ignore-msrs', 'Ignore MSRs (once)', true),
+              _menuItem('ignore-msrs-always', 'Ignore MSRs (always)', true),
+              _menuItem('backup', 'Create backup', !active),
+              _menuItem('snapshot-info', 'Snapshot info…', true),
+              _menuItem('trash', 'Move to trash', !active),
+            ],
+          ),
           if (_busy)
             const SizedBox(
               width: 24,
@@ -210,6 +236,52 @@ class _VmPageState extends ConsumerState<VmPage> {
         ],
       ),
     );
+  }
+
+  PopupMenuItem<String> _menuItem(String value, String label, bool enabled) =>
+      PopupMenuItem(
+        value: value,
+        enabled: enabled,
+        child: Text(context.t(label)),
+      );
+
+  /// Dispatches the Advanced menu — commands needing an argument open
+  /// a dialog first; the rest map 1:1 onto the quickemu flag.
+  Future<void> _advanced(String cmd) async {
+    switch (cmd) {
+      case 'send-keys':
+      case 'type':
+      case 'snapshot-info':
+        final arg = await showValidatedTextDialog(
+          context: context,
+          title: context.t(switch (cmd) {
+            'send-keys' => 'Send keys (e.g. ctrl-alt-delete)',
+            'type' => 'Type text',
+            _ => 'Snapshot name',
+          }),
+        );
+        if (arg == null || arg.isEmpty) return;
+        await _run(['--$cmd', arg], confirm: true);
+      case 'kill':
+        await _run(['--kill'], confirm: true);
+      case 'publicdir':
+        await _run(['--publicdir'], confirm: true);
+      case 'fullscreen':
+        await _run(['--fullscreen'], confirm: true);
+      case 'ignore-msrs-always':
+        await _run(['--ignore-msrs-always'], confirm: true);
+      case 'ignore-msrs':
+      case 'restart':
+      case 'viewer':
+      case 'vnc':
+      case 'spice-console':
+      case 'status-quo':
+      case 'create-disk':
+      case 'disk-resize-commit':
+      case 'backup':
+      case 'trash':
+        await _run(['--$cmd'], confirm: true);
+    }
   }
 
   static const _keys = [
