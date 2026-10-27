@@ -92,7 +92,7 @@ class _CreateWizardPageState extends ConsumerState<CreateWizardPage> {
         true,
       );
       if (selection.versions.length == 1 &&
-          selection.versions.first.options.length == 1) {
+          selection.versions.firstOrNull?.options.length == 1) {
         _version = selection.versions.first;
         _option = selection.versions.first.options.first;
       } else {

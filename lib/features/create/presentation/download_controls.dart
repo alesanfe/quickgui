@@ -70,7 +70,7 @@ class _DownloadControlsState extends ConsumerState<DownloadControls> {
                     setState(() {
                       _selectedOperatingSystem = selection;
                       if (selection.versions.length == 1 &&
-                          selection.versions.first.options.length == 1) {
+                          selection.versions.firstOrNull?.options.length == 1) {
                         _selectedVersion = selection.versions.first;
                         _selectedOption =
                             selection.versions.first.options.first;
