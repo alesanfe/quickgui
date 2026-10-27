@@ -1,10 +1,16 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:desktop_notifications/desktop_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:go_router/go_router.dart';
 import 'package:window_manager/window_manager.dart';
 
+import 'package:quickgui/features/activity/domain/app_operation.dart';
 import 'package:quickgui/features/activity/providers/activity_providers.dart';
+import 'package:quickgui/features/settings/providers/ui_preferences_providers.dart';
 import 'package:quickgui/shared/widgets/dependency_warning.dart';
 
 /// Persistent application shell: a NavigationRail on wide windows and a
@@ -19,6 +25,63 @@ class AppShell extends ConsumerStatefulWidget {
 }
 
 class _AppShellState extends ConsumerState<AppShell> {
+  // desktop_notifications talks to a Linux session D-Bus; on other
+  // platforms constructing the client throws (no UID).
+  final NotificationsClient? _notificationsClient = Platform.isLinux
+      ? NotificationsClient()
+      : null;
+  final Set<String> _notifiedOps = {};
+
+  /// Fires a desktop notification when a download reaches a terminal
+  /// state. The activity history is the canonical record — each finished
+  /// op appears there exactly once, so dedupe by id and notify only the
+  /// new entries. Honours the "notify when downloads finish" preference.
+  void _onActivityChanged() {
+    final client = _notificationsClient;
+    if (client == null) return;
+    if (!ref.read(uiPreferencesProvider).notifyOnComplete) return;
+    for (final entry in ref.read(activityProvider).history) {
+      if (entry.kind != OperationKind.download) continue;
+      final key = entry.id ?? '${entry.target}@${entry.completedAt}';
+      if (!_notifiedOps.add(key)) continue;
+      final (title, body) = switch (entry.status) {
+        OperationStatus.succeeded => (
+          context.t('Download finished.'),
+          context.t('Download of {0} has completed.', args: [entry.target]),
+        ),
+        OperationStatus.cancelled => (
+          context.t('Download cancelled'),
+          context.t('Download of {0} has been canceled.', args: [entry.target]),
+        ),
+        OperationStatus.failed => (
+          context.t('Download failed'),
+          context.t('Download of {0} has failed.', args: [entry.target]),
+        ),
+        _ => (null, null),
+      };
+      if (title == null || body == null) continue;
+      // Notifications are best-effort: a missing session bus
+      // (headless/SSH/container) must not break the app. The client
+      // reports D-Bus errors through an internal stream, so a guarded
+      // zone is needed on top of the try/catch.
+      unawaited(
+        runZonedGuarded(() async {
+          try {
+            await client.notify(
+              title,
+              body: body,
+              appName: 'Quickgui',
+              expireTimeoutMs: 10000 /* 10 seconds */,
+            );
+          } catch (_) {}
+        }, (_, _) {}),
+      );
+    }
+    if (_notifiedOps.length > 200) {
+      _notifiedOps.clear();
+    }
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -52,6 +115,7 @@ class _AppShellState extends ConsumerState<AppShell> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(activityProvider, (_, _) => _onActivityChanged());
     final destinations = _destinations(context);
     final selected = widget.shell.currentIndex;
     return LayoutBuilder(

@@ -66,10 +66,6 @@ msgid "Dismiss"
 msgstr "Descartar"
 
 #, fuzzy
-msgid "Done !"
-msgstr "Hecho !"
-
-#, fuzzy
 msgid "Download"
 msgstr "Descargar"
 
@@ -114,10 +110,6 @@ msgid "{0} Mbs downloaded"
 msgstr "{0} Mbs descargados"
 
 #, fuzzy
-msgid "Now run {0} to start the VM"
-msgstr "Ahora ejecuta {0} para iniciar la VM"
-
-#, fuzzy
 msgid "OK"
 msgstr "OK"
 
@@ -160,10 +152,6 @@ msgstr "Puerto SSH"
 #, fuzzy
 msgid "Stop The Virtual Machine?"
 msgstr "¿Detener la Máquina Virtual?"
-
-#, fuzzy
-msgid "Target folder : {0}"
-msgstr "Directorio de destino : {0}"
 
 #, fuzzy
 msgid "Use SPICE display"
@@ -300,9 +288,6 @@ msgstr "Conectar pantalla con SPICE"
 msgid "Connect with SSH"
 msgstr "Conectar con SSH"
 
-msgid "Could not check for updates."
-msgstr "No se pudieron buscar actualizaciones."
-
 msgid "CPU cores"
 msgstr "Núcleos de CPU"
 
@@ -344,9 +329,6 @@ msgstr "Descarga cancelada"
 
 msgid "Download failed"
 msgstr "Descarga fallida"
-
-msgid "Downloading..."
-msgstr "Descargando..."
 
 msgid "Edit configuration"
 msgstr "Editar configuración"
@@ -483,9 +465,6 @@ msgstr "Cliente SPICE no encontrado"
 msgid "SSH server not detected on guest"
 msgstr "Servidor SSH no detectado en el invitado"
 
-msgid "System diagnostics"
-msgstr "Diagnóstico del sistema"
-
 msgid "TPM"
 msgstr "TPM"
 
@@ -500,9 +479,6 @@ msgstr "Máquina virtual importada"
 
 msgid "Virtual machine name"
 msgstr "Nombre de la máquina virtual"
-
-msgid "Installed: {0}nLatest: {1}"
-msgstr "Instalado: {0}\nÚltimo: {1}"
 
 msgid "SSH username"
 msgstr "Usuario SSH"
@@ -1362,12 +1338,6 @@ msgstr "La papelera est� vac�a."
 msgid "Restore"
 msgstr "Restaurar"
 
-msgid "Restore backup"
-msgstr "Restaurar copia"
-
-msgid "Backup restored"
-msgstr "Copia restaurada"
-
 msgid "Backups"
 msgstr "Copias de seguridad"
 
@@ -1400,9 +1370,6 @@ msgstr "Conectar USB"
 
 msgid "Attach disk"
 msgstr "Conectar disco"
-
-msgid "Compact disk"
-msgstr "Compactar disco"
 
 msgid "Move / Rename"
 msgstr "Mover / Renombrar"
@@ -1464,9 +1431,6 @@ msgstr "Migrado a TOML"
 msgid "About QuickGUI"
 msgstr "Acerca de QuickGUI"
 
-msgid "A frontend for quickemu - discover, download and manage VMs."
-msgstr "Frontend para quickemu - descubre, descarga y gestiona VMs."
-
 msgid "Monitor"
 msgstr "Monitor"
 
@@ -1526,3 +1490,34 @@ msgstr "Mover a la papelera"
 
 msgid "Welcome — pick an OS in Create, then manage your VMs here."
 msgstr "Bienvenido — elige un SO en Crear y gestiona aquí tus VMs."
+
+msgid "A frontend for quickemu — discover, download and manage VMs."
+msgstr ""
+
+msgid "Hotplug — {0}"
+msgstr ""
+
+msgid "Inventory"
+msgstr ""
+
+msgid "Move / Rename — {0}"
+msgstr ""
+
+msgid "Plugins"
+msgstr ""
+
+msgid "QuickGUI"
+msgstr ""
+
+msgid "Required"
+msgstr ""
+
+msgid "Value"
+msgstr ""
+
+msgid "Dependency check"
+msgstr ""
+
+msgid "Download of {0} has been cancelled."
+msgstr ""
+

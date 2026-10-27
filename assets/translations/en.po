@@ -49,9 +49,6 @@ msgstr "Create new machines"
 msgid "Dismiss"
 msgstr "Dismiss"
 
-msgid "Done !"
-msgstr "Done !"
-
 msgid "Download"
 msgstr "Download"
 
@@ -91,9 +88,6 @@ msgstr "Manager"
 msgid "{0} Mbs downloaded"
 msgstr "{0} Mbs downloaded"
 
-msgid "Now run {0} to start the VM"
-msgstr "Now run {0} to start the VM"
-
 msgid "OK"
 msgstr "OK"
 
@@ -126,9 +120,6 @@ msgstr "SSH port"
 
 msgid "Stop The Virtual Machine?"
 msgstr "Stop The Virtual Machine?"
-
-msgid "Target folder : {0}"
-msgstr "Target folder : {0}"
 
 msgid "Use SPICE display"
 msgstr "Use SPICE display"
@@ -230,9 +221,6 @@ msgstr "Check for updates"
 msgid "Clone"
 msgstr "Clone"
 
-msgid "Could not check for updates."
-msgstr "Could not check for updates."
-
 msgid "CPU cores"
 msgstr "CPU cores"
 
@@ -262,9 +250,6 @@ msgstr "Display viewer"
 
 msgid "Download failed"
 msgstr "Download failed"
-
-msgid "Downloading..."
-msgstr "Downloading..."
 
 msgid "Edit configuration"
 msgstr "Edit configuration"
@@ -371,9 +356,6 @@ msgstr "Sort by name"
 msgid "Sound"
 msgstr "Sound"
 
-msgid "System diagnostics"
-msgstr "System diagnostics"
-
 msgid "TPM"
 msgstr "TPM"
 
@@ -388,9 +370,6 @@ msgstr "Virtual machine imported"
 
 msgid "Virtual machine name"
 msgstr "Virtual machine name"
-
-msgid "Installed: {0}nLatest: {1}"
-msgstr "Installed: {0}\nLatest: {1}"
 
 msgid "Clone {0}"
 msgstr "Clone {0}"
@@ -1331,12 +1310,6 @@ msgstr "The trash is empty."
 msgid "Restore"
 msgstr "Restore"
 
-msgid "Restore backup"
-msgstr "Restore backup"
-
-msgid "Backup restored"
-msgstr "Backup restored"
-
 msgid "Backups"
 msgstr "Backups"
 
@@ -1369,9 +1342,6 @@ msgstr "Attach USB"
 
 msgid "Attach disk"
 msgstr "Attach disk"
-
-msgid "Compact disk"
-msgstr "Compact disk"
 
 msgid "Move / Rename"
 msgstr "Move / Rename"
@@ -1433,9 +1403,6 @@ msgstr "Migrated to TOML"
 msgid "About QuickGUI"
 msgstr "About QuickGUI"
 
-msgid "A frontend for quickemu - discover, download and manage VMs."
-msgstr "A frontend for quickemu - discover, download and manage VMs."
-
 msgid "Monitor"
 msgstr "Monitor"
 
@@ -1495,3 +1462,28 @@ msgstr "Move to trash"
 
 msgid "Welcome — pick an OS in Create, then manage your VMs here."
 msgstr "Welcome — pick an OS in Create, then manage your VMs here."
+
+msgid "A frontend for quickemu — discover, download and manage VMs."
+msgstr ""
+
+msgid "Hotplug — {0}"
+msgstr ""
+
+msgid "Inventory"
+msgstr ""
+
+msgid "Move / Rename — {0}"
+msgstr ""
+
+msgid "Plugins"
+msgstr ""
+
+msgid "QuickGUI"
+msgstr ""
+
+msgid "Required"
+msgstr ""
+
+msgid "Value"
+msgstr ""
+

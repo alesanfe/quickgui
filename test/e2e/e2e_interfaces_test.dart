@@ -17,8 +17,6 @@ import 'package:quickgui/features/activity/presentation/activity_page.dart';
 import 'package:quickgui/features/catalog/providers/catalog_providers.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
 import 'package:quickgui/features/diagnostics/presentation/diagnostics_page.dart';
-import 'package:quickgui/features/home/presentation/downloader_menu.dart';
-import 'package:quickgui/features/home/presentation/left_menu.dart';
 import 'package:quickgui/features/settings/presentation/settings_page.dart';
 import 'package:quickgui/features/create/presentation/create_page.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_page.dart';
@@ -156,25 +154,19 @@ void main() {
     });
   });
 
-  group('DownloaderMenu', () {
-    testWidgets(
-      'positive: honours the stored working directory',
-      skip: true, // needs prefs repo + catalog wiring — CI/xvfb only
-      (t) async {
-        await open(t, const DownloaderMenu());
-        await unmount(t);
-        expect(t.takeException(), isNull);
-      },
-    );
-    testWidgets(
-      'boundary: empty catalogue still renders the menu',
-      skip: true, // needs prefs repo + catalog wiring — CI/xvfb only
-      (t) async {
-        await open(t, const DownloaderMenu());
-        await unmount(t);
-        expect(t.takeException(), isNull);
-      },
-    );
+  group('CreatePage — download surface', () {
+    testWidgets('positive: honours the stored working directory', (t) async {
+      final dir = Directory.systemTemp.createTempSync('qg-e2e-wd-');
+      addTearDown(() => dir.deleteSync(recursive: true));
+      await open(t, const CreatePage());
+      await unmount(t);
+      expect(t.takeException(), isNull);
+    });
+    testWidgets('boundary: empty catalogue still renders the page', (t) async {
+      await open(t, const CreatePage());
+      await unmount(t);
+      expect(t.takeException(), isNull);
+    });
   });
 
   group('ActivityPage', () {
@@ -204,18 +196,22 @@ void main() {
     });
   });
 
-  group('LeftMenu', () {
+  group('SettingsPage — diagnostics surface', () {
     testWidgets('positive: renders app + backend versions', (t) async {
-      await open(t, const SizedBox(width: 420, child: LeftMenu()));
+      await open(t, const SizedBox(width: 420, child: SettingsPage()));
       expect(t.takeException(), isNull);
     });
-    testWidgets('negative: missing backend still renders menu', (t) async {
+    testWidgets('negative: missing backend still renders sections', (t) async {
       final b = FakeVirtualizationBackend()..available = false;
-      await open(t, const SizedBox(width: 420, child: LeftMenu()), backend: b);
+      await open(
+        t,
+        const SizedBox(width: 420, child: SettingsPage()),
+        backend: b,
+      );
       expect(t.takeException(), isNull);
     });
-    testWidgets('boundary: narrow menu does not overflow', (t) async {
-      await open(t, const SizedBox(width: 280, child: LeftMenu()));
+    testWidgets('boundary: narrow settings page does not overflow', (t) async {
+      await open(t, const SizedBox(width: 280, child: SettingsPage()));
       expect(t.takeException(), isNull);
     });
   });

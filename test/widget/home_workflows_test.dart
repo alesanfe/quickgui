@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quickgui/core/constants/preference_keys.dart';
@@ -8,14 +9,13 @@ import 'package:quickgui/features/catalog/domain/operating_system.dart';
 import 'package:quickgui/features/catalog/domain/option.dart';
 import 'package:quickgui/features/catalog/domain/version.dart';
 import 'package:quickgui/features/catalog/providers/catalog_providers.dart';
+import 'package:go_router/go_router.dart';
+import 'package:quickgui/features/activity/presentation/activity_page.dart';
+import 'package:quickgui/features/create/presentation/create_page.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
-import 'package:quickgui/features/downloads/presentation/downloader.dart';
-import 'package:quickgui/features/home/presentation/downloader_menu.dart';
-import 'package:quickgui/features/home/presentation/left_menu.dart';
-import 'package:quickgui/features/home/presentation/main_menu.dart';
-import 'package:quickgui/features/downloads/presentation/downloader_page.dart';
+import 'package:quickgui/features/home/presentation/dashboard_page.dart';
+import 'package:quickgui/features/settings/presentation/settings_page.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_config_editor.dart';
-import 'package:quickgui/features/machines/presentation/list/manager.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/shared/providers/preferences_providers.dart';
 import 'package:quickgui/shared/widgets/dependency_warning.dart';
@@ -68,6 +68,7 @@ void main() {
     WidgetTester tester,
     Widget home, {
     List<OperatingSystem> catalogue = const [],
+    bool fullPage = false,
   }) async {
     tester.view.physicalSize = const Size(1600, 1200);
     tester.view.devicePixelRatio = 1;
@@ -82,21 +83,21 @@ void main() {
           osCatalogueProvider.overrideWithValue(Future.value(catalogue)),
         ],
         child: testApp(
-          home: Scaffold(body: Row(children: [home])),
+          home: fullPage ? home : Scaffold(body: Row(children: [home])),
         ),
       ),
     );
     await flush(tester);
   }
 
-  group('DownloaderMenu', () {
+  group('CreatePage — working directory', () {
     testWidgets('honours the stored working directory preference', (
       tester,
     ) async {
       final stored = Directory.systemTemp.createTempSync('qg-pref-');
       addTearDown(stored.deleteSync);
       preferences.store[prefWorkingDirectory] = stored.path;
-      await open(tester, const DownloaderMenu());
+      await open(tester, const CreatePage(), fullPage: true);
       expect(find.text(stored.path), findsOneWidget);
       expect(Directory.current.path, stored.path);
       Directory.current = directory;
@@ -110,14 +111,14 @@ void main() {
       host
         ..writable = false
         ..fallbackDir = fallback.path;
-      await open(tester, const DownloaderMenu());
+      await open(tester, const CreatePage(), fullPage: true);
       expect(Directory.current.path, fallback.path);
       expect(preferences.store[prefWorkingDirectory], fallback.path);
       Directory.current = directory;
     });
   });
 
-  group('HomePageButtonGroup', () {
+  group('DownloadControls', () {
     final catalogue = [
       os('Ubuntu', 'ubuntu', [
         ver('24.04', [Option('', 'curl')]),
@@ -151,7 +152,12 @@ void main() {
     testWidgets('selects an OS and version before enabling download', (
       tester,
     ) async {
-      await open(tester, const DownloaderMenu(), catalogue: catalogue);
+      await open(
+        tester,
+        const CreatePage(),
+        catalogue: catalogue,
+        fullPage: true,
+      );
       final download = find.widgetWithText(ElevatedButton, 'Download');
       expect(tester.widget<ElevatedButton>(download).onPressed, isNull);
 
@@ -168,7 +174,12 @@ void main() {
       tester,
     ) async {
       host.missingMacos = ['sse4_2', 'avx2'];
-      await open(tester, const DownloaderMenu(), catalogue: catalogue);
+      await open(
+        tester,
+        const CreatePage(),
+        catalogue: catalogue,
+        fullPage: true,
+      );
       await tester.tap(find.text('Select...').first);
       await tester.pumpAndSettle();
       await tester.tap(find.text('macOS').last);
@@ -187,7 +198,12 @@ void main() {
       tester,
     ) async {
       host.tools = {};
-      await open(tester, const DownloaderMenu(), catalogue: catalogue);
+      await open(
+        tester,
+        const CreatePage(),
+        catalogue: catalogue,
+        fullPage: true,
+      );
       await pick(tester, osName: 'Windows 11', version: '23h2');
       await tester.tap(find.widgetWithText(ElevatedButton, 'Download'));
       await tester.pumpAndSettle();
@@ -203,7 +219,12 @@ void main() {
       host
         ..writable = false
         ..fallbackDir = fallback.path;
-      await open(tester, const DownloaderMenu(), catalogue: catalogue);
+      await open(
+        tester,
+        const CreatePage(),
+        catalogue: catalogue,
+        fullPage: true,
+      );
       Directory.current = directory;
       await pick(tester);
       await tester.tap(find.widgetWithText(ElevatedButton, 'Download'));
@@ -216,7 +237,12 @@ void main() {
       tester,
     ) async {
       backend.lastActionResult = ProcessResult(0, 4, '', 'gone');
-      await open(tester, const DownloaderMenu(), catalogue: catalogue);
+      await open(
+        tester,
+        const CreatePage(),
+        catalogue: catalogue,
+        fullPage: true,
+      );
       await pick(tester);
       await tester.tap(find.widgetWithText(ElevatedButton, 'Download'));
       await tester.pumpAndSettle();
@@ -226,10 +252,15 @@ void main() {
       expect(find.textContaining('currently unavailable'), findsOneWidget);
     });
 
-    testWidgets('a passing check offers customisation then starts the '
-        'download page', (tester) async {
+    testWidgets('a passing check offers customisation then hands off to '
+        'the activity centre', (tester) async {
       backend.downloadProcess = FakeProcess();
-      await open(tester, const DownloaderMenu(), catalogue: catalogue);
+      await open(
+        tester,
+        const CreatePage(),
+        catalogue: catalogue,
+        fullPage: true,
+      );
       await pick(tester);
       await tester.tap(find.widgetWithText(ElevatedButton, 'Download'));
       await tester.pumpAndSettle();
@@ -254,12 +285,12 @@ void main() {
       );
       await tester.pump();
       await tester.tap(find.widgetWithText(TextButton, 'Download'));
-      // Bounded pumps: Downloader keeps an indeterminate progress
-      // indicator running, so the tree never fully settles.
+      // The task starts in the activity centre and the UI navigates to it
+      // (plain Navigator fallback when no GoRouter is in the tree).
       for (var i = 0; i < 10; i++) {
         await tester.pump(const Duration(milliseconds: 60));
       }
-      expect(find.byType(Downloader), findsOneWidget);
+      expect(find.byType(ActivityPage), findsOneWidget);
       expect(backend.downloadCalls, [
         ['ubuntu', '24.04', ''],
       ]);
@@ -269,21 +300,28 @@ void main() {
     testWidgets('cancelling customisation does not start a download', (
       tester,
     ) async {
-      await open(tester, const DownloaderMenu(), catalogue: catalogue);
+      await open(
+        tester,
+        const CreatePage(),
+        catalogue: catalogue,
+        fullPage: true,
+      );
       await pick(tester);
       await tester.tap(find.widgetWithText(ElevatedButton, 'Download'));
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
       await tester.pumpAndSettle();
-      expect(find.byType(Downloader), findsNothing);
+      expect(find.byType(ActivityPage), findsNothing);
       expect(backend.downloadCalls, isEmpty);
     });
   });
 
-  group('LeftMenu', () {
+  group('SettingsPage — versions', () {
     testWidgets('renders application and backend versions', (tester) async {
       backend.backendVersion = '4.9.7';
-      await open(tester, const SizedBox(width: 420, child: LeftMenu()));
+      await open(tester, const SettingsPage(), fullPage: true);
+      // '2.0.0' in the About tile ('Version {0} — Powered by Quickemu')
+      // and '4.9.7' in the Backend version tile.
       expect(find.textContaining('2.0.0'), findsWidgets);
       expect(find.textContaining('4.9.7'), findsWidgets);
       expect(tester.takeException(), isNull);
@@ -310,30 +348,78 @@ void main() {
     });
   });
 
-  group('MainMenu', () {
-    testWidgets('navigates to the manager when managing machines', (
-      tester,
-    ) async {
+  group('DashboardPage navigation', () {
+    Future<void> openDashboard(
+      WidgetTester tester, {
+      required Map<String, GoRouterWidgetBuilder> stubs,
+    }) async {
+      tester.view.physicalSize = const Size(1600, 1200);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final router = GoRouter(
+        initialLocation: '/',
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) => const DashboardPage(),
+          ),
+          for (final e in stubs.entries) GoRoute(path: e.key, builder: e.value),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            backendProvider.overrideWithValue(backend),
+            hostProbeProvider.overrideWithValue(host),
+            preferencesRepositoryProvider.overrideWithValue(preferences),
+            osIconsProvider.overrideWithValue({}),
+            osCatalogueProvider.overrideWithValue(Future.value([])),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            locale: const Locale('en'),
+            supportedLocales: const [Locale('en')],
+            localizationsDelegates: const [
+              TestLocalizationsDelegate(),
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+            ],
+          ),
+        ),
+      );
+      await flush(tester);
+    }
+
+    testWidgets('navigates to the machines library', (tester) async {
       backend
         ..vms = []
         ..capabilities = {'capabilities': <String, dynamic>{}};
-      await open(tester, const MainMenu());
-      await tester.tap(find.text('Manage existing machines'));
+      await openDashboard(
+        tester,
+        stubs: {
+          '/machines': (context, state) =>
+              const Scaffold(body: Text('ROUTE /machines')),
+        },
+      );
+      await tester.tap(find.byKey(const ValueKey('nav.machines')));
       await tester.pumpAndSettle();
-      expect(find.byType(Manager), findsOneWidget);
+      expect(find.text('ROUTE /machines'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('navigates to the downloader page for new machines', (
-      tester,
-    ) async {
+    testWidgets('navigates to the create flow', (tester) async {
       backend.vms = [];
-      await open(tester, const MainMenu());
-      await tester.tap(find.text('Create new machines'));
-      for (var i = 0; i < 10; i++) {
-        await tester.pump(const Duration(milliseconds: 60));
-      }
-      expect(find.byType(DownloaderPage), findsOneWidget);
+      await openDashboard(
+        tester,
+        stubs: {
+          '/create': (context, state) =>
+              const Scaffold(body: Text('ROUTE /create')),
+        },
+      );
+      await tester.tap(find.byKey(const ValueKey('nav.create-machine')));
+      await tester.pumpAndSettle();
+      expect(find.text('ROUTE /create'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });

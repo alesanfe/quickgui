@@ -9,10 +9,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quickgui/shared/providers/preferences_providers.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/app/theme/app_theme.dart';
+import 'package:quickgui/features/create/presentation/create_page.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
-import 'package:quickgui/features/downloads/presentation/downloader_page.dart';
-import 'package:quickgui/features/home/presentation/main_page.dart';
+import 'package:quickgui/features/home/presentation/dashboard_page.dart';
 import 'package:quickgui/features/machines/presentation/list/manager.dart';
+import 'package:quickgui/features/machines/providers/vm_library_providers.dart';
 import 'package:quickgui/features/settings/domain/settings_state.dart';
 import 'package:quickgui/features/settings/providers/settings_providers.dart';
 
@@ -20,6 +21,30 @@ import '../support/fakes/fake_host_probe.dart';
 import '../support/fakes/fake_preferences_repository.dart';
 import '../support/fakes/fake_virtualization_backend.dart';
 import '../support/harness/test_app.dart';
+
+/// Fixed machine library for the dashboard scenario — the real provider
+/// scans the process working directory, which is not deterministic on CI.
+final _goldMachines = <LibraryMachine>[
+  const LibraryMachine(
+    name: 'ubuntu-24.04',
+    confPath: '/vms/ubuntu-24.04.conf',
+    state: 'running',
+    values: {'cpu_cores': '4', 'ram': '4G'},
+    pid: 42424,
+  ),
+  const LibraryMachine(
+    name: 'windows-11',
+    confPath: '/vms/windows-11.conf',
+    state: 'stopped',
+    values: {'cpu_cores': '8', 'ram': '8G'},
+  ),
+  const LibraryMachine(
+    name: 'debian-12',
+    confPath: '/vms/debian-12.conf',
+    state: 'paused',
+    values: {'cpu_cores': '2', 'ram': '2G'},
+  ),
+];
 
 Widget _app({required Widget home, required bool dark}) => ProviderScope(
   overrides: [
@@ -35,6 +60,7 @@ Widget _app({required Widget home, required bool dark}) => ProviderScope(
     initialSettingsProvider.overrideWithValue(
       SettingsState(darkMode: dark, locale: 'es'),
     ),
+    vmLibraryProvider.overrideWith((ref) async => _goldMachines),
   ],
   child: testApp(theme: dark ? AppTheme.dark() : AppTheme.light(), home: home),
 );
@@ -51,9 +77,9 @@ void main() {
         );
   });
   const pages = <String, Widget>{
-    'main_menu': MainPage(),
+    'dashboard': DashboardPage(),
     'machines_manager': Manager(),
-    'downloader': DownloaderPage(),
+    'create': CreatePage(),
   };
 
   for (final dark in [false, true]) {

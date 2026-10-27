@@ -278,8 +278,10 @@ class _InventorySection extends ConsumerWidget {
           : _Section(context.t('Inventory'), [
               for (final e in vms.entries)
                 _Info(
-                  '${(e.value as Map)['vm'] ?? e.key}',
-                  '${(e.value as Map)['state']} — ${(e.value as Map)['dir']}',
+                  e.value is Map ? '${(e.value as Map)['vm'] ?? e.key}' : e.key,
+                  e.value is Map
+                      ? '${(e.value as Map)['state'] ?? 'unknown'} — ${(e.value as Map)['dir'] ?? ''}'
+                      : '$e.value',
                 ),
             ]),
       loading: () => const SizedBox.shrink(),

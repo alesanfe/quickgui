@@ -34,9 +34,6 @@ msgstr "Criar novas máquinas virtuais"
 msgid "Dismiss"
 msgstr "Dispensar"
 
-msgid "Done !"
-msgstr "Feito !"
-
 msgid "Download"
 msgstr "Baixar"
 
@@ -73,9 +70,6 @@ msgstr "Configurar"
 msgid "{0} Mbs downloaded"
 msgstr "{0} Mbs transferidos"
 
-msgid "Now run {0} to start the VM"
-msgstr "Inicie a VM [{0}]"
-
 msgid "OK"
 msgstr "OK"
 
@@ -108,9 +102,6 @@ msgstr "Porta TCP/IP do SSH"
 
 msgid "Stop The Virtual Machine?"
 msgstr "Parar a Máquina Virtual?"
-
-msgid "Target folder : {0}"
-msgstr "Pasta de destino : {0}"
 
 msgid "Use SPICE display"
 msgstr "Usar mostrador SPICE"
@@ -157,9 +148,6 @@ msgstr ""
 msgid "Connect with SSH"
 msgstr ""
 
-msgid "Could not check for updates."
-msgstr ""
-
 msgid "CPU cores"
 msgstr ""
 
@@ -197,9 +185,6 @@ msgid "Display viewer"
 msgstr ""
 
 msgid "Download failed"
-msgstr ""
-
-msgid "Downloading..."
 msgstr ""
 
 msgid "Edit configuration"
@@ -337,9 +322,6 @@ msgstr ""
 msgid "SSH server not detected on guest"
 msgstr ""
 
-msgid "System diagnostics"
-msgstr ""
-
 msgid "TPM"
 msgstr ""
 
@@ -355,9 +337,6 @@ msgstr ""
 msgid "Virtual machine name"
 msgstr ""
 
-msgid "Installed: {0}nLatest: {1}"
-msgstr ""
-
 msgid "SSH username"
 msgstr ""
 
@@ -369,3 +348,1141 @@ msgstr ""
 
 msgid "Snapshots {0}"
 msgstr ""
+
+msgid "A frontend for quickemu — discover, download and manage VMs."
+msgstr ""
+
+msgid "A required port is already in use. Stop the conflicting VM or change the port forwards."
+msgstr ""
+
+msgid "About"
+msgstr ""
+
+msgid "About QuickGUI"
+msgstr ""
+
+msgid "Action: {0}"
+msgstr ""
+
+msgid "Activity"
+msgstr ""
+
+msgid "Additional ISO"
+msgstr ""
+
+msgid "Advanced"
+msgstr ""
+
+msgid "Advanced (other keys)"
+msgstr ""
+
+msgid "Advanced configuration mode"
+msgstr ""
+
+msgid "Affected: {0}"
+msgstr ""
+
+msgid "All"
+msgstr ""
+
+msgid "All changes can be merged."
+msgstr ""
+
+msgid "All types"
+msgstr ""
+
+msgid "Appearance"
+msgstr ""
+
+msgid "Apply snapshot {0}"
+msgstr ""
+
+msgid "Ask before resetting machines, forcing stops or applying snapshots. Deleting always asks."
+msgstr ""
+
+msgid "Attach ISO and recovery images in Hardware → Boot. Additional disk topologies depend on the installed Quickemu version."
+msgstr ""
+
+msgid "Attach USB"
+msgstr ""
+
+msgid "Attach disk"
+msgstr ""
+
+msgid "Audio"
+msgstr ""
+
+msgid "Automatic"
+msgstr ""
+
+msgid "Back"
+msgstr ""
+
+msgid "Backend compatibility"
+msgstr ""
+
+msgid "Backend found"
+msgstr ""
+
+msgid "Backend status"
+msgstr ""
+
+msgid "Backend version"
+msgstr ""
+
+msgid "Backup restored"
+msgstr ""
+
+msgid "Backups"
+msgstr ""
+
+msgid "Backups for {0}"
+msgstr ""
+
+msgid "Batch operation completed"
+msgstr ""
+
+msgid "Behaviour"
+msgstr ""
+
+msgid "Boot"
+msgstr ""
+
+msgid "Cancel operation"
+msgstr ""
+
+msgid "Cancelled"
+msgstr ""
+
+msgid "Cancelling"
+msgstr ""
+
+msgid "Capabilities"
+msgstr ""
+
+msgid "Change"
+msgstr ""
+
+msgid "Changes take effect at the next start"
+msgstr ""
+
+msgid "Check VM"
+msgstr ""
+
+msgid "Checking…"
+msgstr ""
+
+msgid "Choose an operating system or import an existing image to get started."
+msgstr ""
+
+msgid "Clear history"
+msgstr ""
+
+msgid "Close"
+msgstr ""
+
+msgid "Comma-separated USB vendor:product identifiers. Disconnecting host devices may interrupt other applications."
+msgstr ""
+
+msgid "Comma-separated host:guest pairs. Quickemu forwards both TCP and UDP on all host interfaces. Only available with user NAT/restricted networking."
+msgstr ""
+
+msgid "Comma-separated tags"
+msgstr ""
+
+msgid "Command"
+msgstr ""
+
+msgid "Command output"
+msgstr ""
+
+msgid "Commands without envelope"
+msgstr ""
+
+msgid "Compact disk"
+msgstr ""
+
+msgid "Completed"
+msgstr ""
+
+msgid "Configuration changed outside Quickgui"
+msgstr ""
+
+msgid "Configuration saved"
+msgstr ""
+
+msgid "Configure"
+msgstr ""
+
+msgid "Configure storage and removable media"
+msgstr ""
+
+msgid "Confirm machine action"
+msgstr ""
+
+msgid "Confirm risky actions"
+msgstr ""
+
+msgid "Connect / reconnect"
+msgstr ""
+
+msgid "Connect to your machine"
+msgstr ""
+
+msgid "Connection failed: {0}"
+msgstr ""
+
+msgid "Console"
+msgstr ""
+
+msgid "Continue"
+msgstr ""
+
+msgid "Continue anyway"
+msgstr ""
+
+msgid "Contract version"
+msgstr ""
+
+msgid "Contract, dependencies and legacy fallback status"
+msgstr ""
+
+msgid "Convert"
+msgstr ""
+
+msgid "Copy error report"
+msgstr ""
+
+msgid "Copy report"
+msgstr ""
+
+msgid "Copy sanitised report"
+msgstr ""
+
+msgid "Could not check Quickemu"
+msgstr ""
+
+msgid "Could not check for updates. Check your network connection and try again later."
+msgstr ""
+
+msgid "Could not load machines"
+msgstr ""
+
+msgid "Could not load the OS catalogue. Check that quickget is installed and try again."
+msgstr ""
+
+msgid "Could not save configuration: {0}"
+msgstr ""
+
+msgid "Could not write to the working directory. Please check the permissions."
+msgstr ""
+
+msgid "Create a machine"
+msgstr ""
+
+msgid "Create a virtual machine"
+msgstr ""
+
+msgid "Create backup"
+msgstr ""
+
+msgid "Create your first machine"
+msgstr ""
+
+msgid "Create, run and manage your virtual machines."
+msgstr ""
+
+msgid "Delete snapshot {0}"
+msgstr ""
+
+msgid "Destination: {0}"
+msgstr ""
+
+msgid "Detected Quickemu installation"
+msgstr ""
+
+msgid "Device"
+msgstr ""
+
+msgid "Diagnostics"
+msgstr ""
+
+msgid "Discard"
+msgstr ""
+
+msgid "Discard unsaved changes?"
+msgstr ""
+
+msgid "Disk"
+msgstr ""
+
+msgid "Disk image path"
+msgstr ""
+
+msgid "Disk maintenance and a consistent full backup require a stopped machine. Snapshots are not independent backups."
+msgstr ""
+
+msgid "Disks"
+msgstr ""
+
+msgid "Display & sound"
+msgstr ""
+
+msgid "Download an operating system or import a disk image to create your first machine."
+msgstr ""
+
+msgid "Download of {0} has been canceled."
+msgstr ""
+
+msgid "Download of {0} has failed."
+msgstr ""
+
+msgid "Download started — track it in Activity"
+msgstr ""
+
+msgid "Download with quickget"
+msgstr ""
+
+msgid "Downloads and virtual machines will not work until it is installed."
+msgstr ""
+
+msgid "Edit VM: {0}"
+msgstr ""
+
+msgid "Edit raw configuration"
+msgstr ""
+
+msgid "Edit tags"
+msgstr ""
+
+msgid "Empty = user NAT. restrict = isolated user network. none = disconnected. For bridging, enter the host bridge name (for example br0)."
+msgstr ""
+
+msgid "Enter a network mode or a valid host bridge name"
+msgstr ""
+
+msgid "Enter a positive CPU count"
+msgstr ""
+
+msgid "Enter a valid MAC address"
+msgstr ""
+
+msgid "Events"
+msgstr ""
+
+msgid "Existing snapshots"
+msgstr ""
+
+msgid "Expand disk"
+msgstr ""
+
+msgid "Export / full backup"
+msgstr ""
+
+msgid "External viewer opened. Display resize, clipboard and guest integration are provided by the viewer and guest tools."
+msgstr ""
+
+msgid "Failed"
+msgstr ""
+
+msgid "Failed (retryable)"
+msgstr ""
+
+msgid "Favourite"
+msgstr ""
+
+msgid "Favourites"
+msgstr ""
+
+msgid "Filter by type"
+msgstr ""
+
+msgid "Firmware"
+msgstr ""
+
+msgid "Floppy image"
+msgstr ""
+
+msgid "Force stop"
+msgstr ""
+
+msgid "Forwarded ports (host:guest)"
+msgstr ""
+
+msgid "Free disk space"
+msgstr ""
+
+msgid "Free space"
+msgstr ""
+
+msgid "Guided creation"
+msgstr ""
+
+msgid "HMP command (e.g. info status)"
+msgstr ""
+
+msgid "Hardware"
+msgstr ""
+
+msgid "Hardware virtualisation (/dev/kvm) is not available; VMs will run slowly."
+msgstr ""
+
+msgid "History"
+msgstr ""
+
+msgid "Home"
+msgstr ""
+
+msgid "Host"
+msgstr ""
+
+msgid "Host info"
+msgstr ""
+
+msgid "Hotplug devices"
+msgstr ""
+
+msgid "Hotplug — {0}"
+msgstr ""
+
+msgid "How often the machine list is updated"
+msgstr ""
+
+msgid "ISO, qcow2, vdi, vmdk, vhdx or raw"
+msgstr ""
+
+msgid "Image file size: {0}. Virtual capacity is configured separately."
+msgstr ""
+
+msgid "Image imported — continue to review."
+msgstr ""
+
+msgid "In progress"
+msgstr ""
+
+msgid "Installation ISO"
+msgstr ""
+
+msgid "Installed: {0}\nLatest: {1}"
+msgstr ""
+
+msgid "Integration"
+msgstr ""
+
+msgid "Interrupted"
+msgstr ""
+
+msgid "Inventory"
+msgstr ""
+
+msgid "KVM is not accessible. Add your user to the kvm group or check /dev/kvm permissions."
+msgstr ""
+
+msgid "Keep editing"
+msgstr ""
+
+msgid "Key"
+msgstr ""
+
+msgid "Last fallback"
+msgstr ""
+
+msgid "Last refreshed: {0}"
+msgstr ""
+
+msgid "Launch SSH connection to {0}"
+msgstr ""
+
+msgid "Legacy bridge interface"
+msgstr ""
+
+msgid "Legacy fallbacks used"
+msgstr ""
+
+msgid "Line {0}: expected key=\"value\"."
+msgstr ""
+
+msgid "Local copy saved to {0}"
+msgstr ""
+
+msgid "Logs"
+msgstr ""
+
+msgid "Low disk space"
+msgstr ""
+
+msgid "Machines"
+msgstr ""
+
+msgid "Memory"
+msgstr ""
+
+msgid "Merge and save"
+msgstr ""
+
+msgid "Migrate to TOML"
+msgstr ""
+
+msgid "Migrated to TOML"
+msgstr ""
+
+msgid "Missing"
+msgstr ""
+
+msgid "Monitor"
+msgstr ""
+
+msgid "Move"
+msgstr ""
+
+msgid "Move / Rename"
+msgstr ""
+
+msgid "Move / Rename — {0}"
+msgstr ""
+
+msgid "Move to directory"
+msgstr ""
+
+msgid "Needs a fresh plan — re-run from the VM actions"
+msgstr ""
+
+msgid "Network mode or bridge interface"
+msgstr ""
+
+msgid "New"
+msgstr ""
+
+msgid "New capacity (for example 128G)"
+msgstr ""
+
+msgid "New machine"
+msgstr ""
+
+msgid "New size (current: {0}, grow only)"
+msgstr ""
+
+msgid "No activity recorded for this machine."
+msgstr ""
+
+msgid "No activity yet. Downloads and machine "
+msgstr ""
+
+msgid "No activity yet. Downloads and machine operations will show up here."
+msgstr ""
+
+msgid "No backend operations for this machine."
+msgstr ""
+
+msgid "No backups for this machine."
+msgstr ""
+
+msgid "No disk configured"
+msgstr ""
+
+msgid "No machines match these filters"
+msgstr ""
+
+msgid "No operations match the current filters."
+msgstr ""
+
+msgid "No passthrough candidates"
+msgstr ""
+
+msgid "No snapshots yet. Snapshots capture the disk state so you can roll back later."
+msgstr ""
+
+msgid "No virtual machines yet"
+msgstr ""
+
+msgid "None"
+msgstr ""
+
+msgid "Not found"
+msgstr ""
+
+msgid "Not running"
+msgstr ""
+
+msgid "Notify when downloads finish"
+msgstr ""
+
+msgid "On disk"
+msgstr ""
+
+msgid "Only {0} is free in the working directory."
+msgstr ""
+
+msgid "Only {0} is free in the working directory. Large guests may fail to download or run out of disk space."
+msgstr ""
+
+msgid "Open config documentation"
+msgstr ""
+
+msgid "Open details"
+msgstr ""
+
+msgid "Open diagnostics"
+msgstr ""
+
+msgid "Open viewer in full screen"
+msgstr ""
+
+msgid "Operations"
+msgstr ""
+
+msgid "Origin"
+msgstr ""
+
+msgid "Original"
+msgstr ""
+
+msgid "Overview"
+msgstr ""
+
+msgid "Overwrite"
+msgstr ""
+
+msgid "Overwrite anyway"
+msgstr ""
+
+msgid "Overwrite {0}?"
+msgstr ""
+
+msgid "Paused"
+msgstr ""
+
+msgid "Pick a folder"
+msgstr ""
+
+msgid "Pick an image from the catalogue"
+msgstr ""
+
+msgid "Pick an operating system and a version, or drop a disk image anywhere on this page."
+msgstr ""
+
+msgid "Plugins"
+msgstr ""
+
+msgid "Preferred display viewer"
+msgstr ""
+
+msgid "Profile"
+msgstr ""
+
+msgid "Prune old"
+msgstr ""
+
+msgid "Queued"
+msgstr ""
+
+msgid "QuickGUI"
+msgstr ""
+
+msgid "Quickemu"
+msgstr ""
+
+msgid "Quickemu is available"
+msgstr ""
+
+msgid "Quickemu is unavailable. Open diagnostics for installation help."
+msgstr ""
+
+msgid "Quickemu report"
+msgstr ""
+
+msgid "Quickemu was not found in your PATH"
+msgstr ""
+
+msgid "Quickgui manages the connection here and opens the native viewer. A SPICE or VNC display is not embedded in this build."
+msgstr ""
+
+msgid "Recent activity"
+msgstr ""
+
+msgid "Recovery image"
+msgstr ""
+
+msgid "Refresh"
+msgstr ""
+
+msgid "Refresh interval"
+msgstr ""
+
+msgid "Refresh ports"
+msgstr ""
+
+msgid "Reload from disk"
+msgstr ""
+
+msgid "Rename"
+msgstr ""
+
+msgid "Rename to"
+msgstr ""
+
+msgid "Replace"
+msgstr ""
+
+msgid "Replace existing archive?"
+msgstr ""
+
+msgid "Replace {0}?"
+msgstr ""
+
+msgid "Report copied"
+msgstr ""
+
+msgid "Required"
+msgstr ""
+
+msgid "Reset"
+msgstr ""
+
+msgid "Reset {0}?"
+msgstr ""
+
+msgid "Resize"
+msgstr ""
+
+msgid "Resize disk"
+msgstr ""
+
+msgid "Resize disk of {0}"
+msgstr ""
+
+msgid "Resolve conflicts"
+msgstr ""
+
+msgid "Restore"
+msgstr ""
+
+msgid "Restore backup"
+msgstr ""
+
+msgid "Retry"
+msgstr ""
+
+msgid "Retry {0}?"
+msgstr ""
+
+msgid "Retryable only"
+msgstr ""
+
+msgid "Review"
+msgstr ""
+
+msgid "Review batch operation"
+msgstr ""
+
+msgid "Running"
+msgstr ""
+
+msgid "Save"
+msgstr ""
+
+msgid "Save a copy"
+msgstr ""
+
+msgid "Save a copy of {0}"
+msgstr ""
+
+msgid "Scan again"
+msgstr ""
+
+msgid "Scan passthrough devices"
+msgstr ""
+
+msgid "Search logs"
+msgstr ""
+
+msgid "Secure Boot"
+msgstr ""
+
+msgid "Select a virtual machine"
+msgstr ""
+
+msgid "Select all"
+msgstr ""
+
+msgid "Select multiple"
+msgstr ""
+
+msgid "Send"
+msgstr ""
+
+msgid "Send Ctrl+Alt+Del"
+msgstr ""
+
+msgid "Serial and VNC access"
+msgstr ""
+
+msgid "Serial sockets and VNC addresses can be configured in Advanced settings. No terminal or VNC client is embedded; do not expose these ports to untrusted networks."
+msgstr ""
+
+msgid "Settings"
+msgstr ""
+
+msgid "Settings — {0}"
+msgstr ""
+
+msgid "Share only a trusted folder. Guest access can expose host files; permissions and guest tools still apply."
+msgstr ""
+
+msgid "Shared host folder"
+msgstr ""
+
+msgid "Sharing & devices"
+msgstr ""
+
+msgid "Show all options, including ones not covered by the basic editor"
+msgstr ""
+
+msgid "Show every configuration key in the VM settings page"
+msgstr ""
+
+msgid "Shut down"
+msgstr ""
+
+msgid "Shut down or stop the virtual machine"
+msgstr ""
+
+msgid "Shut down {0} gracefully, or force it to stop? Forcing discards unsaved changes in the guest."
+msgstr ""
+
+msgid "Snapshot tree"
+msgstr ""
+
+msgid "Some changes were applied before the failure."
+msgstr ""
+
+msgid "Some machines failed: {0}"
+msgstr ""
+
+msgid "Stale (process exited unexpectedly)"
+msgstr ""
+
+msgid "Start"
+msgstr ""
+
+msgid "Start the machine after creation"
+msgstr ""
+
+msgid "Start the virtual machine"
+msgstr ""
+
+msgid "Stop"
+msgstr ""
+
+msgid "Stop the machine before changing disks, firmware or network configuration."
+msgstr ""
+
+msgid "Stop {0}"
+msgstr ""
+
+msgid "Stopped"
+msgstr ""
+
+msgid "Storage"
+msgstr ""
+
+msgid "Structured contract"
+msgstr ""
+
+msgid "Switch view"
+msgstr ""
+
+msgid "System"
+msgstr ""
+
+msgid "TPM 2.0"
+msgstr ""
+
+msgid "Tag for the new or existing snapshot"
+msgstr ""
+
+msgid "Technical details"
+msgstr ""
+
+msgid "The SPICE port is closed. The machine may still be starting or may have stopped. Refresh the status and retry."
+msgstr ""
+
+msgid "The SPICE viewer was not found. Install spicy or pick another display viewer in Settings."
+msgstr ""
+
+msgid "The current state of {0} will be replaced by the snapshot {1}. This cannot be undone."
+msgstr ""
+
+msgid "The disk has not been created yet or is unavailable."
+msgstr ""
+
+msgid "The disk image is missing or corrupted. Verify the image or download it again."
+msgstr ""
+
+msgid "The disk is full. Free space in the working directory or move the VMs to a larger disk."
+msgstr ""
+
+msgid "The file already exists and will be overwritten."
+msgstr ""
+
+msgid "The file exists and will be replaced. A .bak copy is kept."
+msgstr ""
+
+msgid "The file will be moved into a new virtual machine folder inside the working directory."
+msgstr ""
+
+msgid "The file {0} was modified by Quickemu, another editor or an external operation since it was opened."
+msgstr ""
+
+msgid "The forwarded port is not serving SSH yet. Wait for guest startup and check the guest SSH service."
+msgstr ""
+
+msgid "The guest has not published a connection port. Start the machine and wait until it is ready, then retry."
+msgstr ""
+
+msgid "The image will be converted to qcow2, then moved into a new virtual machine folder inside the working directory."
+msgstr ""
+
+msgid "The selected SPICE viewer is unavailable. Install spicy or remote-viewer and choose it in Settings."
+msgstr ""
+
+msgid "The selected image is currently unavailable."
+msgstr ""
+
+msgid "The snapshot {0} of {1} will be permanently deleted. This cannot be undone."
+msgstr ""
+
+msgid "The trash is empty."
+msgstr ""
+
+msgid "The virtual machine reboots immediately. Unsaved guest state may be lost."
+msgstr ""
+
+msgid "This action can discard unsaved guest state. Continue?"
+msgstr ""
+
+msgid "This operation may be destructive. Run it again?"
+msgstr ""
+
+msgid "Tools"
+msgstr ""
+
+msgid "Trash"
+msgstr ""
+
+msgid "Type"
+msgstr ""
+
+msgid "USB device (id or path)"
+msgstr ""
+
+msgid "USB devices (vendor:product)"
+msgstr ""
+
+msgid "Unable to load configuration"
+msgstr ""
+
+msgid "Unknown"
+msgstr ""
+
+msgid "Use a size such as 4G or 512M"
+msgstr ""
+
+msgid "Use a value larger than the existing capacity. Back up important data first."
+msgstr ""
+
+msgid "Use all local"
+msgstr ""
+
+msgid "Use all on-disk"
+msgstr ""
+
+msgid "Use group:name to organise a collection"
+msgstr ""
+
+msgid "Use port pairs from 1 to 65535, for example 8080:80"
+msgstr ""
+
+msgid "Used to open the console of running machines"
+msgstr ""
+
+msgid "VFIO scan"
+msgstr ""
+
+msgid "VM settings"
+msgstr ""
+
+msgid "Validating"
+msgstr ""
+
+msgid "Value"
+msgstr ""
+
+msgid "Version {0} — Powered by Quickemu"
+msgstr ""
+
+msgid "Versions"
+msgstr ""
+
+msgid "View all"
+msgstr ""
+
+msgid "VirtIO drivers / unattended install present"
+msgstr ""
+
+msgid "Virtual disk capacity"
+msgstr ""
+
+msgid "Virtual machine not found: {0}"
+msgstr ""
+
+msgid "Virtual machines"
+msgstr ""
+
+msgid "Waiting for confirmation"
+msgstr ""
+
+msgid "Warnings"
+msgstr ""
+
+msgid "Welcome to Quickgui"
+msgstr ""
+
+msgid "Welcome — pick an OS in Create, then manage your VMs here."
+msgstr ""
+
+msgid "Working directory"
+msgstr ""
+
+msgid "You are about to delete {0}. This cannot be undone. Would you like to delete the disk image but keep the configuration, or delete the whole VM?"
+msgstr ""
+
+msgid "You will pick the disk image at the end."
+msgstr ""
+
+msgid "Your edit"
+msgstr ""
+
+msgid "Your edits to this configuration have not been saved."
+msgstr ""
+
+msgid "Yours"
+msgstr ""
+
+msgid "macOS {0} requires a CPU with {1} support."
+msgstr ""
+
+msgid "swtpm is not installed. Windows guests need a TPM 2.0 emulator."
+msgstr ""
+
+msgid "swtpm was not found in your PATH. Windows guests require a TPM 2.0 emulator. Please install swtpm and try again."
+msgstr ""
+
+msgid "{0} key(s) need a decision before merging."
+msgstr ""
+
+msgid "{0} selected"
+msgstr ""
+
+msgid "A name is required"
+msgstr ""
+
+msgid "A size is required"
+msgstr ""
+
+msgid "Commit disk resize"
+msgstr ""
+
+msgid "Configuration changed outside Quickgui. Reopen it before saving."
+msgstr ""
+
+msgid "Could not start {0}."
+msgstr ""
+
+msgid "Create extra disk"
+msgstr ""
+
+msgid "Dependency check"
+msgstr ""
+
+msgid "Download of {0} has been cancelled."
+msgstr ""
+
+msgid "Enter a value between 1 and 256"
+msgstr ""
+
+msgid "Enter a whole number"
+msgstr ""
+
+msgid "Fullscreen viewer"
+msgstr ""
+
+msgid "Hotplug - {0}"
+msgstr ""
+
+msgid "Ignore MSRs (always)"
+msgstr ""
+
+msgid "Ignore MSRs (once)"
+msgstr ""
+
+msgid "Kill"
+msgstr ""
+
+msgid "Lifecycle"
+msgstr ""
+
+msgid "Maintenance"
+msgstr ""
+
+msgid "Move / Rename - {0}"
+msgstr ""
+
+msgid "Move to trash"
+msgstr ""
+
+msgid "New size (e.g. 64G)"
+msgstr ""
+
+msgid "Open display viewer"
+msgstr ""
+
+msgid "Restart"
+msgstr ""
+
+msgid "SPICE console"
+msgstr ""
+
+msgid "Save state to conf"
+msgstr ""
+
+msgid "Send keys…"
+msgstr ""
+
+msgid "Snapshot info…"
+msgstr ""
+
+msgid "Start {0}"
+msgstr ""
+
+msgid "Target folder: {0}"
+msgstr ""
+
+msgid "The name is too long"
+msgstr ""
+
+msgid "Toggle public dir"
+msgstr ""
+
+msgid "Type text…"
+msgstr ""
+
+msgid "Use a size like 4G or 4096M"
+msgstr ""
+
+msgid "Use letters, digits, dot, dash or underscore"
+msgstr ""
+
+msgid "VNC viewer"
+msgstr ""
+

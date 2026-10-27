@@ -24,7 +24,9 @@ void main() {
     if (!hasQemu) return;
     tmp = Directory.systemTemp.createTempSync('qg_e2e_');
     conf = File('${tmp.path}/e2e.conf')
-      ..writeAsStringSync('guest_os="linux"\ndisk_img="disk.qcow2"\nram="256M"\n');
+      ..writeAsStringSync(
+        'guest_os="linux"\ndisk_img="disk.qcow2"\nram="256M"\n',
+      );
   });
   tearDownAll(() => tmp.deleteSync(recursive: true));
 
@@ -41,9 +43,13 @@ void main() {
   }, skip: skipMsg);
 
   test('status returns a real state for a stopped VM', () async {
-    final r = await Process.run('quickemu',
-        ['--vm', conf.path, '--status', '--format', 'json'],
-        workingDirectory: tmp.path);
+    final r = await Process.run('quickemu', [
+      '--vm',
+      conf.path,
+      '--status',
+      '--format',
+      'json',
+    ], workingDirectory: tmp.path);
     final e = jsonDecode(r.stdout as String) as Map<String, dynamic>;
     expect(e['command'], 'vm.status');
     expect(e['data']['state'], 'stopped');
@@ -51,35 +57,54 @@ void main() {
   }, skip: skipMsg);
 
   test('delete-plan -> planId -> delete-vm (guarded, trashed)', () async {
-    final plan = await Process.run(
-        'quickemu', ['--vm', conf.path, '--delete-plan', '--format', 'json'],
-        workingDirectory: tmp.path);
+    final plan = await Process.run('quickemu', [
+      '--vm',
+      conf.path,
+      '--delete-plan',
+      '--format',
+      'json',
+    ], workingDirectory: tmp.path);
     final pe = jsonDecode(plan.stdout as String) as Map<String, dynamic>;
     final planId = pe['data']['planId'] as String;
     expect(planId, startsWith('sha256:'));
 
     await File('${tmp.path}/e2e.qcow2').writeAsString('x');
-    final del = await Process.run(
-        'quickemu',
-        ['--vm', conf.path, '--delete-vm', '--plan-id', planId, '--trash', '--format', 'json'],
-        workingDirectory: tmp.path);
+    final del = await Process.run('quickemu', [
+      '--vm',
+      conf.path,
+      '--delete-vm',
+      '--plan-id',
+      planId,
+      '--trash',
+      '--format',
+      'json',
+    ], workingDirectory: tmp.path);
     final de = jsonDecode(del.stdout as String) as Map<String, dynamic>;
     expect(de.containsKey('command'), isTrue);
   }, skip: skipMsg);
 
   test('op-status on a missing op yields a typed error', () async {
-    final r = await Process.run('quickemu',
-        ['--vm', conf.path, '--op-status', 'nope-1', '--format', 'json'],
-        workingDirectory: tmp.path);
+    final r = await Process.run('quickemu', [
+      '--vm',
+      conf.path,
+      '--op-status',
+      'nope-1',
+      '--format',
+      'json',
+    ], workingDirectory: tmp.path);
     final e = jsonDecode(r.stdout as String) as Map<String, dynamic>;
     expect(e['errors'], isA<List<dynamic>>());
     expect(jsonEncode(e['errors']), contains('OPERATION_NOT_FOUND'));
   }, skip: skipMsg);
 
   test('inventory lists the registered VM (instanceId -> entry)', () async {
-    final r = await Process.run('quickemu',
-        ['--vm', conf.path, '--inventory', '--format', 'json'],
-        workingDirectory: tmp.path);
+    final r = await Process.run('quickemu', [
+      '--vm',
+      conf.path,
+      '--inventory',
+      '--format',
+      'json',
+    ], workingDirectory: tmp.path);
     expect(jsonDecode(r.stdout as String), isA<Map<String, dynamic>>());
   }, skip: skipMsg);
 }

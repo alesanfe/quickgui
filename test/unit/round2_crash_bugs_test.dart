@@ -7,10 +7,7 @@ void main() {
       // osIconsProvider returns a Map — [item.code] returns null when
       // the OS has no icon and ! dereferences it.
       const icons = {'debian': 'assets/x.png'};
-      expect(
-        () => icons['amiga']!,
-        throwsA(isA<TypeError>()),
-      );
+      expect(() => icons['amiga']!, throwsA(isA<TypeError>()));
     });
 
     test('safe alternative falls back to a generic icon', () {
@@ -35,10 +32,7 @@ void main() {
     test('crashes when the value is not a map', () {
       // Diagnostics data can carry non-map values for some keys.
       const map = {'key': 'scalar'};
-      expect(
-        () => map['key']! as Map,
-        throwsA(isA<TypeError>()),
-      );
+      expect(() => map['key']! as Map, throwsA(isA<TypeError>()));
     });
   });
 }

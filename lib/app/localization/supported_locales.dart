@@ -37,3 +37,26 @@ final supportedLocales = [
   'sv',
   'pt_BR',
 ];
+
+/// Language names shown in the settings picker, keyed by
+/// [supportedLocales] entry. Each name is the endonym — the language's
+/// own name for itself — so users recognise their language regardless
+/// of the current UI locale.
+const localeNames = <String, String>{
+  'cs_CZ': 'Čeština',
+  'de': 'Deutsch',
+  'en': 'English',
+  'es': 'Español',
+  'fr': 'Français',
+  'hu': 'Magyar',
+  'id': 'Bahasa Indonesia',
+  'it': 'Italiano',
+  'ka': 'ქართული',
+  'nl': 'Nederlands',
+  'no': 'Norsk',
+  'pt_PT': 'Português (Portugal)',
+  'pt_BR': 'Português (Brasil)',
+  'ru': 'Русский',
+  'ja': '日本語',
+  'sv': 'Svenska',
+};

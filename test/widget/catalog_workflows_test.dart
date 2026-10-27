@@ -10,8 +10,8 @@ import 'package:quickgui/features/catalog/domain/version.dart';
 import 'package:quickgui/features/catalog/presentation/operating_system_selection.dart';
 import 'package:quickgui/features/catalog/providers/catalog_providers.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
-import 'package:quickgui/features/home/presentation/home_page_button_group.dart';
-import 'package:quickgui/features/home/presentation/downloader_page_button.dart';
+import 'package:quickgui/features/create/presentation/download_controls.dart';
+import 'package:quickgui/features/create/presentation/downloader_page_button.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/shared/providers/preferences_providers.dart';
 
@@ -83,7 +83,7 @@ void main() {
             FakePreferencesRepository(),
           ),
         ],
-        child: testApp(home: const Scaffold(body: HomePageButtonGroup())),
+        child: testApp(home: const Scaffold(body: DownloadControls())),
       ),
     );
     await tester.pumpAndSettle();
@@ -117,7 +117,7 @@ void main() {
     await screen.select('22.04');
     await screen.select('minimal');
     expect(find.text('22.04 (minimal)'), findsOneWidget);
-    expect(find.byType(HomePageButtonGroup), findsOneWidget);
+    expect(find.byType(DownloadControls), findsOneWidget);
   });
 
   testWidgets('single edition is selected without another route', (

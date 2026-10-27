@@ -17,10 +17,7 @@ void main() {
 
     test('crashes on a non-JSON line (log noise)', () {
       // A stray banner/comment line in the file crashes the decode.
-      expect(
-        () => jsonDecode('# comment'),
-        throwsA(isA<FormatException>()),
-      );
+      expect(() => jsonDecode('# comment'), throwsA(isA<FormatException>()));
     });
 
     test('safe alternative skips malformed lines', () {

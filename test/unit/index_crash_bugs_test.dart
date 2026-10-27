@@ -5,10 +5,7 @@ void main() {
   group('app.dart:29 — Locale(s.split("_")[0], s.split("_")[1])', () {
     test('crashes on a locale tag without a country part', () {
       // 'en' (no '_') → split returns ['en'] → [1] out of bounds.
-      expect(
-        () => 'en'.split('_')[1],
-        throwsA(isA<RangeError>()),
-      );
+      expect(() => 'en'.split('_')[1], throwsA(isA<RangeError>()));
     });
 
     test('safe alternative checks the split length', () {

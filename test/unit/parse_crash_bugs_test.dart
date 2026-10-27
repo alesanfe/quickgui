@@ -13,17 +13,15 @@ void main() {
         expect(matches, isEmpty); // matches.last itself would throw too
         return;
       }
-      expect(
-        () => double.tryParse(matches.last[1]!)! / 100,
-        throwsA(anything),
-      );
+      expect(() => double.tryParse(matches.last[1]!)! / 100, throwsA(anything));
     });
 
     test('safe alternative guards both lookups', () {
       const malformed = 'downloading...';
       final matches = RegExp(r'(\d+)%').allMatches(malformed).toList();
-      final value =
-          matches.isEmpty ? null : double.tryParse(matches.last[1] ?? '');
+      final value = matches.isEmpty
+          ? null
+          : double.tryParse(matches.last[1] ?? '');
       expect(value, isNull); // no crash — caller handles the null
     });
   });

@@ -469,18 +469,6 @@ msgstr ""
 msgid "Missing"
 msgstr ""
 
-msgid "SSH username"
-msgstr ""
-
-msgid "Clone {0}"
-msgstr ""
-
-msgid "Delete {0}"
-msgstr ""
-
-msgid "Snapshots {0}"
-msgstr ""
-
 msgid "Apply snapshot {0}"
 msgstr ""
 
@@ -1324,12 +1312,6 @@ msgstr ""
 msgid "Restore"
 msgstr ""
 
-msgid "Restore backup"
-msgstr ""
-
-msgid "Backup restored"
-msgstr ""
-
 msgid "Backups"
 msgstr ""
 
@@ -1361,9 +1343,6 @@ msgid "Attach USB"
 msgstr ""
 
 msgid "Attach disk"
-msgstr ""
-
-msgid "Compact disk"
 msgstr ""
 
 msgid "Move / Rename"
@@ -1426,9 +1405,6 @@ msgstr ""
 msgid "About QuickGUI"
 msgstr ""
 
-msgid "A frontend for quickemu - discover, download and manage VMs."
-msgstr ""
-
 msgid "Monitor"
 msgstr ""
 
@@ -1436,9 +1412,6 @@ msgid "HMP command (e.g. info status)"
 msgstr ""
 
 msgid "Send"
-msgstr ""
-
-msgid "Advanced"
 msgstr ""
 
 msgid "Restart"
@@ -1497,3 +1470,22 @@ msgstr ""
 
 msgid "Welcome — pick an OS in Create, then manage your VMs here."
 msgstr ""
+
+msgid "A frontend for quickemu — discover, download and manage VMs."
+msgstr ""
+
+msgid "Hotplug — {0}"
+msgstr ""
+
+msgid "Inventory"
+msgstr ""
+
+msgid "Move / Rename — {0}"
+msgstr ""
+
+msgid "Plugins"
+msgstr ""
+
+msgid "QuickGUI"
+msgstr ""
+

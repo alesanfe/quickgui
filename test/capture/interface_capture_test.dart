@@ -17,11 +17,14 @@ import 'package:quickgui/features/catalog/domain/version.dart';
 import 'package:quickgui/features/catalog/presentation/operating_system_selection.dart';
 import 'package:quickgui/features/catalog/presentation/version_selection.dart';
 import 'package:quickgui/features/catalog/providers/catalog_providers.dart';
+import 'package:quickgui/features/activity/presentation/activity_page.dart';
+import 'package:quickgui/features/create/presentation/create_page.dart';
 import 'package:quickgui/features/diagnostics/presentation/diagnostics_page.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
-import 'package:quickgui/features/downloads/presentation/downloader_page.dart';
-import 'package:quickgui/features/home/presentation/main_page.dart';
+import 'package:quickgui/features/home/presentation/dashboard_page.dart';
 import 'package:quickgui/features/machines/presentation/list/manager.dart';
+import 'package:quickgui/features/machines/providers/vm_library_providers.dart';
+import 'package:quickgui/features/settings/presentation/settings_page.dart';
 import 'package:quickgui/features/machines/application/ports/vm_config_store.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/infrastructure/storage/vm_config.dart';
@@ -132,6 +135,30 @@ final OperatingSystem _captureOs = OperatingSystem('Ubuntu', 'ubuntu')
     Version('25.10')..options.add(Option('desktop', 'qemu')),
   ];
 
+/// Fixed machine library for dashboard captures — mirrors the three VMs
+/// written into [_vmDir] by [_resetVmDir].
+const _captureMachines = <LibraryMachine>[
+  LibraryMachine(
+    name: 'debian-12',
+    confPath: '/vms/debian-12.conf',
+    state: 'stopped',
+    values: {'cpu_cores': '2', 'ram': '2G'},
+  ),
+  LibraryMachine(
+    name: 'ubuntu-24.04',
+    confPath: '/vms/ubuntu-24.04.conf',
+    state: 'running',
+    values: {'cpu_cores': '4', 'ram': '4G'},
+    pid: 42424,
+  ),
+  LibraryMachine(
+    name: 'windows-11',
+    confPath: '/vms/windows-11.conf',
+    state: 'stopped',
+    values: {'cpu_cores': '8', 'ram': '8G'},
+  ),
+];
+
 /// Synchronous [VmConfigStore]: `loadRaw`/`saveRaw` resolve on the
 /// microtask queue so dialogs never wait on real file IO inside
 /// `testWidgets`.
@@ -190,6 +217,9 @@ Widget _app({
         ],
     ),
     initialSettingsProvider.overrideWithValue(SettingsState(darkMode: dark)),
+    // The dashboard lists machines via a real directory scan — pin a
+    // fixed library so captures are host-independent.
+    vmLibraryProvider.overrideWith((ref) async => _captureMachines),
   ],
   child: testApp(theme: dark ? AppTheme.dark() : AppTheme.light(), home: home),
 );
@@ -275,11 +305,13 @@ void main() {
 
   final pages = <String, Widget>{
     '02_machines_manager': const Manager(),
-    '01_main_menu': const MainPage(),
-    '03_downloader': const DownloaderPage(),
+    '01_dashboard': const DashboardPage(),
+    '03_create': const CreatePage(),
     '04_diagnostics': const DiagnosticsPage(),
     '05_os_selection': const OperatingSystemSelection(),
     '06_version_selection': VersionSelection(operatingSystem: _captureOs),
+    '10_settings': const SettingsPage(),
+    '11_activity': const ActivityPage(),
   };
 
   /// Opens the VM row popup, scrolls the item into view (the menu is taller
@@ -329,6 +361,23 @@ void main() {
     }
   };
 
+  /// Settings tiles below the fold aren't laid out yet — jump the list
+  /// to the bottom first so the About section builds its children.
+  Future<void> Function(WidgetTester t) settingsItem(String label) =>
+      (t) async {
+        final scrollable = find.byType(Scrollable).last;
+        t
+            .state<ScrollableState>(scrollable)
+            .position
+            .jumpTo(
+              t.state<ScrollableState>(scrollable).position.maxScrollExtent,
+            );
+        for (var i = 0; i < 6; i++) {
+          await t.pump(const Duration(milliseconds: 200));
+        }
+        await t.tap(find.text(label).last);
+      };
+
   /// Interactions run after the page settles; each produces one capture of
   /// the resulting menu/dialog, so the whole VM-actions surface is covered.
   final interactions = <String, Future<void> Function(WidgetTester t)>{
@@ -364,16 +413,6 @@ void main() {
       );
       await t.tap(item);
     },
-    '10_drawer_settings': (t) async {
-      await t.tap(find.byIcon(Icons.menu).first);
-    },
-    '11_download_history': (t) async {
-      await t.tap(find.byIcon(Icons.menu).first);
-      for (var i = 0; i < 6; i++) {
-        await t.pump(const Duration(milliseconds: 200));
-      }
-      await t.tap(find.text('Download history').first);
-    },
     // Conf-value dialogs read the .conf with real file IO before showing,
     // so they need a real event-loop window after the tap.
     '12_vm_snapshots': menuItem('Snapshots'),
@@ -381,22 +420,12 @@ void main() {
     '14_vm_boot_network': menuItem('Boot & network'),
     '15_vm_devices': menuItem('Devices'),
     '16_check_updates': (t) async {
-      await t.tap(find.byIcon(Icons.menu).first);
-      for (var i = 0; i < 6; i++) {
-        await t.pump(const Duration(milliseconds: 200));
-      }
-      await t.tap(find.text('Check for updates').first);
+      await settingsItem('Check for updates')(t);
       // fetchLatestQuickguiRelease hits the network (real IO) — a real
       // window lets the reply (or the offline error path) resolve.
       await t.runAsync(() => Future<void>.delayed(const Duration(seconds: 2)));
     },
-    '17_system_diagnostics': (t) async {
-      await t.tap(find.byIcon(Icons.menu).first);
-      for (var i = 0; i < 6; i++) {
-        await t.pump(const Duration(milliseconds: 200));
-      }
-      await t.tap(find.text('Quickemu report').first);
-    },
+    '17_system_diagnostics': settingsItem('Quickemu report'),
     '18_vm_menu_running': (t) async {
       await t.tap(find.byIcon(Icons.more_vert).first);
     },
@@ -415,14 +444,12 @@ void main() {
     '07_vm_menu': const Manager(),
     '08_vm_config_dialog': const Manager(),
     '09_vm_delete_confirm': const Manager(),
-    '10_drawer_settings': const MainPage(),
-    '11_download_history': const MainPage(),
     '12_vm_snapshots': const Manager(),
     '13_vm_resources': const Manager(),
     '14_vm_boot_network': const Manager(),
     '15_vm_devices': const Manager(),
-    '16_check_updates': const MainPage(),
-    '17_system_diagnostics': const MainPage(),
+    '16_check_updates': const SettingsPage(),
+    '17_system_diagnostics': const SettingsPage(),
     '18_vm_menu_running': const Manager(),
     '19_vm_stop_confirm': const Manager(),
     '20_vm_process_output': const Manager(),

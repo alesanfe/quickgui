@@ -52,7 +52,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             trailing: DropdownButton<String>(
               value: settings.locale,
               items: supportedLocales
-                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                  .map(
+                    (e) => DropdownMenuItem(
+                      value: e,
+                      child: _boundedText(localeNames[e] ?? e),
+                    ),
+                  )
                   .toList(),
               onChanged: (v) {
                 if (v != null) settingsCtl.setLocale(v);
@@ -87,11 +92,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             subtitle: Text(context.t('How often the machine list is updated')),
             trailing: DropdownButton<int>(
               value: prefs.refreshIntervalSeconds,
-              items: const [
-                DropdownMenuItem(value: 2, child: Text('2 s')),
-                DropdownMenuItem(value: 5, child: Text('5 s')),
-                DropdownMenuItem(value: 10, child: Text('10 s')),
-                DropdownMenuItem(value: 30, child: Text('30 s')),
+              items: [
+                for (final s in const [2, 5, 10, 30])
+                  DropdownMenuItem(value: s, child: Text('$s s')),
               ],
               onChanged: (v) {
                 if (v != null) prefsCtl.setRefreshIntervalSeconds(v);
@@ -106,16 +109,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             trailing: DropdownButton<String>(
               value: prefs.preferredViewer,
               items: [
-                DropdownMenuItem(
-                  value: '',
-                  child: Text(context.t('Automatic')),
-                ),
-                const DropdownMenuItem(value: 'spicy', child: Text('spicy')),
-                const DropdownMenuItem(
-                  value: 'remote-viewer',
-                  child: Text('remote-viewer'),
-                ),
-                const DropdownMenuItem(value: 'none', child: Text('none')),
+                for (final (v, label) in [
+                  ('', context.t('Automatic')),
+                  ('spicy', 'spicy'),
+                  ('remote-viewer', 'remote-viewer'),
+                  ('none', 'none'),
+                ])
+                  DropdownMenuItem(value: v, child: _boundedText(label)),
               ],
               onChanged: (v) {
                 if (v != null) prefsCtl.setPreferredViewer(v);
@@ -298,6 +298,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       ),
     );
   }
+
+  /// DropdownButton sizes its button to the widest item's intrinsic
+  /// width; unbounded labels get clipped on narrow layouts, which trips
+  /// the debug semantics assertion (`!semantics.parentDataDirty`).
+  Widget _boundedText(String label) => ConstrainedBox(
+    constraints: const BoxConstraints(maxWidth: 120),
+    child: Text(label, overflow: TextOverflow.ellipsis),
+  );
 
   Widget _header(String title) => Padding(
     padding: const EdgeInsets.only(top: 8, bottom: 4),
