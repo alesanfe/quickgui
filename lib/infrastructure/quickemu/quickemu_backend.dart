@@ -564,10 +564,17 @@ class QuickemuBackend implements VirtualizationBackend {
         .transform(const Utf8Decoder())
         .transform(const LineSplitter())
         .where((l) => l.trim().isNotEmpty)
-        .map(
-          (l) =>
-              Map<String, dynamic>.from(jsonDecode(l) as Map<dynamic, dynamic>),
-        );
+        .where((l) => l.trimLeft().startsWith('{'))
+        .map((l) {
+          try {
+            return Map<String, dynamic>.from(
+              jsonDecode(l) as Map<dynamic, dynamic>,
+            );
+          } on FormatException {
+            return <String, dynamic>{};
+          }
+        })
+        .where((m) => m.isNotEmpty);
   }
 
   /// Sends an HMP command to the VM monitor socket (`--monitor-cmd`)
