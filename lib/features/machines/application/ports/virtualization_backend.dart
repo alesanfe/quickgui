@@ -181,6 +181,11 @@ abstract class VirtualizationBackend {
   /// Streams op-state changes (`--op-watch`); replaces --op-list polling.
   Stream<Map<String, dynamic>> watchOperations(String target);
 
+  /// Sends an HMP command to the VM's QEMU monitor socket
+  /// (`--monitor-cmd`). Returns the command output — the VM must be
+  /// running and the backend must expose `monitorCommands`.
+  Future<ProcessResult> monitorCommand(String target, String command);
+
   /// Per-VM QMP metrics (`--stats`).
   Future<Map<String, dynamic>?> vmStats(String target);
 

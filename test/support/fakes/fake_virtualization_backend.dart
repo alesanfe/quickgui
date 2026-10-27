@@ -207,6 +207,11 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
   }
 
   @override
+  @override
+  Future<ProcessResult> monitorCommand(String target, String command) async =>
+      lastActionResult ?? ProcessResult(0, 0, '', '');
+
+  @override
   Future<ProcessResult> runQuickget(List<String> arguments) async {
     quickgetCalls.add(List.of(arguments));
     return lastActionResult ?? ProcessResult(0, 0, '', '');

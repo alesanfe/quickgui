@@ -364,6 +364,10 @@ class _TrackedBackend implements VirtualizationBackend {
       backend.vmStats(target);
 
   @override
+  Future<ProcessResult> monitorCommand(String target, String command) =>
+      backend.monitorCommand(target, command);
+
+  @override
   Future<Map<String, dynamic>> listInventory() => backend.listInventory();
 
   @override

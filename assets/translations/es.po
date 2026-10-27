@@ -1466,3 +1466,12 @@ msgstr "Acerca de QuickGUI"
 
 msgid "A frontend for quickemu - discover, download and manage VMs."
 msgstr "Frontend para quickemu - descubre, descarga y gestiona VMs."
+
+msgid "Monitor"
+msgstr "Monitor"
+
+msgid "HMP command (e.g. info status)"
+msgstr "Comando HMP (p. ej. info status)"
+
+msgid "Send"
+msgstr "Enviar"

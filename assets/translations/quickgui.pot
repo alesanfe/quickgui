@@ -1428,3 +1428,12 @@ msgstr ""
 
 msgid "A frontend for quickemu - discover, download and manage VMs."
 msgstr ""
+
+msgid "Monitor"
+msgstr ""
+
+msgid "HMP command (e.g. info status)"
+msgstr ""
+
+msgid "Send"
+msgstr ""

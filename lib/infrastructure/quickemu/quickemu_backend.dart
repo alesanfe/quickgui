@@ -570,6 +570,12 @@ class QuickemuBackend implements VirtualizationBackend {
         );
   }
 
+  /// Sends an HMP command to the VM monitor socket (`--monitor-cmd`)
+  /// — text path, there is no structured envelope for it.
+  @override
+  Future<ProcessResult> monitorCommand(String target, String command) =>
+      _process.quickemu(['--vm', '$target.conf', '--monitor-cmd', command]);
+
   /// Per-VM runtime metrics via `--stats` (QMP cpus/block/balloon).
   @override
   Future<Map<String, dynamic>?> vmStats(String target) async {

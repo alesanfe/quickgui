@@ -529,7 +529,11 @@ class _VmPageState extends ConsumerState<VmPage> {
   /// distinct from local Activity: these ops live in quickemu itself
   /// and can still be running after the app restarted.
   Widget _buildOps() {
-    if (_ops.isEmpty && _events.isEmpty) {
+    final allowedOps =
+        (_status['allowedOps'] as List?)?.map((e) => '$e').toSet() ??
+        const <String>{};
+    final monitorReady = allowedOps.contains('monitor-cmd');
+    if (_ops.isEmpty && _events.isEmpty && !monitorReady) {
       return Center(
         child: Text(context.t('No backend operations for this machine.')),
       );
@@ -537,6 +541,10 @@ class _VmPageState extends ConsumerState<VmPage> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        if (monitorReady) ...[
+          _MonitorConsole(vmName: widget.vmName),
+          const Divider(),
+        ],
         if (_events.isNotEmpty) ...[
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
@@ -663,7 +671,6 @@ class _VmPageState extends ConsumerState<VmPage> {
   }
 }
 
-
 /// QMP-sourced live metrics for a running VM (--stats): CPU count and
 /// balloon memory, folded into two chips next to the state indicator.
 class _MetricsChips extends ConsumerWidget {
@@ -676,17 +683,127 @@ class _MetricsChips extends ConsumerWidget {
     return stats.maybeWhen(
       data: (d) => d == null
           ? const SizedBox.shrink()
-          : Wrap(spacing: 8, children: [
-              Chip(
-                avatar: const Icon(Icons.memory, size: 16),
-                label: Text('cpus ${d['cpus'] ?? '-'}'),
-              ),
-              Chip(
-                avatar: const Icon(Icons.storage, size: 16),
-                label: Text('mem ${d['memory'] ?? '-'}'),
-              ),
-            ]),
+          : Wrap(
+              spacing: 8,
+              children: [
+                Chip(
+                  avatar: const Icon(Icons.memory, size: 16),
+                  label: Text('cpus ${d['cpus'] ?? '-'}'),
+                ),
+                Chip(
+                  avatar: const Icon(Icons.storage, size: 16),
+                  label: Text('mem ${d['memory'] ?? '-'}'),
+                ),
+              ],
+            ),
       orElse: () => const SizedBox.shrink(),
+    );
+  }
+}
+
+/// Interactive QEMU monitor console (`--monitor-cmd`) — sends HMP
+/// commands and keeps a per-session output history. Shown only when
+/// the VM's allowedOps advertise monitor-cmd.
+class _MonitorConsole extends ConsumerStatefulWidget {
+  const _MonitorConsole({required this.vmName});
+  final String vmName;
+
+  @override
+  ConsumerState<_MonitorConsole> createState() => _MonitorConsoleState();
+}
+
+class _MonitorConsoleState extends ConsumerState<_MonitorConsole> {
+  final _controller = TextEditingController();
+  final List<String> _history = [];
+  bool _sending = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _send() async {
+    final cmd = _controller.text.trim();
+    if (cmd.isEmpty) {
+      return;
+    }
+    setState(() => _sending = true);
+    try {
+      final result = await ref
+          .read(backendProvider)
+          .monitorCommand(widget.vmName, cmd);
+      if (mounted) {
+        setState(() {
+          _history.add('> $cmd');
+          final out = '${result.stdout}${result.stderr}'.trim();
+          _history.add(out.isEmpty ? '(no output)' : out);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _history.add('> $cmd\nerror: $e'));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _sending = false);
+        _controller.clear();
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Text(
+            context.t('Monitor'),
+            style: Theme.of(context).textTheme.titleSmall,
+          ),
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _controller,
+                decoration: InputDecoration(
+                  hintText: context.t('HMP command (e.g. info status)'),
+                  isDense: true,
+                  border: const OutlineInputBorder(),
+                ),
+                onSubmitted: (_) => _send(),
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton.filled(
+              tooltip: context.t('Send'),
+              icon: const Icon(Icons.send),
+              onPressed: _sending ? null : _send,
+            ),
+          ],
+        ),
+        if (_history.isNotEmpty)
+          Container(
+            margin: const EdgeInsets.only(top: 8),
+            padding: const EdgeInsets.all(8),
+            constraints: const BoxConstraints(maxHeight: 160),
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: SingleChildScrollView(
+              reverse: true,
+              child: SelectableText(
+                _history.join('\n'),
+                style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
