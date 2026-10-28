@@ -12,7 +12,7 @@ import os
 #  requirement, status, entry_points|None, adapter|None, tests|[], justification|None)
 C = [
     # ---------------- quickemu: core lifecycle ----------------
-    ("vm.lifecycle.start", "lifecycle", "Start VM", "critical", "quickemu", "launch", ["--vm"],
+    ("vm.lifecycle.start", "lifecycle", "Start VM", "critical", "quickemu", "launch", ["--vm", "--start"],
      "required", "implemented", ["vm_list.context_menu.start", "vm_details.primary_action"],
      "runAction", ["test/integration/ui_backend_battery_test.dart"], None),
     ("vm.lifecycle.status", "lifecycle", "VM state query", "critical", "quickemu", "--status", ["--status"],
@@ -21,7 +21,7 @@ C = [
     ("vm.lifecycle.shutdown", "lifecycle", "Graceful shutdown", "critical", "quickemu", "--shutdown", ["--shutdown"],
      "required", "implemented", ["vm_list.context_menu.stop", "vm_details.stop"],
      "runAction", ["test/integration/ui_backend_battery_test.dart"], None),
-    ("vm.lifecycle.kill", "lifecycle", "Force stop", "critical", "quickemu", "--kill", ["--kill"],
+    ("vm.lifecycle.kill", "lifecycle", "Force stop", "critical", "quickemu", "--kill", ["--kill", "--stop"],
      "required", "implemented", ["vm_menu.force_stop", "vm_menu.stop_confirm.force"],
      "runAction", ["test/integration/ui_backend_battery_test.dart"], None),
     ("vm.lifecycle.reset", "lifecycle", "Hard reset", "high", "quickemu", "--reset", ["--reset"],
@@ -256,7 +256,8 @@ C = [
         "--restore", "--verify", "--quo", "--msrs", "--msrs-always", "--apply", "--info", "--create", "--delete",
         "--resize", "--console", "--vnc", "--spice-console",
         "--publicdir", "--snapshot-list", "--snapshot-apply", "--snapshot-create", "--snapshot-delete",
-        "--snapshot-info", "--ignore-msrs"],
+        "--snapshot-info", "--ignore-msrs", "--serial-console", "--monitor-console", "--disk-resize-commit",
+        "--extra-args", "--keyboard-layout"],
      "not_applicable", "notApplicable", None, None, [],
      "Aliases map onto the covered canonical commands"),
     ("cli.help", "internal", "Help text", "low", "quickemu", "--help", ["--help"],
@@ -330,7 +331,7 @@ C = [
      "optional", "planned", None, None, [], "Could be an external-link action on catalogue rows"),
     ("download.urlOverride", "internal", "URL override", "low", "quickget", "--url", ["--url"],
      "not_applicable", "notApplicable", None, None, [], "Internal/testing override, not a user feature"),
-    ("download.insecure", "security", "Insecure TLS downloads", "low", "quickget", "--insecure", ["--insecure"],
+    ("download.insecure", "security", "Insecure TLS downloads", "low", "quickget", "--insecure", ["--insecure", "--minimum-trust"],
      "optional", "unsupported", None, None, [], "TLS bypass is a deliberate security exclusion"),
     ("quickget.version", "diagnostics", "quickget version", "medium", "quickget", "--version", [],
      "required", "implemented", ["diagnostics.version_line"],

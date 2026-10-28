@@ -4,10 +4,10 @@ Generated from `assets/capabilities/capability_manifest.json` by `tool/generate_
 
 | Capability | Domain | Backend | Quickgui | Tests | Status |
 |---|---|---|---|---|---|
-| `vm.lifecycle.start` | lifecycle | `--vm` | vm_list.context_menu.start, vm_details.primary_action | 1 | Sí |
+| `vm.lifecycle.start` | lifecycle | `--vm, --start` | vm_list.context_menu.start, vm_details.primary_action | 1 | Sí |
 | `vm.lifecycle.status` | lifecycle | `--status` | vm_list.state_badge, vm_details.state | 2 | Sí |
 | `vm.lifecycle.shutdown` | lifecycle | `--shutdown` | vm_list.context_menu.stop, vm_details.stop | 1 | Sí |
-| `vm.lifecycle.kill` | lifecycle | `--kill` | vm_menu.force_stop, vm_menu.stop_confirm.force | 1 | Sí |
+| `vm.lifecycle.kill` | lifecycle | `--kill, --stop` | vm_menu.force_stop, vm_menu.stop_confirm.force | 1 | Sí |
 | `vm.lifecycle.reset` | lifecycle | `--reset` | vm_menu.lifecycle.reset | 1 | Sí |
 | `vm.lifecycle.pause` | lifecycle | `--pause` | vm_menu.lifecycle.pause | 1 | Sí |
 | `vm.lifecycle.resume` | lifecycle | `--resume` | vm_menu.lifecycle.resume | 1 | Sí |
@@ -78,7 +78,7 @@ Generated from `assets/capabilities/capability_manifest.json` by `tool/generate_
 | `backend.external` | internal | `--external` | — | 0 | Justificada |
 | `backend.param.vm` | internal | `--vm` | — | 0 | Justificada |
 | `backend.param.planId` | internal | `--plan-id` | — | 0 | Justificada |
-| `backend.alias` | internal | `--list, --vms, --conf, --plan, --scan, --keys, --cmd, --disk, --watch, --cancel, --restore, --verify, --quo, --msrs, --msrs-always, --apply, --info, --create, --delete, --resize, --console, --vnc, --spice-console, --publicdir, --snapshot-list, --snapshot-apply, --snapshot-create, --snapshot-delete, --snapshot-info, --ignore-msrs` | — | 0 | Justificada |
+| `backend.alias` | internal | `--list, --vms, --conf, --plan, --scan, --keys, --cmd, --disk, --watch, --cancel, --restore, --verify, --quo, --msrs, --msrs-always, --apply, --info, --create, --delete, --resize, --console, --vnc, --spice-console, --publicdir, --snapshot-list, --snapshot-apply, --snapshot-create, --snapshot-delete, --snapshot-info, --ignore-msrs, --serial-console, --monitor-console, --disk-resize-commit, --extra-args, --keyboard-layout` | — | 0 | Justificada |
 | `cli.help` | internal | `--help` | — | 0 | Justificada |
 | `launch.display` | launch | `--display` | vm_settings.display_key, settings.preferred_viewer | 1 | Sí |
 | `launch.viewer` | launch | `--viewer` | settings.preferred_viewer, vm_settings.viewer_key | 1 | Sí |
@@ -103,7 +103,7 @@ Generated from `assets/capabilities/capability_manifest.json` by `tool/generate_
 | `download.update` | downloads | `--update` | — | 0 | Pendiente |
 | `download.openHomepage` | downloads | `--open-homepage` | — | 0 | Pendiente |
 | `download.urlOverride` | internal | `--url` | — | 0 | Justificada |
-| `download.insecure` | security | `--insecure` | — | 0 | No |
+| `download.insecure` | security | `--insecure, --minimum-trust` | — | 0 | No |
 | `quickget.version` | diagnostics | `--version` | diagnostics.version_line | 1 | Sí |
 | `config.document.edit` | config | `VmConfigFileStore` | vm_settings.all_dialog | 2 | Sí |
 | `library.state.refresh` | library | `VmLibraryProvider` | machines.list.state_badges | 1 | Sí |

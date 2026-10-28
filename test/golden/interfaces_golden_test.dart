@@ -1,6 +1,8 @@
 @Tags(['golden'])
 library;
 
+import 'dart:io';
+
 import 'package:alchemist/alchemist.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -65,10 +67,27 @@ Widget _app({required Widget home, required bool dark}) => ProviderScope(
   child: testApp(theme: dark ? AppTheme.dark() : AppTheme.light(), home: home),
 );
 
+/// Fixed machines directory so `Directory.current.path` labels (Manager
+/// footer, Settings working-dir row) render identically on every host —
+/// the goldens are checkout-location independent.
+final Directory _goldVmDir = Directory('/tmp/qg_golden_vms');
+
+void _resetVmDir() {
+  if (_goldVmDir.existsSync()) _goldVmDir.deleteSync(recursive: true);
+  _goldVmDir.createSync(recursive: true);
+  for (final name in ['ubuntu-24.04', 'windows-11', 'debian-12']) {
+    File('${_goldVmDir.path}/$name.conf')
+        .writeAsStringSync('guest_os="linux"\ndisk_img="$name/disk.qcow2"\n');
+    Directory('${_goldVmDir.path}/$name').createSync();
+  }
+  Directory.current = _goldVmDir;
+}
+
 void main() {
   const size = BoxConstraints.tightFor(width: 852, height: 819);
 
   setUpAll(() async {
+    _resetVmDir();
     await TestLocalizationsDelegate.preload();
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(

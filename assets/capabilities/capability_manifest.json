@@ -17,7 +17,8 @@
         "executable": "quickemu",
         "operation": "launch",
         "flags": [
-          "--vm"
+          "--vm",
+          "--start"
         ]
       },
       "gui": {
@@ -105,7 +106,8 @@
         "executable": "quickemu",
         "operation": "--kill",
         "flags": [
-          "--kill"
+          "--kill",
+          "--stop"
         ]
       },
       "gui": {
@@ -1961,7 +1963,12 @@
           "--snapshot-create",
           "--snapshot-delete",
           "--snapshot-info",
-          "--ignore-msrs"
+          "--ignore-msrs",
+          "--serial-console",
+          "--monitor-console",
+          "--disk-resize-commit",
+          "--extra-args",
+          "--keyboard-layout"
         ]
       },
       "gui": {
@@ -2521,7 +2528,8 @@
         "executable": "quickget",
         "operation": "--insecure",
         "flags": [
-          "--insecure"
+          "--insecure",
+          "--minimum-trust"
         ]
       },
       "gui": {

@@ -6,9 +6,11 @@
 //     [_knownBackendOptions] is claimed by at least one manifest capability,
 //     and every manifest flag resolves to a known option — catches typos.
 //  2. Live gate (when the sibling quickemu checkout exists): the option
-//     surface extracted from `lib/quickemu/cli/options.sh` and the quickget
-//     --help output must equal the snapshot — a new upstream option fails
-//     the suite until someone classifies it in the manifest.
+//     surface extracted from the Go CLI parsers (`case "--x"` arms in
+//     tools/quickemu-cli/main.go + subcommandAliases keys, and
+//     tools/quickget-cli/main.go) — or the legacy options.sh when present —
+//     must equal the snapshot. A new upstream option fails the suite until
+//     someone classifies it in the manifest.
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -43,6 +45,10 @@ const Set<String> _knownBackendOptions = {
   '--trash-empty', '--trash-list', '--trash-restore', '--type',
   '--usb-controller', '--usb-passthrough', '--version', '--vfio-scan',
   '--viewer', '--vm', '--width',
+  // go-cli surface additions (flag variants + actions accepted by the
+  // Go parser that options.sh reached through normalisation)
+  '--start', '--stop', '--extra-args', '--keyboard-layout',
+  '--serial-console', '--monitor-console', '--disk-resize-commit',
   // quickemu bareword subcommands (dispatched to --flag form)
   '--restart', '--snapshot-apply', '--snapshot-create', '--snapshot-delete',
   '--snapshot-info', '--snapshot-list', '--create-disk', '--resize-commit',
@@ -54,7 +60,7 @@ const Set<String> _knownBackendOptions = {
   '--arch', '--check-all-arch', '--cloud-init', '--create-config',
   '--disable-unattended', '--download', '--insecure',
   '--list-csv', '--list-json', '--open-homepage', '--show', '--unattended',
-  '--update', '--url',
+  '--update', '--url', '--minimum-trust',
 };
 
 /// quickemu checkout candidates (Windows worktree and the WSL mirror).
@@ -63,14 +69,45 @@ final _siblingOptionsFiles = [
   '/mnt/c/Users/alex0/Documents/fyp/quickemu/lib/quickemu/cli/options.sh',
 ];
 
+/// Go CLI parser sources — the post-migration option surface. The
+/// accepted flags are the `case "--x"` arms of the argv parser; the
+/// subcommandAliases map keys are accepted bareword spellings.
+final _liveGoSources = [
+  '../quickemu/tools/quickemu-cli/main.go',
+  '/mnt/c/Users/alex0/Documents/fyp/quickemu/tools/quickemu-cli/main.go',
+  '../quickemu/tools/quickget-cli/main.go',
+  '/mnt/c/Users/alex0/Documents/fyp/quickemu/tools/quickget-cli/main.go',
+];
+
+final _caseLineRe = RegExp(r'^\s*case\s[^\n]*', multiLine: true);
+final _flagRe = RegExp('--[a-zA-Z][a-zA-Z0-9_-]+');
+final _aliasBlockRe = RegExp(
+  r'subcommandAliases\s*=\s*map\[string\]bool\{([^}]*)\}',
+);
+final _aliasKeyRe = RegExp(r'"([a-zA-Z][a-zA-Z0-9_-]+)":\s*true');
+
 Set<String> _liveOptions() {
   for (final path in _siblingOptionsFiles) {
     final f = File(path);
     if (!f.existsSync()) continue;
-    final re = RegExp('--[a-zA-Z][a-zA-Z0-9_-]+');
-    return re.allMatches(f.readAsStringSync()).map((m) => m[0]!).toSet();
+    return _flagRe.allMatches(f.readAsStringSync()).map((m) => m[0]!).toSet();
   }
-  return {};
+  final flags = <String>{};
+  for (final path in _liveGoSources) {
+    final f = File(path);
+    if (!f.existsSync()) continue;
+    final src = f.readAsStringSync();
+    for (final line in _caseLineRe.allMatches(src)) {
+      flags.addAll(_flagRe.allMatches(line[0]!).map((m) => m[0]!));
+    }
+    final block = _aliasBlockRe.firstMatch(src);
+    if (block != null) {
+      for (final m in _aliasKeyRe.allMatches(block[1]!)) {
+        flags.add('--${m[1]}');
+      }
+    }
+  }
+  return flags;
 }
 
 void main() {
