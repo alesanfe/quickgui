@@ -363,7 +363,7 @@ msgid "Snapshots {0}"
 msgstr ""
 
 msgid "A frontend for quickemu — discover, download and manage VMs."
-msgstr ""
+msgstr "Frontend untuk quickemu — temukan, unduh, dan kelola VM."
 
 msgid "A required port is already in use. Stop the conflicting VM or change the port forwards."
 msgstr ""
@@ -753,7 +753,7 @@ msgid "Hotplug devices"
 msgstr ""
 
 msgid "Hotplug — {0}"
-msgstr ""
+msgstr "Hotplug — {0}"
 
 msgid "How often the machine list is updated"
 msgstr ""
@@ -783,7 +783,7 @@ msgid "Interrupted"
 msgstr ""
 
 msgid "Inventory"
-msgstr ""
+msgstr "Inventaris"
 
 msgid "KVM is not accessible. Add your user to the kvm group or check /dev/kvm permissions."
 msgstr ""
@@ -846,7 +846,7 @@ msgid "Move / Rename"
 msgstr ""
 
 msgid "Move / Rename — {0}"
-msgstr ""
+msgstr "Pindahkan / Ganti nama — {0}"
 
 msgid "Move to directory"
 msgstr ""
@@ -969,7 +969,7 @@ msgid "Pick an operating system and a version, or drop a disk image anywhere on 
 msgstr ""
 
 msgid "Plugins"
-msgstr ""
+msgstr "Plugin"
 
 msgid "Preferred display viewer"
 msgstr ""
@@ -984,7 +984,7 @@ msgid "Queued"
 msgstr ""
 
 msgid "QuickGUI"
-msgstr ""
+msgstr "QuickGUI"
 
 msgid "Quickemu"
 msgstr ""
@@ -1041,7 +1041,7 @@ msgid "Report copied"
 msgstr ""
 
 msgid "Required"
-msgstr ""
+msgstr "Wajib"
 
 msgid "Reset"
 msgstr ""
@@ -1323,7 +1323,7 @@ msgid "Validating"
 msgstr ""
 
 msgid "Value"
-msgstr ""
+msgstr "Nilai"
 
 msgid "Version {0} — Powered by Quickemu"
 msgstr ""
@@ -1487,3 +1487,60 @@ msgstr ""
 msgid "VNC viewer"
 msgstr ""
 
+
+msgid "Console — {0}"
+msgstr "Konsol — {0}"
+
+msgid "Type text into the machine"
+msgstr "Ketik teks ke dalam mesin"
+
+msgid "Live console"
+msgstr "Konsol langsung"
+
+msgid "Machine is not running"
+msgstr "Mesin tidak berjalan"
+
+msgid "The machine is not running — start it to use the console."
+msgstr "Mesin tidak berjalan — jalankan untuk menggunakan konsol."
+
+msgid "Unsupported framebuffer"
+msgstr "Framebuffer tidak didukung"
+
+msgid "Open external viewer"
+msgstr "Buka penampil eksternal"
+
+msgid "Added {0}"
+msgstr "{0} ditambahkan"
+
+msgid "Keyboard shortcuts"
+msgstr "Pintasan keyboard"
+
+msgid "Show QuickGUI"
+msgstr "Tampilkan QuickGUI"
+
+msgid "Quit"
+msgstr "Keluar"
+
+msgid "Cancel multi-select / close dialogs"
+msgstr "Batalkan multi-pilih / tutup dialog"
+
+msgid "Create a new virtual machine"
+msgstr "Buat mesin virtual baru"
+
+msgid "Filter the machines list"
+msgstr "Filter daftar mesin"
+
+msgid "Open this shortcuts reference"
+msgstr "Buka referensi pintasan ini"
+
+msgid "Refresh the machines list"
+msgstr "Muat ulang daftar mesin"
+
+msgid "Switch between the six sections"
+msgstr "Beralih di antara enam bagian"
+
+msgid "Ctrl+1…6"
+msgstr "Ctrl+1…6"
+
+msgid "Unsupported file type for drop: {0}"
+msgstr "Jenis file tidak didukung untuk dilepas: {0}"

@@ -58,7 +58,18 @@ class VmActionsMenu extends StatelessWidget {
       ('Lifecycle', {'pause', 'resume', 'screenshot', 'send-keys', 'reset'}),
       (
         'Maintenance',
-        {'folder', 'doctor', 'verify', 'resize', 'clone', 'export'},
+        {
+          'folder',
+          'doctor',
+          'verify',
+          'resize',
+          'clone',
+          'export',
+          'migrate-toml',
+          'move',
+          'hotplug',
+          'backup',
+        },
       ),
     ];
     return MenuAnchor(
@@ -83,6 +94,15 @@ class VmActionsMenu extends StatelessWidget {
               item(entry),
           ],
         ],
+        // Safety net: values not claimed by any group still render —
+        // silently dropping them makes menu entries unreachable.
+        for (final entry in entries.where(
+          (e) =>
+              e.value != 'snapshot' &&
+              e.value != 'delete' &&
+              !groups.any((g) => g.$2.contains(e.value)),
+        ))
+          item(entry),
         if (entries.any((e) => e.value == 'snapshot')) ...[
           const Divider(),
           for (final entry in entries.where((e) => e.value == 'snapshot'))

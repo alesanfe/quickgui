@@ -353,7 +353,7 @@ msgid "Snapshots {0}"
 msgstr ""
 
 msgid "A frontend for quickemu — discover, download and manage VMs."
-msgstr ""
+msgstr "quickemu のフロントエンド — VM を探してダウンロードし、管理します。"
 
 msgid "A required port is already in use. Stop the conflicting VM or change the port forwards."
 msgstr ""
@@ -746,7 +746,7 @@ msgid "Hotplug devices"
 msgstr ""
 
 msgid "Hotplug — {0}"
-msgstr ""
+msgstr "ホットプラグ — {0}"
 
 msgid "How often the machine list is updated"
 msgstr ""
@@ -776,7 +776,7 @@ msgid "Interrupted"
 msgstr ""
 
 msgid "Inventory"
-msgstr ""
+msgstr "インベントリ"
 
 msgid "KVM is not accessible. Add your user to the kvm group or check /dev/kvm permissions."
 msgstr ""
@@ -842,7 +842,7 @@ msgid "Move / Rename"
 msgstr ""
 
 msgid "Move / Rename — {0}"
-msgstr ""
+msgstr "移動 / 名前変更 — {0}"
 
 msgid "Move to directory"
 msgstr ""
@@ -965,7 +965,7 @@ msgid "Pick an operating system and a version, or drop a disk image anywhere on 
 msgstr ""
 
 msgid "Plugins"
-msgstr ""
+msgstr "プラグイン"
 
 msgid "Preferred display viewer"
 msgstr ""
@@ -980,7 +980,7 @@ msgid "Queued"
 msgstr ""
 
 msgid "QuickGUI"
-msgstr ""
+msgstr "QuickGUI"
 
 msgid "Quickemu"
 msgstr ""
@@ -1037,7 +1037,7 @@ msgid "Report copied"
 msgstr ""
 
 msgid "Required"
-msgstr ""
+msgstr "必須"
 
 msgid "Reset"
 msgstr ""
@@ -1319,7 +1319,7 @@ msgid "Validating"
 msgstr ""
 
 msgid "Value"
-msgstr ""
+msgstr "値"
 
 msgid "Version {0} — Powered by Quickemu"
 msgstr ""
@@ -1486,3 +1486,60 @@ msgstr ""
 msgid "VNC viewer"
 msgstr ""
 
+
+msgid "Console — {0}"
+msgstr "コンソール — {0}"
+
+msgid "Type text into the machine"
+msgstr "マシンにテキストを入力"
+
+msgid "Live console"
+msgstr "ライブコンソール"
+
+msgid "Machine is not running"
+msgstr "マシンは実行されていません"
+
+msgid "The machine is not running — start it to use the console."
+msgstr "マシンが実行されていません — コンソールを使うには起動してください。"
+
+msgid "Unsupported framebuffer"
+msgstr "サポートされていないフレームバッファ"
+
+msgid "Open external viewer"
+msgstr "外部ビューアを開く"
+
+msgid "Added {0}"
+msgstr "{0} を追加しました"
+
+msgid "Keyboard shortcuts"
+msgstr "キーボードショートカット"
+
+msgid "Show QuickGUI"
+msgstr "QuickGUI を表示"
+
+msgid "Quit"
+msgstr "終了"
+
+msgid "Cancel multi-select / close dialogs"
+msgstr "複数選択をキャンセル / ダイアログを閉じる"
+
+msgid "Create a new virtual machine"
+msgstr "新しい仮想マシンを作成"
+
+msgid "Filter the machines list"
+msgstr "マシンリストをフィルター"
+
+msgid "Open this shortcuts reference"
+msgstr "このショートカット一覧を開く"
+
+msgid "Refresh the machines list"
+msgstr "マシンリストを更新"
+
+msgid "Switch between the six sections"
+msgstr "6 つのセクションを切り替える"
+
+msgid "Ctrl+1…6"
+msgstr "Ctrl+1…6"
+
+msgid "Unsupported file type for drop: {0}"
+msgstr "ドロップできないファイル形式です: {0}"

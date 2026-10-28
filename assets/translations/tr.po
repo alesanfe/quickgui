@@ -353,7 +353,7 @@ msgid "Snapshots {0}"
 msgstr ""
 
 msgid "A frontend for quickemu — discover, download and manage VMs."
-msgstr ""
+msgstr "quickemu için bir arayüz — VM'leri keşfedin, indirin ve yönetin."
 
 msgid "A required port is already in use. Stop the conflicting VM or change the port forwards."
 msgstr ""
@@ -746,7 +746,7 @@ msgid "Hotplug devices"
 msgstr ""
 
 msgid "Hotplug — {0}"
-msgstr ""
+msgstr "Hotplug — {0}"
 
 msgid "How often the machine list is updated"
 msgstr ""
@@ -776,7 +776,7 @@ msgid "Interrupted"
 msgstr ""
 
 msgid "Inventory"
-msgstr ""
+msgstr "Envanter"
 
 msgid "KVM is not accessible. Add your user to the kvm group or check /dev/kvm permissions."
 msgstr ""
@@ -842,7 +842,7 @@ msgid "Move / Rename"
 msgstr ""
 
 msgid "Move / Rename — {0}"
-msgstr ""
+msgstr "Taşı / Yeniden adlandır — {0}"
 
 msgid "Move to directory"
 msgstr ""
@@ -965,7 +965,7 @@ msgid "Pick an operating system and a version, or drop a disk image anywhere on 
 msgstr ""
 
 msgid "Plugins"
-msgstr ""
+msgstr "Eklentiler"
 
 msgid "Preferred display viewer"
 msgstr ""
@@ -980,7 +980,7 @@ msgid "Queued"
 msgstr ""
 
 msgid "QuickGUI"
-msgstr ""
+msgstr "QuickGUI"
 
 msgid "Quickemu"
 msgstr ""
@@ -1037,7 +1037,7 @@ msgid "Report copied"
 msgstr ""
 
 msgid "Required"
-msgstr ""
+msgstr "Gerekli"
 
 msgid "Reset"
 msgstr ""
@@ -1319,7 +1319,7 @@ msgid "Validating"
 msgstr ""
 
 msgid "Value"
-msgstr ""
+msgstr "Değer"
 
 msgid "Version {0} — Powered by Quickemu"
 msgstr ""
@@ -1486,3 +1486,60 @@ msgstr ""
 msgid "VNC viewer"
 msgstr ""
 
+
+msgid "Console — {0}"
+msgstr "Konsol — {0}"
+
+msgid "Type text into the machine"
+msgstr "Makineye metin yazın"
+
+msgid "Live console"
+msgstr "Canlı konsol"
+
+msgid "Machine is not running"
+msgstr "Makine çalışmıyor"
+
+msgid "The machine is not running — start it to use the console."
+msgstr "Makine çalışmıyor — konsolu kullanmak için başlatın."
+
+msgid "Unsupported framebuffer"
+msgstr "Desteklenmeyen çerçeve arabelleği"
+
+msgid "Open external viewer"
+msgstr "Harici görüntüleyiciyi aç"
+
+msgid "Added {0}"
+msgstr "{0} eklendi"
+
+msgid "Keyboard shortcuts"
+msgstr "Klavye kısayolları"
+
+msgid "Show QuickGUI"
+msgstr "QuickGUI'yi göster"
+
+msgid "Quit"
+msgstr "Çık"
+
+msgid "Cancel multi-select / close dialogs"
+msgstr "Çoklu seçimi iptal et / iletişim kutularını kapat"
+
+msgid "Create a new virtual machine"
+msgstr "Yeni sanal makine oluştur"
+
+msgid "Filter the machines list"
+msgstr "Makine listesini filtrele"
+
+msgid "Open this shortcuts reference"
+msgstr "Bu kısayol referansını aç"
+
+msgid "Refresh the machines list"
+msgstr "Makine listesini yenile"
+
+msgid "Switch between the six sections"
+msgstr "Altı bölüm arasında geçiş yap"
+
+msgid "Ctrl+1…6"
+msgstr "Ctrl+1…6"
+
+msgid "Unsupported file type for drop: {0}"
+msgstr "Bırakma için desteklenmeyen dosya türü: {0}"

@@ -346,7 +346,7 @@ msgid "Snapshots {0}"
 msgstr ""
 
 msgid "A frontend for quickemu — discover, download and manage VMs."
-msgstr ""
+msgstr "Una interfàcia per quickemu — descobrissètz, telecargatz e gerissètz las MV."
 
 msgid "A required port is already in use. Stop the conflicting VM or change the port forwards."
 msgstr ""
@@ -739,7 +739,7 @@ msgid "Hotplug devices"
 msgstr ""
 
 msgid "Hotplug — {0}"
-msgstr ""
+msgstr "Hotplug — {0}"
 
 msgid "How often the machine list is updated"
 msgstr ""
@@ -769,7 +769,7 @@ msgid "Interrupted"
 msgstr ""
 
 msgid "Inventory"
-msgstr ""
+msgstr "Inventari"
 
 msgid "KVM is not accessible. Add your user to the kvm group or check /dev/kvm permissions."
 msgstr ""
@@ -838,7 +838,7 @@ msgid "Move / Rename"
 msgstr ""
 
 msgid "Move / Rename — {0}"
-msgstr ""
+msgstr "Desplaçar / Renomenar — {0}"
 
 msgid "Move to directory"
 msgstr ""
@@ -961,7 +961,7 @@ msgid "Pick an operating system and a version, or drop a disk image anywhere on 
 msgstr ""
 
 msgid "Plugins"
-msgstr ""
+msgstr "Plugins"
 
 msgid "Preferred display viewer"
 msgstr ""
@@ -976,7 +976,7 @@ msgid "Queued"
 msgstr ""
 
 msgid "QuickGUI"
-msgstr ""
+msgstr "QuickGUI"
 
 msgid "Quickemu"
 msgstr ""
@@ -1033,7 +1033,7 @@ msgid "Report copied"
 msgstr ""
 
 msgid "Required"
-msgstr ""
+msgstr "Obligatòri"
 
 msgid "Reset"
 msgstr ""
@@ -1315,7 +1315,7 @@ msgid "Validating"
 msgstr ""
 
 msgid "Value"
-msgstr ""
+msgstr "Valor"
 
 msgid "Version {0} — Powered by Quickemu"
 msgstr ""
@@ -1485,3 +1485,60 @@ msgstr ""
 msgid "VNC viewer"
 msgstr ""
 
+
+msgid "Console — {0}"
+msgstr "Consòla — {0}"
+
+msgid "Type text into the machine"
+msgstr "Picatz de tèxte dins la maquina"
+
+msgid "Live console"
+msgstr "Consòla en dirècte"
+
+msgid "Machine is not running"
+msgstr "La maquina es pas en cors d’execucion"
+
+msgid "The machine is not running — start it to use the console."
+msgstr "La maquina es pas en cors d’execucion — aviatz-la per utilizar la consòla."
+
+msgid "Unsupported framebuffer"
+msgstr "Tampon de trama pas pres en carga"
+
+msgid "Open external viewer"
+msgstr "Dobrir lo visualizador extèrne"
+
+msgid "Added {0}"
+msgstr "{0} ajustat"
+
+msgid "Keyboard shortcuts"
+msgstr "Acorchis de clavièr"
+
+msgid "Show QuickGUI"
+msgstr "Afichar QuickGUI"
+
+msgid "Quit"
+msgstr "Quitaar"
+
+msgid "Cancel multi-select / close dialogs"
+msgstr "Anullar la seleccion multipla / tancar las bóstias de dialòg"
+
+msgid "Create a new virtual machine"
+msgstr "Crear una maquina virtuala novèla"
+
+msgid "Filter the machines list"
+msgstr "Filtrar la lista de las maquinas"
+
+msgid "Open this shortcuts reference"
+msgstr "Dobrir aquesta referéncia d’acorchis"
+
+msgid "Refresh the machines list"
+msgstr "Actualizar la lista de las maquinas"
+
+msgid "Switch between the six sections"
+msgstr "Bascular entre las sièis seccions"
+
+msgid "Ctrl+1…6"
+msgstr "Ctrl+1…6"
+
+msgid "Unsupported file type for drop: {0}"
+msgstr "Tipe de fichièr pas pres en carga per depausar : {0}"

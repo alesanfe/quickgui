@@ -244,6 +244,22 @@ class _HotplugDialogState extends State<_HotplugDialog> {
   bool _busy = false;
   String? _error;
 
+  @override
+  void initState() {
+    super.initState();
+    // Rebuild so the action buttons enable/disable as fields change —
+    // without a listener they stay disabled forever.
+    _usbCtrl.addListener(() => setState(() {}));
+    _diskCtrl.addListener(() => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _usbCtrl.dispose();
+    _diskCtrl.dispose();
+    super.dispose();
+  }
+
   Future<void> _run(Future<void> Function() action) async {
     setState(() {
       _busy = true;
@@ -350,6 +366,20 @@ class _MoveRenameDialogState extends State<_MoveRenameDialog> {
   final _nameCtrl = TextEditingController();
   bool _busy = false;
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _dirCtrl.addListener(() => setState(() {}));
+    _nameCtrl.addListener(() => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _dirCtrl.dispose();
+    _nameCtrl.dispose();
+    super.dispose();
+  }
 
   Future<void> _run(Future<void> Function() action) async {
     setState(() {

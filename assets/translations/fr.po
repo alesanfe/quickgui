@@ -363,7 +363,7 @@ msgid "Snapshots {0}"
 msgstr ""
 
 msgid "A frontend for quickemu — discover, download and manage VMs."
-msgstr ""
+msgstr "Une interface pour quickemu — découvrez, téléchargez et gérez vos VM."
 
 msgid "A required port is already in use. Stop the conflicting VM or change the port forwards."
 msgstr ""
@@ -753,7 +753,7 @@ msgid "Hotplug devices"
 msgstr ""
 
 msgid "Hotplug — {0}"
-msgstr ""
+msgstr "Connexion à chaud — {0}"
 
 msgid "How often the machine list is updated"
 msgstr ""
@@ -783,7 +783,7 @@ msgid "Interrupted"
 msgstr ""
 
 msgid "Inventory"
-msgstr ""
+msgstr "Inventaire"
 
 msgid "KVM is not accessible. Add your user to the kvm group or check /dev/kvm permissions."
 msgstr ""
@@ -846,7 +846,7 @@ msgid "Move / Rename"
 msgstr ""
 
 msgid "Move / Rename — {0}"
-msgstr ""
+msgstr "Déplacer / Renommer — {0}"
 
 msgid "Move to directory"
 msgstr ""
@@ -969,7 +969,7 @@ msgid "Pick an operating system and a version, or drop a disk image anywhere on 
 msgstr ""
 
 msgid "Plugins"
-msgstr ""
+msgstr "Extensions"
 
 msgid "Preferred display viewer"
 msgstr ""
@@ -984,7 +984,7 @@ msgid "Queued"
 msgstr ""
 
 msgid "QuickGUI"
-msgstr ""
+msgstr "QuickGUI"
 
 msgid "Quickemu"
 msgstr ""
@@ -1041,7 +1041,7 @@ msgid "Report copied"
 msgstr ""
 
 msgid "Required"
-msgstr ""
+msgstr "Obligatoire"
 
 msgid "Reset"
 msgstr ""
@@ -1323,7 +1323,7 @@ msgid "Validating"
 msgstr ""
 
 msgid "Value"
-msgstr ""
+msgstr "Valeur"
 
 msgid "Version {0} — Powered by Quickemu"
 msgstr ""
@@ -1487,3 +1487,60 @@ msgstr ""
 msgid "VNC viewer"
 msgstr ""
 
+
+msgid "Console — {0}"
+msgstr "Console — {0}"
+
+msgid "Type text into the machine"
+msgstr "Saisir du texte dans la machine"
+
+msgid "Live console"
+msgstr "Console en direct"
+
+msgid "Machine is not running"
+msgstr "La machine n'est pas en cours d'exécution"
+
+msgid "The machine is not running — start it to use the console."
+msgstr "La machine n'est pas en cours d'exécution — démarrez-la pour utiliser la console."
+
+msgid "Unsupported framebuffer"
+msgstr "Framebuffer non pris en charge"
+
+msgid "Open external viewer"
+msgstr "Ouvrir la visionneuse externe"
+
+msgid "Added {0}"
+msgstr "{0} ajouté"
+
+msgid "Keyboard shortcuts"
+msgstr "Raccourcis clavier"
+
+msgid "Show QuickGUI"
+msgstr "Afficher QuickGUI"
+
+msgid "Quit"
+msgstr "Quitter"
+
+msgid "Cancel multi-select / close dialogs"
+msgstr "Annuler la sélection multiple / fermer les boîtes de dialogue"
+
+msgid "Create a new virtual machine"
+msgstr "Créer une nouvelle machine virtuelle"
+
+msgid "Filter the machines list"
+msgstr "Filtrer la liste des machines"
+
+msgid "Open this shortcuts reference"
+msgstr "Ouvrir cette référence de raccourcis"
+
+msgid "Refresh the machines list"
+msgstr "Actualiser la liste des machines"
+
+msgid "Switch between the six sections"
+msgstr "Basculer entre les six sections"
+
+msgid "Ctrl+1…6"
+msgstr "Ctrl+1…6"
+
+msgid "Unsupported file type for drop: {0}"
+msgstr "Type de fichier non pris en charge pour le dépôt : {0}"

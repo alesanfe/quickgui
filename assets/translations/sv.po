@@ -365,7 +365,7 @@ msgid "Snapshots {0}"
 msgstr ""
 
 msgid "A frontend for quickemu — discover, download and manage VMs."
-msgstr ""
+msgstr "Ett gränssnitt för quickemu – upptäck, ladda ner och hantera virtuella maskiner."
 
 msgid "A required port is already in use. Stop the conflicting VM or change the port forwards."
 msgstr ""
@@ -755,7 +755,7 @@ msgid "Hotplug devices"
 msgstr ""
 
 msgid "Hotplug — {0}"
-msgstr ""
+msgstr "Hotplug — {0}"
 
 msgid "How often the machine list is updated"
 msgstr ""
@@ -785,7 +785,7 @@ msgid "Interrupted"
 msgstr ""
 
 msgid "Inventory"
-msgstr ""
+msgstr "Inventarie"
 
 msgid "KVM is not accessible. Add your user to the kvm group or check /dev/kvm permissions."
 msgstr ""
@@ -848,7 +848,7 @@ msgid "Move / Rename"
 msgstr ""
 
 msgid "Move / Rename — {0}"
-msgstr ""
+msgstr "Flytta / Byt namn — {0}"
 
 msgid "Move to directory"
 msgstr ""
@@ -971,7 +971,7 @@ msgid "Pick an operating system and a version, or drop a disk image anywhere on 
 msgstr ""
 
 msgid "Plugins"
-msgstr ""
+msgstr "Insticksmoduler"
 
 msgid "Preferred display viewer"
 msgstr ""
@@ -986,7 +986,7 @@ msgid "Queued"
 msgstr ""
 
 msgid "QuickGUI"
-msgstr ""
+msgstr "QuickGUI"
 
 msgid "Quickemu"
 msgstr ""
@@ -1043,7 +1043,7 @@ msgid "Report copied"
 msgstr ""
 
 msgid "Required"
-msgstr ""
+msgstr "Obligatoriskt"
 
 msgid "Reset"
 msgstr ""
@@ -1325,7 +1325,7 @@ msgid "Validating"
 msgstr ""
 
 msgid "Value"
-msgstr ""
+msgstr "Värde"
 
 msgid "Version {0} — Powered by Quickemu"
 msgstr ""
@@ -1492,3 +1492,60 @@ msgstr ""
 msgid "VNC viewer"
 msgstr ""
 
+
+msgid "Console — {0}"
+msgstr "Konsol — {0}"
+
+msgid "Type text into the machine"
+msgstr "Skriv text i maskinen"
+
+msgid "Live console"
+msgstr "Livekonsol"
+
+msgid "Machine is not running"
+msgstr "Maskinen körs inte"
+
+msgid "The machine is not running — start it to use the console."
+msgstr "Maskinen körs inte — starta den för att använda konsolen."
+
+msgid "Unsupported framebuffer"
+msgstr "Framebuffer som inte stöds"
+
+msgid "Open external viewer"
+msgstr "Öppna extern visare"
+
+msgid "Added {0}"
+msgstr "{0} tillagd"
+
+msgid "Keyboard shortcuts"
+msgstr "Kortkommandon"
+
+msgid "Show QuickGUI"
+msgstr "Visa QuickGUI"
+
+msgid "Quit"
+msgstr "Avsluta"
+
+msgid "Cancel multi-select / close dialogs"
+msgstr "Avbryt flerval / stäng dialogrutor"
+
+msgid "Create a new virtual machine"
+msgstr "Skapa en ny virtuell maskin"
+
+msgid "Filter the machines list"
+msgstr "Filtrera maskinlistan"
+
+msgid "Open this shortcuts reference"
+msgstr "Öppna denna kortkommandoreferens"
+
+msgid "Refresh the machines list"
+msgstr "Uppdatera maskinlistan"
+
+msgid "Switch between the six sections"
+msgstr "Växla mellan de sex sektionerna"
+
+msgid "Ctrl+1…6"
+msgstr "Ctrl+1…6"
+
+msgid "Unsupported file type for drop: {0}"
+msgstr "Filtypen stöds inte för släpp: {0}"

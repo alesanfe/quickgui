@@ -353,7 +353,7 @@ msgid "Snapshots {0}"
 msgstr ""
 
 msgid "A frontend for quickemu — discover, download and manage VMs."
-msgstr ""
+msgstr "Интерфейс для quickemu — находите, скачивайте и управляйте виртуальными машинами."
 
 msgid "A required port is already in use. Stop the conflicting VM or change the port forwards."
 msgstr ""
@@ -746,7 +746,7 @@ msgid "Hotplug devices"
 msgstr ""
 
 msgid "Hotplug — {0}"
-msgstr ""
+msgstr "Горячее подключение — {0}"
 
 msgid "How often the machine list is updated"
 msgstr ""
@@ -776,7 +776,7 @@ msgid "Interrupted"
 msgstr ""
 
 msgid "Inventory"
-msgstr ""
+msgstr "Инвентарь"
 
 msgid "KVM is not accessible. Add your user to the kvm group or check /dev/kvm permissions."
 msgstr ""
@@ -845,7 +845,7 @@ msgid "Move / Rename"
 msgstr ""
 
 msgid "Move / Rename — {0}"
-msgstr ""
+msgstr "Переместить / Переименовать — {0}"
 
 msgid "Move to directory"
 msgstr ""
@@ -968,7 +968,7 @@ msgid "Pick an operating system and a version, or drop a disk image anywhere on 
 msgstr ""
 
 msgid "Plugins"
-msgstr ""
+msgstr "Плагины"
 
 msgid "Preferred display viewer"
 msgstr ""
@@ -983,7 +983,7 @@ msgid "Queued"
 msgstr ""
 
 msgid "QuickGUI"
-msgstr ""
+msgstr "QuickGUI"
 
 msgid "Quickemu"
 msgstr ""
@@ -1040,7 +1040,7 @@ msgid "Report copied"
 msgstr ""
 
 msgid "Required"
-msgstr ""
+msgstr "Обязательно"
 
 msgid "Reset"
 msgstr ""
@@ -1322,7 +1322,7 @@ msgid "Validating"
 msgstr ""
 
 msgid "Value"
-msgstr ""
+msgstr "Значение"
 
 msgid "Version {0} — Powered by Quickemu"
 msgstr ""
@@ -1492,3 +1492,60 @@ msgstr ""
 msgid "VNC viewer"
 msgstr ""
 
+
+msgid "Console — {0}"
+msgstr "Консоль — {0}"
+
+msgid "Type text into the machine"
+msgstr "Введите текст в машину"
+
+msgid "Live console"
+msgstr "Живая консоль"
+
+msgid "Machine is not running"
+msgstr "Машина не запущена"
+
+msgid "The machine is not running — start it to use the console."
+msgstr "Машина не запущена — запустите её, чтобы использовать консоль."
+
+msgid "Unsupported framebuffer"
+msgstr "Неподдерживаемый кадровый буфер"
+
+msgid "Open external viewer"
+msgstr "Открыть внешнюю программу просмотра"
+
+msgid "Added {0}"
+msgstr "Добавлено: {0}"
+
+msgid "Keyboard shortcuts"
+msgstr "Сочетания клавиш"
+
+msgid "Show QuickGUI"
+msgstr "Показать QuickGUI"
+
+msgid "Quit"
+msgstr "Выход"
+
+msgid "Cancel multi-select / close dialogs"
+msgstr "Отменить множественный выбор / закрыть диалоги"
+
+msgid "Create a new virtual machine"
+msgstr "Создать новую виртуальную машину"
+
+msgid "Filter the machines list"
+msgstr "Отфильтровать список машин"
+
+msgid "Open this shortcuts reference"
+msgstr "Открыть справочник сочетаний клавиш"
+
+msgid "Refresh the machines list"
+msgstr "Обновить список машин"
+
+msgid "Switch between the six sections"
+msgstr "Переключение между шестью разделами"
+
+msgid "Ctrl+1…6"
+msgstr "Ctrl+1…6"
+
+msgid "Unsupported file type for drop: {0}"
+msgstr "Неподдерживаемый тип файла для перетаскивания: {0}"

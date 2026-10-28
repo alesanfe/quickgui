@@ -349,7 +349,7 @@ msgid "Snapshots {0}"
 msgstr ""
 
 msgid "A frontend for quickemu — discover, download and manage VMs."
-msgstr ""
+msgstr "Frontend airson quickemu — lorg, luchdaich sìos agus stiùir VMan."
 
 msgid "A required port is already in use. Stop the conflicting VM or change the port forwards."
 msgstr ""
@@ -742,7 +742,7 @@ msgid "Hotplug devices"
 msgstr ""
 
 msgid "Hotplug — {0}"
-msgstr ""
+msgstr "Hotplug — {0}"
 
 msgid "How often the machine list is updated"
 msgstr ""
@@ -772,7 +772,7 @@ msgid "Interrupted"
 msgstr ""
 
 msgid "Inventory"
-msgstr ""
+msgstr "Inventaraidh"
 
 msgid "KVM is not accessible. Add your user to the kvm group or check /dev/kvm permissions."
 msgstr ""
@@ -841,7 +841,7 @@ msgid "Move / Rename"
 msgstr ""
 
 msgid "Move / Rename — {0}"
-msgstr ""
+msgstr "Gluais / Ath-ainmich — {0}"
 
 msgid "Move to directory"
 msgstr ""
@@ -964,7 +964,7 @@ msgid "Pick an operating system and a version, or drop a disk image anywhere on 
 msgstr ""
 
 msgid "Plugins"
-msgstr ""
+msgstr "Plùigidean"
 
 msgid "Preferred display viewer"
 msgstr ""
@@ -979,7 +979,7 @@ msgid "Queued"
 msgstr ""
 
 msgid "QuickGUI"
-msgstr ""
+msgstr "QuickGUI"
 
 msgid "Quickemu"
 msgstr ""
@@ -1036,7 +1036,7 @@ msgid "Report copied"
 msgstr ""
 
 msgid "Required"
-msgstr ""
+msgstr "Riatanach"
 
 msgid "Reset"
 msgstr ""
@@ -1318,7 +1318,7 @@ msgid "Validating"
 msgstr ""
 
 msgid "Value"
-msgstr ""
+msgstr "Luach"
 
 msgid "Version {0} — Powered by Quickemu"
 msgstr ""
@@ -1488,3 +1488,60 @@ msgstr ""
 msgid "VNC viewer"
 msgstr ""
 
+
+msgid "Console — {0}"
+msgstr "Consol — {0}"
+
+msgid "Type text into the machine"
+msgstr "Sgrìobh teacsa a-steach dhan inneal"
+
+msgid "Live console"
+msgstr "Consol beò"
+
+msgid "Machine is not running"
+msgstr "Chan eil an inneal a' ruith"
+
+msgid "The machine is not running — start it to use the console."
+msgstr "Chan eil an inneal a' ruith — tòisich e airson a' chonsol a chleachdadh."
+
+msgid "Unsupported framebuffer"
+msgstr "Frèam-buffer gun taic"
+
+msgid "Open external viewer"
+msgstr "Fosgail an sealladair a-muigh"
+
+msgid "Added {0}"
+msgstr "{0} air a chur ris"
+
+msgid "Keyboard shortcuts"
+msgstr "Ath-ghoireidean meur-chlàr"
+
+msgid "Show QuickGUI"
+msgstr "Seall QuickGUI"
+
+msgid "Quit"
+msgstr "Fàg"
+
+msgid "Cancel multi-select / close dialogs"
+msgstr "Cuir taghadh iomadach dheth / dùin còmhragan"
+
+msgid "Create a new virtual machine"
+msgstr "Cruthaich inneal brìgheil ùr"
+
+msgid "Filter the machines list"
+msgstr "Criathraich liosta nan innealan"
+
+msgid "Open this shortcuts reference"
+msgstr "Fosgail an iomradh ath-ghoireidean seo"
+
+msgid "Refresh the machines list"
+msgstr "Ùraich liosta nan innealan"
+
+msgid "Switch between the six sections"
+msgstr "Gluais eadar na sia earrannan"
+
+msgid "Ctrl+1…6"
+msgstr "Ctrl+1…6"
+
+msgid "Unsupported file type for drop: {0}"
+msgstr "Seòrsa faidhle gun taic airson leigeil sìos: {0}"

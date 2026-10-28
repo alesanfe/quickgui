@@ -1464,26 +1464,83 @@ msgid "Welcome — pick an OS in Create, then manage your VMs here."
 msgstr "Welcome — pick an OS in Create, then manage your VMs here."
 
 msgid "A frontend for quickemu — discover, download and manage VMs."
-msgstr ""
+msgstr "A frontend for quickemu — discover, download and manage VMs."
 
 msgid "Hotplug — {0}"
-msgstr ""
+msgstr "Hotplug — {0}"
 
 msgid "Inventory"
-msgstr ""
+msgstr "Inventory"
 
 msgid "Move / Rename — {0}"
-msgstr ""
+msgstr "Move / Rename — {0}"
 
 msgid "Plugins"
-msgstr ""
+msgstr "Plugins"
 
 msgid "QuickGUI"
-msgstr ""
+msgstr "QuickGUI"
 
 msgid "Required"
-msgstr ""
+msgstr "Required"
 
 msgid "Value"
-msgstr ""
+msgstr "Value"
 
+
+msgid "Console — {0}"
+msgstr "Console — {0}"
+
+msgid "Type text into the machine"
+msgstr "Type text into the machine"
+
+msgid "Live console"
+msgstr "Live console"
+
+msgid "Machine is not running"
+msgstr "Machine is not running"
+
+msgid "The machine is not running — start it to use the console."
+msgstr "The machine is not running — start it to use the console."
+
+msgid "Unsupported framebuffer"
+msgstr "Unsupported framebuffer"
+
+msgid "Open external viewer"
+msgstr "Open external viewer"
+
+msgid "Added {0}"
+msgstr "Added {0}"
+
+msgid "Keyboard shortcuts"
+msgstr "Keyboard shortcuts"
+
+msgid "Show QuickGUI"
+msgstr "Show QuickGUI"
+
+msgid "Quit"
+msgstr "Quit"
+
+msgid "Cancel multi-select / close dialogs"
+msgstr "Cancel multi-select / close dialogs"
+
+msgid "Create a new virtual machine"
+msgstr "Create a new virtual machine"
+
+msgid "Filter the machines list"
+msgstr "Filter the machines list"
+
+msgid "Open this shortcuts reference"
+msgstr "Open this shortcuts reference"
+
+msgid "Refresh the machines list"
+msgstr "Refresh the machines list"
+
+msgid "Switch between the six sections"
+msgstr "Switch between the six sections"
+
+msgid "Ctrl+1…6"
+msgstr "Ctrl+1…6"
+
+msgid "Unsupported file type for drop: {0}"
+msgstr "Unsupported file type for drop: {0}"

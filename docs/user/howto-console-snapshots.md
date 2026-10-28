@@ -33,3 +33,12 @@ From **Machines** → select VM → **Snapshots**:
 Snapshot a VM while it is stopped for a consistent disk, or while
 running if you also want live state — internal snapshots store RAM
 state when the VM is running.
+
+## Console limitations
+
+The embedded console renders the guest framebuffer by polling QEMU
+`screendump` (~2 s interval). It is designed for rescue work, GRUB
+menus and OS installers — not as a daily-driver display. For fluid
+interaction use a real viewer instead: the **Open external viewer**
+button launches `spicy`/SPICE with full input, audio and USB support.
+A true SPICE texture stream inside the app is tracked as future work.

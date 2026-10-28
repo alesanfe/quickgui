@@ -21,6 +21,63 @@ finish-args:
   - --talk-name=org.freedesktop.Flatpak
 
 modules:
+  # tray_manager needs ayatana-appindicator3-0.1 (headers at build time,
+  # library at runtime). Not shipped in the freedesktop runtime, so the
+  # gtk3 flavour chain is built here (mirrors flathub shared-modules).
+  - name: libayatana-appindicator
+    buildsystem: cmake-ninja
+    builddir: true
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=RelWithDebInfo
+      - -DFLAVOUR_GTK3=ON
+      - -DENABLE_BINDINGS_VALA=OFF
+      - -DENABLE_BINDINGS_MONO=OFF
+    cleanup:
+      - /include
+      - /lib/pkgconfig
+      - '*.la'
+      - '*.a'
+    sources:
+      - type: archive
+        url: https://github.com/AyatanaIndicators/libayatana-appindicator/archive/refs/tags/0.5.93.tar.gz
+        sha256: cbefed7a918a227bf71286246e237fcd3a9c8499b3eaac4897811a869409edf0
+    modules:
+      - name: libdbusmenu
+        buildsystem: autotools
+        config-opts:
+          - --with-gtk=3
+          - --disable-scrollkeeper
+          - --enable-introspection=no
+          - --enable-vala=no
+          - --disable-tests
+          - --disable-dumper
+        cleanup:
+          - /include
+          - /lib/pkgconfig
+          - '*.la'
+          - '*.a'
+        sources:
+          - type: archive
+            url: https://launchpad.net/libdbusmenu/16.04/16.04.0/+download/libdbusmenu-16.04.0.tar.gz
+            sha256: b9cc4a2acd74509435892823607d966d424bd9ad5d0b00938f27240a1bfa878a
+      - name: libayatana-indicator
+        buildsystem: cmake-ninja
+        builddir: true
+        config-opts:
+          - -DCMAKE_BUILD_TYPE=RelWithDebInfo
+          - -DFLAVOUR_GTK3=ON
+          - -DENABLE_IDO=OFF
+          - -DENABLE_TESTS=OFF
+        cleanup:
+          - /include
+          - /lib/pkgconfig
+          - '*.la'
+          - '*.a'
+        sources:
+          - type: archive
+            url: https://github.com/AyatanaIndicators/libayatana-indicator/archive/refs/tags/0.9.4.tar.gz
+            sha256: a18d3c682e29afd77db24366f8475b26bda22b0e16ff569a2ec71cd6eb4eac95
+
   - name: quickgui
     buildsystem: simple
     build-options:

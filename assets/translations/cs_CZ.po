@@ -347,7 +347,7 @@ msgid "Snapshots {0}"
 msgstr ""
 
 msgid "A frontend for quickemu — discover, download and manage VMs."
-msgstr ""
+msgstr "Rozhraní pro quickemu — objevujte, stahujte a spravujte virtuální stroje."
 
 msgid "A required port is already in use. Stop the conflicting VM or change the port forwards."
 msgstr ""
@@ -740,7 +740,7 @@ msgid "Hotplug devices"
 msgstr ""
 
 msgid "Hotplug — {0}"
-msgstr ""
+msgstr "Hotplug — {0}"
 
 msgid "How often the machine list is updated"
 msgstr ""
@@ -770,7 +770,7 @@ msgid "Interrupted"
 msgstr ""
 
 msgid "Inventory"
-msgstr ""
+msgstr "Inventář"
 
 msgid "KVM is not accessible. Add your user to the kvm group or check /dev/kvm permissions."
 msgstr ""
@@ -839,7 +839,7 @@ msgid "Move / Rename"
 msgstr ""
 
 msgid "Move / Rename — {0}"
-msgstr ""
+msgstr "Přesunout / Přejmenovat — {0}"
 
 msgid "Move to directory"
 msgstr ""
@@ -962,7 +962,7 @@ msgid "Pick an operating system and a version, or drop a disk image anywhere on 
 msgstr ""
 
 msgid "Plugins"
-msgstr ""
+msgstr "Zásuvné moduly"
 
 msgid "Preferred display viewer"
 msgstr ""
@@ -977,7 +977,7 @@ msgid "Queued"
 msgstr ""
 
 msgid "QuickGUI"
-msgstr ""
+msgstr "QuickGUI"
 
 msgid "Quickemu"
 msgstr ""
@@ -1034,7 +1034,7 @@ msgid "Report copied"
 msgstr ""
 
 msgid "Required"
-msgstr ""
+msgstr "Povinné"
 
 msgid "Reset"
 msgstr ""
@@ -1316,7 +1316,7 @@ msgid "Validating"
 msgstr ""
 
 msgid "Value"
-msgstr ""
+msgstr "Hodnota"
 
 msgid "Version {0} — Powered by Quickemu"
 msgstr ""
@@ -1486,3 +1486,60 @@ msgstr ""
 msgid "VNC viewer"
 msgstr ""
 
+
+msgid "Console — {0}"
+msgstr "Konzole — {0}"
+
+msgid "Type text into the machine"
+msgstr "Zadejte text do stroje"
+
+msgid "Live console"
+msgstr "Živá konzole"
+
+msgid "Machine is not running"
+msgstr "Stroj neběží"
+
+msgid "The machine is not running — start it to use the console."
+msgstr "Stroj neběží — spusťte ho, abyste mohli používat konzoli."
+
+msgid "Unsupported framebuffer"
+msgstr "Nepodporovaný framebuffer"
+
+msgid "Open external viewer"
+msgstr "Otevřít externí prohlížeč"
+
+msgid "Added {0}"
+msgstr "Přidáno {0}"
+
+msgid "Keyboard shortcuts"
+msgstr "Klávesové zkratky"
+
+msgid "Show QuickGUI"
+msgstr "Zobrazit QuickGUI"
+
+msgid "Quit"
+msgstr "Ukončit"
+
+msgid "Cancel multi-select / close dialogs"
+msgstr "Zrušit výběr více položek / zavřít dialogy"
+
+msgid "Create a new virtual machine"
+msgstr "Vytvořit nový virtuální stroj"
+
+msgid "Filter the machines list"
+msgstr "Filtrovat seznam strojů"
+
+msgid "Open this shortcuts reference"
+msgstr "Otevřít tuto referenci zkratek"
+
+msgid "Refresh the machines list"
+msgstr "Obnovit seznam strojů"
+
+msgid "Switch between the six sections"
+msgstr "Přepínat mezi šesti sekcemi"
+
+msgid "Ctrl+1…6"
+msgstr "Ctrl+1…6"
+
+msgid "Unsupported file type for drop: {0}"
+msgstr "Nepodporovaný typ souboru pro přetažení: {0}"

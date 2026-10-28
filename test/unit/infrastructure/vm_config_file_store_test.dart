@@ -54,6 +54,15 @@ void main() {
     expect(File(path).readAsStringSync(), original);
   });
 
+  // write() mirrors read(): both honour the first occurrence of a key.
+  // Replacing every duplicate would silently drop later entries.
+  test('write replaces only the first of duplicated keys', () {
+    File(path).writeAsStringSync('ram="1G"\nram="2G"\n');
+    store.write(path, 'ram', '8G');
+    expect(File(path).readAsStringSync(), 'ram="8G"\nram="2G"\n');
+    expect(store.read(path, 'ram'), '8G');
+  });
+
   test('read ignores comments, unquoted values and unrelated keys', () {
     File(path).writeAsStringSync('#ram="1G"\nram=2G\ncpu_cores="2"\n');
     expect(store.read(path, 'ram'), isNull);

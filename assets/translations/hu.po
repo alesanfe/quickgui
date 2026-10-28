@@ -353,7 +353,7 @@ msgid "Snapshots {0}"
 msgstr ""
 
 msgid "A frontend for quickemu — discover, download and manage VMs."
-msgstr ""
+msgstr "Felület a quickemuhoz – fedezze fel, töltse le és kezelje a virtuális gépeket."
 
 msgid "A required port is already in use. Stop the conflicting VM or change the port forwards."
 msgstr ""
@@ -746,7 +746,7 @@ msgid "Hotplug devices"
 msgstr ""
 
 msgid "Hotplug — {0}"
-msgstr ""
+msgstr "Hotplug — {0}"
 
 msgid "How often the machine list is updated"
 msgstr ""
@@ -776,7 +776,7 @@ msgid "Interrupted"
 msgstr ""
 
 msgid "Inventory"
-msgstr ""
+msgstr "Leltár"
 
 msgid "KVM is not accessible. Add your user to the kvm group or check /dev/kvm permissions."
 msgstr ""
@@ -842,7 +842,7 @@ msgid "Move / Rename"
 msgstr ""
 
 msgid "Move / Rename — {0}"
-msgstr ""
+msgstr "Áthelyezés / Átnevezés — {0}"
 
 msgid "Move to directory"
 msgstr ""
@@ -965,7 +965,7 @@ msgid "Pick an operating system and a version, or drop a disk image anywhere on 
 msgstr ""
 
 msgid "Plugins"
-msgstr ""
+msgstr "Beépülő modulok"
 
 msgid "Preferred display viewer"
 msgstr ""
@@ -980,7 +980,7 @@ msgid "Queued"
 msgstr ""
 
 msgid "QuickGUI"
-msgstr ""
+msgstr "QuickGUI"
 
 msgid "Quickemu"
 msgstr ""
@@ -1037,7 +1037,7 @@ msgid "Report copied"
 msgstr ""
 
 msgid "Required"
-msgstr ""
+msgstr "Kötelező"
 
 msgid "Reset"
 msgstr ""
@@ -1319,7 +1319,7 @@ msgid "Validating"
 msgstr ""
 
 msgid "Value"
-msgstr ""
+msgstr "Érték"
 
 msgid "Version {0} — Powered by Quickemu"
 msgstr ""
@@ -1486,3 +1486,60 @@ msgstr ""
 msgid "VNC viewer"
 msgstr ""
 
+
+msgid "Console — {0}"
+msgstr "Konzol — {0}"
+
+msgid "Type text into the machine"
+msgstr "Írjon szöveget a gépbe"
+
+msgid "Live console"
+msgstr "Élő konzol"
+
+msgid "Machine is not running"
+msgstr "A gép nem fut"
+
+msgid "The machine is not running — start it to use the console."
+msgstr "A gép nem fut — indítsa el a konzol használatához."
+
+msgid "Unsupported framebuffer"
+msgstr "Nem támogatott framebuffer"
+
+msgid "Open external viewer"
+msgstr "Külső megjelenítő megnyitása"
+
+msgid "Added {0}"
+msgstr "{0} hozzáadva"
+
+msgid "Keyboard shortcuts"
+msgstr "Billentyűparancsok"
+
+msgid "Show QuickGUI"
+msgstr "QuickGUI megjelenítése"
+
+msgid "Quit"
+msgstr "Kilépés"
+
+msgid "Cancel multi-select / close dialogs"
+msgstr "Többszörös kijelölés törlése / párbeszédablakok bezárása"
+
+msgid "Create a new virtual machine"
+msgstr "Új virtuális gép létrehozása"
+
+msgid "Filter the machines list"
+msgstr "Géplista szűrése"
+
+msgid "Open this shortcuts reference"
+msgstr "A parancsikon-referencia megnyitása"
+
+msgid "Refresh the machines list"
+msgstr "Géplista frissítése"
+
+msgid "Switch between the six sections"
+msgstr "Váltás a hat szakasz között"
+
+msgid "Ctrl+1…6"
+msgstr "Ctrl+1…6"
+
+msgid "Unsupported file type for drop: {0}"
+msgstr "Nem támogatott fájltípus a dobáshoz: {0}"

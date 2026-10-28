@@ -353,7 +353,7 @@ msgid "Snapshots {0}"
 msgstr ""
 
 msgid "A frontend for quickemu — discover, download and manage VMs."
-msgstr ""
+msgstr "Pen blaen ar gyfer quickemu — darganfyddwch, lawrlwythwch a rheolwch VMau."
 
 msgid "A required port is already in use. Stop the conflicting VM or change the port forwards."
 msgstr ""
@@ -746,7 +746,7 @@ msgid "Hotplug devices"
 msgstr ""
 
 msgid "Hotplug — {0}"
-msgstr ""
+msgstr "Hotplug — {0}"
 
 msgid "How often the machine list is updated"
 msgstr ""
@@ -776,7 +776,7 @@ msgid "Interrupted"
 msgstr ""
 
 msgid "Inventory"
-msgstr ""
+msgstr "Rhestr"
 
 msgid "KVM is not accessible. Add your user to the kvm group or check /dev/kvm permissions."
 msgstr ""
@@ -845,7 +845,7 @@ msgid "Move / Rename"
 msgstr ""
 
 msgid "Move / Rename — {0}"
-msgstr ""
+msgstr "Symud / Ailenwi — {0}"
 
 msgid "Move to directory"
 msgstr ""
@@ -968,7 +968,7 @@ msgid "Pick an operating system and a version, or drop a disk image anywhere on 
 msgstr ""
 
 msgid "Plugins"
-msgstr ""
+msgstr "Ategion"
 
 msgid "Preferred display viewer"
 msgstr ""
@@ -983,7 +983,7 @@ msgid "Queued"
 msgstr ""
 
 msgid "QuickGUI"
-msgstr ""
+msgstr "QuickGUI"
 
 msgid "Quickemu"
 msgstr ""
@@ -1040,7 +1040,7 @@ msgid "Report copied"
 msgstr ""
 
 msgid "Required"
-msgstr ""
+msgstr "Gofynnol"
 
 msgid "Reset"
 msgstr ""
@@ -1322,7 +1322,7 @@ msgid "Validating"
 msgstr ""
 
 msgid "Value"
-msgstr ""
+msgstr "Gwerth"
 
 msgid "Version {0} — Powered by Quickemu"
 msgstr ""
@@ -1492,3 +1492,60 @@ msgstr ""
 msgid "VNC viewer"
 msgstr ""
 
+
+msgid "Console — {0}"
+msgstr "Consol — {0}"
+
+msgid "Type text into the machine"
+msgstr "Teipiwch destun i'r peiriant"
+
+msgid "Live console"
+msgstr "Consol fyw"
+
+msgid "Machine is not running"
+msgstr "Nid yw'r peiriant yn rhedeg"
+
+msgid "The machine is not running — start it to use the console."
+msgstr "Nid yw'r peiriant yn rhedeg — dechreuwch ef i ddefnyddio'r consol."
+
+msgid "Unsupported framebuffer"
+msgstr "Ffrâmbyffer heb ei gynnal"
+
+msgid "Open external viewer"
+msgstr "Agorwch y golwydd allanol"
+
+msgid "Added {0}"
+msgstr "Ychwanegwyd {0}"
+
+msgid "Keyboard shortcuts"
+msgstr "Llwybrau byr bysellfwrdd"
+
+msgid "Show QuickGUI"
+msgstr "Dangos QuickGUI"
+
+msgid "Quit"
+msgstr "Gadael"
+
+msgid "Cancel multi-select / close dialogs"
+msgstr "Canslo aml-ddewis / cau deialogau"
+
+msgid "Create a new virtual machine"
+msgstr "Creu peiriant rhithwir newydd"
+
+msgid "Filter the machines list"
+msgstr "Hidlo'r rhestr o beiriannau"
+
+msgid "Open this shortcuts reference"
+msgstr "Agorwch y cyfeirnod llwybrau byr hwn"
+
+msgid "Refresh the machines list"
+msgstr "Adnewyddwch y rhestr o beiriannau"
+
+msgid "Switch between the six sections"
+msgstr "Newid rhwng y chwe rhan"
+
+msgid "Ctrl+1…6"
+msgstr "Ctrl+1…6"
+
+msgid "Unsupported file type for drop: {0}"
+msgstr "Math o ffeil heb gefnogaeth ar gyfer gollwng: {0}"

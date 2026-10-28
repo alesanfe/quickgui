@@ -353,7 +353,7 @@ msgid "Snapshots {0}"
 msgstr ""
 
 msgid "A frontend for quickemu — discover, download and manage VMs."
-msgstr ""
+msgstr "Een frontend voor quickemu — VM's ontdekken, downloaden en beheren."
 
 msgid "A required port is already in use. Stop the conflicting VM or change the port forwards."
 msgstr ""
@@ -746,7 +746,7 @@ msgid "Hotplug devices"
 msgstr ""
 
 msgid "Hotplug — {0}"
-msgstr ""
+msgstr "Hotplug — {0}"
 
 msgid "How often the machine list is updated"
 msgstr ""
@@ -776,7 +776,7 @@ msgid "Interrupted"
 msgstr ""
 
 msgid "Inventory"
-msgstr ""
+msgstr "Inventaris"
 
 msgid "KVM is not accessible. Add your user to the kvm group or check /dev/kvm permissions."
 msgstr ""
@@ -845,7 +845,7 @@ msgid "Move / Rename"
 msgstr ""
 
 msgid "Move / Rename — {0}"
-msgstr ""
+msgstr "Verplaatsen / Hernoemen — {0}"
 
 msgid "Move to directory"
 msgstr ""
@@ -968,7 +968,7 @@ msgid "Pick an operating system and a version, or drop a disk image anywhere on 
 msgstr ""
 
 msgid "Plugins"
-msgstr ""
+msgstr "Plug-ins"
 
 msgid "Preferred display viewer"
 msgstr ""
@@ -983,7 +983,7 @@ msgid "Queued"
 msgstr ""
 
 msgid "QuickGUI"
-msgstr ""
+msgstr "QuickGUI"
 
 msgid "Quickemu"
 msgstr ""
@@ -1040,7 +1040,7 @@ msgid "Report copied"
 msgstr ""
 
 msgid "Required"
-msgstr ""
+msgstr "Verplicht"
 
 msgid "Reset"
 msgstr ""
@@ -1322,7 +1322,7 @@ msgid "Validating"
 msgstr ""
 
 msgid "Value"
-msgstr ""
+msgstr "Waarde"
 
 msgid "Version {0} — Powered by Quickemu"
 msgstr ""
@@ -1492,3 +1492,60 @@ msgstr ""
 msgid "VNC viewer"
 msgstr ""
 
+
+msgid "Console — {0}"
+msgstr "Console — {0}"
+
+msgid "Type text into the machine"
+msgstr "Typ tekst in de machine"
+
+msgid "Live console"
+msgstr "Liveconsole"
+
+msgid "Machine is not running"
+msgstr "De machine draait niet"
+
+msgid "The machine is not running — start it to use the console."
+msgstr "De machine draait niet — start hem om de console te gebruiken."
+
+msgid "Unsupported framebuffer"
+msgstr "Niet-ondersteunde framebuffer"
+
+msgid "Open external viewer"
+msgstr "Externe viewer openen"
+
+msgid "Added {0}"
+msgstr "{0} toegevoegd"
+
+msgid "Keyboard shortcuts"
+msgstr "Sneltoetsen"
+
+msgid "Show QuickGUI"
+msgstr "QuickGUI weergeven"
+
+msgid "Quit"
+msgstr "Afsluiten"
+
+msgid "Cancel multi-select / close dialogs"
+msgstr "Meervoudige selectie annuleren / dialoogvensters sluiten"
+
+msgid "Create a new virtual machine"
+msgstr "Nieuwe virtuele machine maken"
+
+msgid "Filter the machines list"
+msgstr "Machinelijst filteren"
+
+msgid "Open this shortcuts reference"
+msgstr "Deze sneltoetsreferentie openen"
+
+msgid "Refresh the machines list"
+msgstr "Machinelijst vernieuwen"
+
+msgid "Switch between the six sections"
+msgstr "Wisselen tussen de zes secties"
+
+msgid "Ctrl+1…6"
+msgstr "Ctrl+1…6"
+
+msgid "Unsupported file type for drop: {0}"
+msgstr "Niet-ondersteund bestandstype voor neerzetten: {0}"

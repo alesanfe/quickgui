@@ -538,7 +538,7 @@ msgid "Existing snapshots"
 msgstr "Snapshots existentes"
 
 msgid "A required port is already in use. Stop the conflicting VM or change the port forwards."
-msgstr ""
+msgstr "Un puerto necesario ya está en uso. Detenga la VM en conflicto o cambie las redirecciones de puertos."
 
 msgid "About"
 msgstr "Acerca de"
@@ -610,7 +610,7 @@ msgid "Checking…"
 msgstr "Comprobando…"
 
 msgid "Choose an operating system or import an existing image to get started."
-msgstr ""
+msgstr "Elija un sistema operativo o importe una imagen existente para empezar."
 
 msgid "Clear history"
 msgstr "Limpiar historial"
@@ -631,7 +631,7 @@ msgid "Command"
 msgstr "Comando"
 
 msgid "Command output"
-msgstr ""
+msgstr "Salida del comando"
 
 msgid "Compact disk"
 msgstr "Compactar disco"
@@ -682,25 +682,25 @@ msgid "Could not check Quickemu"
 msgstr "No se pudo comprobar Quickemu"
 
 msgid "Could not check for updates. Check your network connection and try again later."
-msgstr ""
+msgstr "No se pudieron buscar actualizaciones. Compruebe su conexión de red e inténtelo más tarde."
 
 msgid "Could not load machines"
 msgstr "No se pudieron cargar las máquinas"
 
 msgid "Could not load the OS catalogue. Check that quickget is installed and try again."
-msgstr ""
+msgstr "No se pudo cargar el catálogo de sistemas operativos. Compruebe que quickget está instalado e inténtelo de nuevo."
 
 msgid "Could not save configuration: {0}"
 msgstr "No se pudo guardar la configuración: {0}"
 
 msgid "Could not write to the working directory. Please check the permissions."
-msgstr ""
+msgstr "No se pudo escribir en el directorio de trabajo. Compruebe los permisos."
 
 msgid "Create a machine"
 msgstr "Crear una máquina"
 
 msgid "Create a virtual machine"
-msgstr ""
+msgstr "Crear una máquina virtual"
 
 msgid "Create your first machine"
 msgstr "Crea tu primera máquina"
@@ -724,10 +724,10 @@ msgid "Download an operating system or import a disk image to create your first 
 msgstr "Descarga un sistema operativo o importa una imagen de disco para crear tu primera máquina."
 
 msgid "Download of {0} has been canceled."
-msgstr ""
+msgstr "La descarga de {0} se ha cancelado."
 
 msgid "Download of {0} has failed."
-msgstr ""
+msgstr "La descarga de {0} ha fallado."
 
 msgid "Download started — track it in Activity"
 msgstr "Descarga iniciada — síguela en Actividad"
@@ -775,7 +775,7 @@ msgid "Floppy image"
 msgstr "Imagen de disquete"
 
 msgid "Force stop"
-msgstr ""
+msgstr "Forzar detención"
 
 msgid "Forwarded ports (host:guest)"
 msgstr "Puertos redirigidos (anfitrión:invitado)"
@@ -787,7 +787,7 @@ msgid "Hardware"
 msgstr "Hardware"
 
 msgid "Hardware virtualisation (/dev/kvm) is not available; VMs will run slowly."
-msgstr ""
+msgstr "La virtualización por hardware (/dev/kvm) no está disponible; las VM funcionarán lentamente."
 
 msgid "History"
 msgstr "Historial"
@@ -808,19 +808,19 @@ msgid "Installation ISO"
 msgstr "ISO de instalación"
 
 msgid "Installed: {0}\nLatest: {1}"
-msgstr ""
+msgstr "Instalada: {0}\nÚltima: {1}"
 
 msgid "Interrupted"
 msgstr "Interrumpida"
 
 msgid "KVM is not accessible. Add your user to the kvm group or check /dev/kvm permissions."
-msgstr ""
+msgstr "KVM no es accesible. Añada su usuario al grupo kvm o compruebe los permisos de /dev/kvm."
 
 msgid "Last refreshed: {0}"
 msgstr "Última actualización: {0}"
 
 msgid "Launch SSH connection to {0}"
-msgstr ""
+msgstr "Iniciar conexión SSH a {0}"
 
 msgid "Legacy bridge interface"
 msgstr "Interfaz bridge heredada"
@@ -850,7 +850,7 @@ msgid "New capacity (for example 128G)"
 msgstr "Nueva capacidad (por ejemplo 128G)"
 
 msgid "New size (current: {0}, grow only)"
-msgstr ""
+msgstr "Nuevo tamaño (actual: {0}, solo aumentar)"
 
 msgid "No activity recorded for this machine."
 msgstr "No hay actividad registrada para esta máquina."
@@ -871,13 +871,13 @@ msgid "No virtual machines yet"
 msgstr "Todavía no hay máquinas virtuales"
 
 msgid "Not running"
-msgstr ""
+msgstr "Detenida"
 
 msgid "Notify when downloads finish"
 msgstr "Notificar al terminar las descargas"
 
 msgid "Only {0} is free in the working directory. Large guests may fail to download or run out of disk space."
-msgstr ""
+msgstr "Solo quedan {0} libres en el directorio de trabajo. Los invitados grandes pueden fallar al descargar o quedarse sin espacio."
 
 msgid "Open viewer in full screen"
 msgstr "Abrir visor a pantalla completa"
@@ -889,7 +889,7 @@ msgid "Pick a folder"
 msgstr "Elegir carpeta"
 
 msgid "Pick an operating system and a version, or drop a disk image anywhere on this page."
-msgstr ""
+msgstr "Elija un sistema operativo y una versión, o suelte una imagen de disco en cualquier parte de esta página."
 
 msgid "Preferred display viewer"
 msgstr "Visor de pantalla preferido"
@@ -904,7 +904,7 @@ msgid "Quickemu is unavailable. Open diagnostics for installation help."
 msgstr "Quickemu no está disponible. Abre Diagnóstico para obtener ayuda."
 
 msgid "Quickemu report"
-msgstr ""
+msgstr "Informe de Quickemu"
 
 msgid "Quickgui manages the connection here and opens the native viewer. A SPICE or VNC display is not embedded in this build."
 msgstr "Quickgui gestiona la conexión aquí y abre el visor nativo. Esta compilación no incluye una pantalla SPICE ni VNC integrada."
@@ -928,7 +928,7 @@ msgid "Replace existing archive?"
 msgstr "¿Reemplazar el archivo existente?"
 
 msgid "Replace {0}?"
-msgstr ""
+msgstr "¿Reemplazar {0}?"
 
 msgid "Review batch operation"
 msgstr "Revisar operación por lotes"
@@ -943,7 +943,7 @@ msgid "Secure Boot"
 msgstr "Arranque seguro"
 
 msgid "Select a virtual machine"
-msgstr ""
+msgstr "Seleccione una máquina virtual"
 
 msgid "Select all"
 msgstr "Seleccionar todas"
@@ -979,22 +979,22 @@ msgid "Shut down"
 msgstr "Apagar"
 
 msgid "Shut down or stop the virtual machine"
-msgstr ""
+msgstr "Apagar o detener la máquina virtual"
 
 msgid "Shut down {0} gracefully, or force it to stop? Forcing discards unsaved changes in the guest."
-msgstr ""
+msgstr "¿Apagar {0} correctamente o forzar su detención? Forzar descarta los cambios no guardados del invitado."
 
 msgid "Some machines failed: {0}"
 msgstr "Algunas máquinas fallaron: {0}"
 
 msgid "Stale (process exited unexpectedly)"
-msgstr ""
+msgstr "Obsoleto (el proceso terminó inesperadamente)"
 
 msgid "Start"
 msgstr "Iniciar"
 
 msgid "Start the virtual machine"
-msgstr ""
+msgstr "Iniciar la máquina virtual"
 
 msgid "Stop"
 msgstr "Detener"
@@ -1003,7 +1003,7 @@ msgid "Stop the machine before changing disks, firmware or network configuration
 msgstr "Detén la máquina antes de cambiar discos, firmware o red."
 
 msgid "Stop {0}"
-msgstr ""
+msgstr "Detener {0}"
 
 msgid "Stopped"
 msgstr "Detenidas"
@@ -1021,13 +1021,13 @@ msgid "Tag for the new or existing snapshot"
 msgstr "Etiqueta para la instantánea nueva o existente"
 
 msgid "Target folder: {0}"
-msgstr ""
+msgstr "Carpeta de destino: {0}"
 
 msgid "The SPICE port is closed. The machine may still be starting or may have stopped. Refresh the status and retry."
 msgstr "El puerto SPICE está cerrado. La máquina puede estar arrancando o haberse detenido. Actualiza el estado y reintenta."
 
 msgid "The SPICE viewer was not found. Install spicy or pick another display viewer in Settings."
-msgstr ""
+msgstr "No se encontró el visor SPICE. Instale spicy o elija otro visor en Configuración."
 
 msgid "The current state of {0} will be replaced by the snapshot {1}. This cannot be undone."
 msgstr "El estado actual de {0} será reemplazado por la instantánea {1}. No se puede deshacer."
@@ -1036,16 +1036,16 @@ msgid "The disk has not been created yet or is unavailable."
 msgstr "El disco aún no se ha creado o no está disponible."
 
 msgid "The disk image is missing or corrupted. Verify the image or download it again."
-msgstr ""
+msgstr "La imagen de disco falta o está dañada. Verifique la imagen o descárguela de nuevo."
 
 msgid "The disk is full. Free space in the working directory or move the VMs to a larger disk."
-msgstr ""
+msgstr "El disco está lleno. Libere espacio en el directorio de trabajo o mueva las VM a un disco mayor."
 
 msgid "The file already exists and will be overwritten."
-msgstr ""
+msgstr "El archivo ya existe y se sobrescribirá."
 
 msgid "The file will be moved into a new virtual machine folder inside the working directory."
-msgstr ""
+msgstr "El archivo se moverá a una nueva carpeta de máquina virtual dentro del directorio de trabajo."
 
 msgid "The forwarded port is not serving SSH yet. Wait for guest startup and check the guest SSH service."
 msgstr "El puerto redirigido aún no sirve SSH. Espera al arranque del invitado y comprueba el servicio SSH."
@@ -1054,7 +1054,7 @@ msgid "The guest has not published a connection port. Start the machine and wait
 msgstr "El invitado aún no ha publicado un puerto de conexión. Inicia la máquina, espera a que esté lista y reintenta."
 
 msgid "The image will be converted to qcow2, then moved into a new virtual machine folder inside the working directory."
-msgstr ""
+msgstr "La imagen se convertirá a qcow2 y luego se moverá a una nueva carpeta de máquina virtual dentro del directorio de trabajo."
 
 msgid "The selected SPICE viewer is unavailable. Install spicy or remote-viewer and choose it in Settings."
 msgstr "El visor SPICE seleccionado no está disponible. Instala spicy o remote-viewer y elígelo en Ajustes."
@@ -1090,13 +1090,13 @@ msgid "VM settings"
 msgstr "Ajustes de la VM"
 
 msgid "Version {0} — Powered by Quickemu"
-msgstr ""
+msgstr "Versión {0} — Con tecnología de Quickemu"
 
 msgid "View all"
 msgstr "Ver todo"
 
 msgid "VirtIO drivers / unattended install present"
-msgstr ""
+msgstr "Controladores VirtIO / instalación desatendida presentes"
 
 msgid "Virtual disk capacity"
 msgstr "Capacidad del disco virtual"
@@ -1114,64 +1114,64 @@ msgid "Welcome to Quickgui"
 msgstr "Bienvenido a Quickgui"
 
 msgid "You are about to delete {0}. This cannot be undone. Would you like to delete the disk image but keep the configuration, or delete the whole VM?"
-msgstr ""
+msgstr "Está a punto de eliminar {0}. Esta acción no se puede deshacer. ¿Desea eliminar la imagen de disco conservando la configuración, o eliminar la máquina virtual completa?"
 
 msgid "macOS {0} requires a CPU with {1} support."
-msgstr ""
+msgstr "macOS {0} requiere una CPU compatible con {1}."
 
 msgid "swtpm is not installed. Windows guests need a TPM 2.0 emulator."
-msgstr ""
+msgstr "swtpm no está instalado. Los invitados Windows necesitan un emulador de TPM 2.0."
 
 msgid "swtpm was not found in your PATH. Windows guests require a TPM 2.0 emulator. Please install swtpm and try again."
-msgstr ""
+msgstr "No se encontró swtpm en su PATH. Los invitados Windows requieren un emulador de TPM 2.0. Instale swtpm e inténtelo de nuevo."
 
 msgid "{0} selected"
 msgstr "{0} seleccionadas"
 
 msgid "Configuration changed outside Quickgui"
-msgstr ""
+msgstr "La configuración cambió fuera de Quickgui"
 
 msgid "Keep editing"
 msgstr "Seguir editando"
 
 msgid "Key"
-msgstr ""
+msgstr "Clave"
 
 msgid "Local copy saved to {0}"
-msgstr ""
+msgstr "Copia local guardada en {0}"
 
 msgid "On disk"
-msgstr ""
+msgstr "En disco"
 
 msgid "Original"
-msgstr ""
+msgstr "Original"
 
 msgid "Overwrite anyway"
-msgstr ""
+msgstr "Sobrescribir de todos modos"
 
 msgid "Reload from disk"
-msgstr ""
+msgstr "Recargar desde el disco"
 
 msgid "Save a copy"
-msgstr ""
+msgstr "Guardar una copia"
 
 msgid "The file {0} was modified by Quickemu, another editor or an external operation since it was opened."
-msgstr ""
+msgstr "El archivo {0} fue modificado por Quickemu, otro editor o una operación externa desde que se abrió."
 
 msgid "Your edit"
-msgstr ""
+msgstr "Su edición"
 
 msgid "Affected: {0}"
-msgstr ""
+msgstr "Afectado: {0}"
 
 msgid "Copy error report"
-msgstr ""
+msgstr "Copiar informe de errores"
 
 msgid "Some changes were applied before the failure."
-msgstr ""
+msgstr "Algunos cambios se aplicaron antes del fallo."
 
 msgid "Technical details"
-msgstr ""
+msgstr "Detalles técnicos"
 
 msgid "All types"
 msgstr "Todos los tipos"
@@ -1183,7 +1183,7 @@ msgid "Filter by type"
 msgstr "Filtrar por tipo"
 
 msgid "No activity yet. Downloads and machine "
-msgstr ""
+msgstr "Sin actividad todavía. Las descargas y las "
 
 msgid "No operations match the current filters."
 msgstr "Ninguna operación coincide con los filtros actuales."
@@ -1192,7 +1192,7 @@ msgid "Retryable only"
 msgstr "Solo reintentables"
 
 msgid "Type"
-msgstr ""
+msgstr "Tipo"
 
 msgid "All changes can be merged."
 msgstr "Todos los cambios se pueden fusionar."
@@ -1255,19 +1255,19 @@ msgid "Your edits to this configuration have not been saved."
 msgstr "Los cambios de esta configuración no se han guardado."
 
 msgid "Backend compatibility"
-msgstr ""
+msgstr "Compatibilidad del backend"
 
 msgid "Commands without envelope"
-msgstr ""
+msgstr "Comandos sin envelope"
 
 msgid "Last fallback"
-msgstr ""
+msgstr "Último fallback"
 
 msgid "Legacy fallbacks used"
-msgstr ""
+msgstr "Fallbacks heredados usados"
 
 msgid "Structured contract"
-msgstr ""
+msgstr "Contrato estructurado"
 
 msgid "Queued"
 msgstr "En cola"
@@ -1291,16 +1291,16 @@ msgid "Not found"
 msgstr "No encontrado"
 
 msgid "Quickemu"
-msgstr ""
+msgstr "Quickemu"
 
 msgid "Download with quickget"
-msgstr ""
+msgstr "Descargar con quickget"
 
 msgid "Guided creation"
 msgstr "Creación guiada"
 
 msgid "ISO, qcow2, vdi, vmdk, vhdx or raw"
-msgstr ""
+msgstr "ISO, qcow2, vdi, vmdk, vhdx o raw"
 
 msgid "Image imported — continue to review."
 msgstr "Imagen importada — continúa a la revisión."
@@ -1315,7 +1315,7 @@ msgid "Origin"
 msgstr "Origen"
 
 msgid "Pick an image from the catalogue"
-msgstr ""
+msgstr "Elija una imagen del catálogo"
 
 msgid "Review"
 msgstr "Revisión"
@@ -1492,32 +1492,92 @@ msgid "Welcome — pick an OS in Create, then manage your VMs here."
 msgstr "Bienvenido — elige un SO en Crear y gestiona aquí tus VMs."
 
 msgid "A frontend for quickemu — discover, download and manage VMs."
-msgstr ""
+msgstr "Un frontend para quickemu: descubra, descargue y gestione máquinas virtuales."
 
 msgid "Hotplug — {0}"
-msgstr ""
+msgstr "Conexión en caliente — {0}"
 
 msgid "Inventory"
-msgstr ""
+msgstr "Inventario"
 
 msgid "Move / Rename — {0}"
-msgstr ""
+msgstr "Mover / Renombrar — {0}"
 
 msgid "Plugins"
-msgstr ""
+msgstr "Plugins"
 
 msgid "QuickGUI"
-msgstr ""
+msgstr "QuickGUI"
 
 msgid "Required"
-msgstr ""
+msgstr "Obligatorio"
 
 msgid "Value"
-msgstr ""
+msgstr "Valor"
 
 msgid "Dependency check"
-msgstr ""
+msgstr "Comprobación de dependencias"
 
 msgid "Download of {0} has been cancelled."
-msgstr ""
+msgstr "La descarga de {0} se ha cancelado."
 
+
+msgid "Installed: {0}\\nLatest: {1}"
+msgstr "Instalada: {0}\\nÚltima: {1}"
+
+msgid "Console — {0}"
+msgstr "Consola — {0}"
+
+msgid "Type text into the machine"
+msgstr "Escriba texto en la máquina"
+
+msgid "Live console"
+msgstr "Consola en vivo"
+
+msgid "Machine is not running"
+msgstr "La máquina no está en ejecución"
+
+msgid "The machine is not running — start it to use the console."
+msgstr "La máquina no está en ejecución — iníciela para usar la consola."
+
+msgid "Unsupported framebuffer"
+msgstr "Framebuffer no soportado"
+
+msgid "Open external viewer"
+msgstr "Abrir visor externo"
+
+msgid "Added {0}"
+msgstr "{0} añadido"
+
+msgid "Keyboard shortcuts"
+msgstr "Atajos de teclado"
+
+msgid "Show QuickGUI"
+msgstr "Mostrar QuickGUI"
+
+msgid "Quit"
+msgstr "Salir"
+
+msgid "Cancel multi-select / close dialogs"
+msgstr "Cancelar selección múltiple / cerrar diálogos"
+
+msgid "Create a new virtual machine"
+msgstr "Crear una nueva máquina virtual"
+
+msgid "Filter the machines list"
+msgstr "Filtrar la lista de máquinas"
+
+msgid "Open this shortcuts reference"
+msgstr "Abrir esta referencia de atajos"
+
+msgid "Refresh the machines list"
+msgstr "Actualizar la lista de máquinas"
+
+msgid "Switch between the six sections"
+msgstr "Cambiar entre las seis secciones"
+
+msgid "Ctrl+1…6"
+msgstr "Ctrl+1…6"
+
+msgid "Unsupported file type for drop: {0}"
+msgstr "Tipo de archivo no soportado para soltar: {0}"

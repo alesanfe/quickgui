@@ -353,7 +353,7 @@ msgid "Snapshots {0}"
 msgstr ""
 
 msgid "A frontend for quickemu — discover, download and manage VMs."
-msgstr ""
+msgstr "Et grensesnitt for quickemu – oppdag, last ned og administrer VM-er."
 
 msgid "A required port is already in use. Stop the conflicting VM or change the port forwards."
 msgstr ""
@@ -746,7 +746,7 @@ msgid "Hotplug devices"
 msgstr ""
 
 msgid "Hotplug — {0}"
-msgstr ""
+msgstr "Hotplug — {0}"
 
 msgid "How often the machine list is updated"
 msgstr ""
@@ -776,7 +776,7 @@ msgid "Interrupted"
 msgstr ""
 
 msgid "Inventory"
-msgstr ""
+msgstr "Inventar"
 
 msgid "KVM is not accessible. Add your user to the kvm group or check /dev/kvm permissions."
 msgstr ""
@@ -845,7 +845,7 @@ msgid "Move / Rename"
 msgstr ""
 
 msgid "Move / Rename — {0}"
-msgstr ""
+msgstr "Flytt / Gi nytt navn — {0}"
 
 msgid "Move to directory"
 msgstr ""
@@ -968,7 +968,7 @@ msgid "Pick an operating system and a version, or drop a disk image anywhere on 
 msgstr ""
 
 msgid "Plugins"
-msgstr ""
+msgstr "Utvidelser"
 
 msgid "Preferred display viewer"
 msgstr ""
@@ -983,7 +983,7 @@ msgid "Queued"
 msgstr ""
 
 msgid "QuickGUI"
-msgstr ""
+msgstr "QuickGUI"
 
 msgid "Quickemu"
 msgstr ""
@@ -1040,7 +1040,7 @@ msgid "Report copied"
 msgstr ""
 
 msgid "Required"
-msgstr ""
+msgstr "Obligatorisk"
 
 msgid "Reset"
 msgstr ""
@@ -1322,7 +1322,7 @@ msgid "Validating"
 msgstr ""
 
 msgid "Value"
-msgstr ""
+msgstr "Verdi"
 
 msgid "Version {0} — Powered by Quickemu"
 msgstr ""
@@ -1492,3 +1492,60 @@ msgstr ""
 msgid "VNC viewer"
 msgstr ""
 
+
+msgid "Console — {0}"
+msgstr "Konsoll — {0}"
+
+msgid "Type text into the machine"
+msgstr "Skriv tekst i maskinen"
+
+msgid "Live console"
+msgstr "Live-konsoll"
+
+msgid "Machine is not running"
+msgstr "Maskinen kjører ikke"
+
+msgid "The machine is not running — start it to use the console."
+msgstr "Maskinen kjører ikke — start den for å bruke konsollen."
+
+msgid "Unsupported framebuffer"
+msgstr "Framebuffer støttes ikke"
+
+msgid "Open external viewer"
+msgstr "Åpne ekstern visning"
+
+msgid "Added {0}"
+msgstr "{0} lagt til"
+
+msgid "Keyboard shortcuts"
+msgstr "Hurtigtaster"
+
+msgid "Show QuickGUI"
+msgstr "Vis QuickGUI"
+
+msgid "Quit"
+msgstr "Avslutt"
+
+msgid "Cancel multi-select / close dialogs"
+msgstr "Avbryt flervalg / lukk dialoger"
+
+msgid "Create a new virtual machine"
+msgstr "Opprett en ny virtuell maskin"
+
+msgid "Filter the machines list"
+msgstr "Filtrer maskinlisten"
+
+msgid "Open this shortcuts reference"
+msgstr "Åpne denne hurtigtastreferansen"
+
+msgid "Refresh the machines list"
+msgstr "Oppdater maskinlisten"
+
+msgid "Switch between the six sections"
+msgstr "Bytt mellom de seks seksjonene"
+
+msgid "Ctrl+1…6"
+msgstr "Ctrl+1…6"
+
+msgid "Unsupported file type for drop: {0}"
+msgstr "Filtypen støttes ikke for slipp: {0}"

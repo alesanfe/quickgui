@@ -362,7 +362,7 @@ msgid "Snapshots {0}"
 msgstr ""
 
 msgid "A frontend for quickemu — discover, download and manage VMs."
-msgstr ""
+msgstr "ინტერფეისი quickemu-სთვის — აღმოაჩინეთ, ჩამოტვირთეთ და მართეთ VM-ები."
 
 msgid "A required port is already in use. Stop the conflicting VM or change the port forwards."
 msgstr ""
@@ -752,7 +752,7 @@ msgid "Hotplug devices"
 msgstr ""
 
 msgid "Hotplug — {0}"
-msgstr ""
+msgstr "Hotplug — {0}"
 
 msgid "How often the machine list is updated"
 msgstr ""
@@ -782,7 +782,7 @@ msgid "Interrupted"
 msgstr ""
 
 msgid "Inventory"
-msgstr ""
+msgstr "ინვენტარი"
 
 msgid "KVM is not accessible. Add your user to the kvm group or check /dev/kvm permissions."
 msgstr ""
@@ -845,7 +845,7 @@ msgid "Move / Rename"
 msgstr ""
 
 msgid "Move / Rename — {0}"
-msgstr ""
+msgstr "გადატანა / სახელის შეცვლა — {0}"
 
 msgid "Move to directory"
 msgstr ""
@@ -968,7 +968,7 @@ msgid "Pick an operating system and a version, or drop a disk image anywhere on 
 msgstr ""
 
 msgid "Plugins"
-msgstr ""
+msgstr "პლაგინები"
 
 msgid "Preferred display viewer"
 msgstr ""
@@ -983,7 +983,7 @@ msgid "Queued"
 msgstr ""
 
 msgid "QuickGUI"
-msgstr ""
+msgstr "QuickGUI"
 
 msgid "Quickemu"
 msgstr ""
@@ -1040,7 +1040,7 @@ msgid "Report copied"
 msgstr ""
 
 msgid "Required"
-msgstr ""
+msgstr "აუცილებელია"
 
 msgid "Reset"
 msgstr ""
@@ -1322,7 +1322,7 @@ msgid "Validating"
 msgstr ""
 
 msgid "Value"
-msgstr ""
+msgstr "მნიშვნელობა"
 
 msgid "Version {0} — Powered by Quickemu"
 msgstr ""
@@ -1489,3 +1489,60 @@ msgstr ""
 msgid "VNC viewer"
 msgstr ""
 
+
+msgid "Console — {0}"
+msgstr "კონსოლი — {0}"
+
+msgid "Type text into the machine"
+msgstr "ჩაწერეთ ტექსტი მანქანაში"
+
+msgid "Live console"
+msgstr "ცოცხალი კონსოლი"
+
+msgid "Machine is not running"
+msgstr "მანქანა არ მუშაობს"
+
+msgid "The machine is not running — start it to use the console."
+msgstr "მანქანა არ მუშაობს — გაუშვით კონსოლის გამოსაყენებლად."
+
+msgid "Unsupported framebuffer"
+msgstr "მხარდაუჭერელი კადრების ბუფერი"
+
+msgid "Open external viewer"
+msgstr "გარე პროგრამის გახსნა"
+
+msgid "Added {0}"
+msgstr "{0} დაემატა"
+
+msgid "Keyboard shortcuts"
+msgstr "კლავიატურის მალსახმობები"
+
+msgid "Show QuickGUI"
+msgstr "QuickGUI-ის ჩვენება"
+
+msgid "Quit"
+msgstr "გამოსვლა"
+
+msgid "Cancel multi-select / close dialogs"
+msgstr "მრავალჯერადი მონიშვნის გაუქმება / დიალოგების დახურვა"
+
+msgid "Create a new virtual machine"
+msgstr "ახალი ვირტუალური მანქანის შექმნა"
+
+msgid "Filter the machines list"
+msgstr "მანქანების სიის გაფილტვრა"
+
+msgid "Open this shortcuts reference"
+msgstr "მალსახმობების სახელმძღვანელოს გახსნა"
+
+msgid "Refresh the machines list"
+msgstr "მანქანების სიის განახლება"
+
+msgid "Switch between the six sections"
+msgstr "ექვს განყოფილებას შორის გადართვა"
+
+msgid "Ctrl+1…6"
+msgstr "Ctrl+1…6"
+
+msgid "Unsupported file type for drop: {0}"
+msgstr "ფაილის მხარდაუჭერელი ტიპი ჩამოსაშვებად: {0}"
