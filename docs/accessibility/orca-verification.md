@@ -60,6 +60,34 @@ The widget tests pin these semantics — Orca should announce the same:
   announcements) depend on `at-spi2-atk` being present in the session —
   standard on GNOME, verify with `accerciser` if announcements don't fire.
 
+## Automated AT-SPI verification — DONE (2026-10-28)
+
+`tool/atspi_check.sh` runs the release binary inside a private
+`dbus-run-session` with the real accessibility stack
+(`at-spi-bus-launcher` + `at-spi2-registryd`) and walks the exposed
+tree with `pyatspi` — the same client library Orca consumes. This is
+real assistive-technology evidence short of audible speech.
+
+Measured result on the release build (WSLg, X11):
+
+```
+APP: quickgui | nodes: 50
+  push button              8  (7 labelled)
+  heading                  1
+  label                    2
+nav sections found: Home, Machines, Diagnostics (+ Machines tile)
+RESULT: PASS
+```
+
+Named nodes include the six shell sections, dashboard headings,
+"Create your first machine", "Import a disk image" and the activity
+empty-state — matching the semantic contract pinned in
+`test/widget/new_gaps_test.dart`.
+
+What remains genuinely manual: audible Orca speech and braille on a
+GNOME session, and AT event timing (live-region announcements firing
+in order). Use the scripted pass + sign-off below for that.
+
 ## Sign-off template
 
 ```

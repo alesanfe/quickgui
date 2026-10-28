@@ -10,6 +10,7 @@ import 'package:path/path.dart' as p;
 
 import 'package:quickgui/features/machines/presentation/details/vm_connection_view.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
+import 'package:quickgui/infrastructure/vnc/rfb_client.dart';
 
 /// Embedded console (VISTA gap): polls `quickemu --screenshot` — a QEMU
 /// `screendump` in PPM format — and decodes the framebuffer in-app, so
@@ -37,6 +38,14 @@ class _VmConsolePageState extends ConsumerState<VmConsolePage> {
   String? _error;
   final _text = TextEditingController();
 
+  // VNC streaming mode — preferred when the VM publishes an RFB port.
+  RfbClient? _vnc;
+  StreamSubscription<List<RfbRect>>? _vncSub;
+  Uint8List? _fb;
+  bool _vncActive = false;
+  int _pointerMask = 0;
+  bool _decoding = false;
+
   static const _keyChords = [
     'ctrl-alt-delete',
     'ctrl-alt-f1',
@@ -51,13 +60,189 @@ class _VmConsolePageState extends ConsumerState<VmConsolePage> {
   @override
   void initState() {
     super.initState();
+    _init();
+  }
+
+  /// Prefers the live RFB stream when the VM publishes a VNC endpoint
+  /// (`vnc,PORT,HOST` in `<vm>.ports` or `vnc_listen` in the .conf);
+  /// otherwise falls back to screendump polling.
+  Future<void> _init() async {
+    final endpoint = _vncEndpoint();
+    if (endpoint != null) {
+      try {
+        await _connectVnc(endpoint.$1, endpoint.$2);
+        return;
+      } catch (_) {
+        // Fall through to screendump — the VNC server may not be up yet.
+      }
+    }
     _grab();
     _timer = Timer.periodic(const Duration(seconds: 2), (_) => _grab());
+  }
+
+  /// Resolves the (host, port) pair QEMU's `-vnc host:display` maps to:
+  /// TCP 5900 + display number. Published as `vnc,port,host` in
+  /// `<vm>.ports` by quickemu; falls back to `vnc_listen` in the conf.
+  (String, int)? _vncEndpoint() {
+    final dir = p.dirname(widget.confPath);
+    final ports = File(p.join(dir, '${widget.vm}.ports'));
+    if (ports.existsSync()) {
+      for (final line in ports.readAsLinesSync()) {
+        final parts = line.split(',');
+        if (parts.length >= 2 && parts[0] == 'vnc') {
+          final port = int.tryParse(parts[1]);
+          if (port != null) {
+            return (parts.length > 2 ? parts[2] : '127.0.0.1', port);
+          }
+        }
+      }
+    }
+    final conf = File(widget.confPath);
+    if (!conf.existsSync()) return null;
+    String? display;
+    String? listen;
+    for (final line in conf.readAsLinesSync()) {
+      final m = RegExp(r'^(\w+)\s*=\s*"?([^"#]*)"?').firstMatch(line);
+      if (m == null) continue;
+      if (m.group(1) == 'display') display = m.group(2);
+      if (m.group(1) == 'vnc_listen') listen = m.group(2);
+    }
+    if (display != 'vnc') return null;
+    listen ??= '127.0.0.1:0';
+    final i = listen.lastIndexOf(':');
+    final disp = int.tryParse(i >= 0 ? listen.substring(i + 1) : listen);
+    if (disp == null) return null;
+    final host = (i > 0 && listen.substring(0, i).isNotEmpty)
+        ? listen.substring(0, i)
+        : '127.0.0.1';
+    return (host, 5900 + disp);
+  }
+
+  Future<void> _connectVnc(String host, int port) async {
+    final vnc = RfbClient();
+    await vnc.connect(host, port);
+    if (!mounted) {
+      await vnc.dispose();
+      return;
+    }
+    _vnc = vnc;
+    _fb = Uint8List(vnc.width * vnc.height * 4);
+    _vncSub = vnc.rects.listen(_composite);
+    vnc.errors.listen((_) {
+      if (mounted) _fallbackToScreendump();
+    });
+    setState(() {
+      _vncActive = true;
+      _running = true;
+    });
+  }
+
+  void _fallbackToScreendump() {
+    _vncSub?.cancel();
+    _vncSub = null;
+    unawaited(_vnc?.dispose());
+    _vnc = null;
+    _vncActive = false;
+    _grab();
+    _timer ??= Timer.periodic(const Duration(seconds: 2), (_) => _grab());
+  }
+
+  /// Applies one FramebufferUpdate to the pixel buffer and refreshes the
+  /// decoded frame at most once per pending decode.
+  void _composite(List<RfbRect> rects) {
+    final fb = _fb;
+    final vnc = _vnc;
+    if (fb == null || vnc == null) return;
+    final w = vnc.width;
+    for (final r in rects) {
+      if (r.isCopyRect) {
+        // Region copy inside the framebuffer.
+        for (var row = 0; row < r.height; row++) {
+          final src = ((r.srcY! + row) * w + r.srcX!) * 4;
+          final dst = ((r.y + row) * w + r.x) * 4;
+          fb.setRange(dst, dst + r.width * 4, fb, src);
+        }
+      } else {
+        final px = r.pixels!;
+        for (var row = 0; row < r.height; row++) {
+          final dst = ((r.y + row) * w + r.x) * 4;
+          final src = row * r.width * 4;
+          fb.setRange(dst, dst + r.width * 4, px, src);
+          // QEMU's unused byte may be 0 — force opaque alpha.
+          for (var i = dst + 3; i < dst + r.width * 4; i += 4) {
+            fb[i] = 0xff;
+          }
+        }
+      }
+    }
+    if (_decoding) return;
+    _decoding = true;
+    ui.decodeImageFromPixels(fb, w, vnc.height, ui.PixelFormat.bgra8888, (
+      image,
+    ) {
+      _decoding = false;
+      if (!mounted) {
+        image.dispose();
+        return;
+      }
+      setState(() {
+        _frame?.dispose();
+        _frame = image;
+      });
+    });
+  }
+
+  /// Maps a console point (inside the fitted image) to framebuffer
+  /// coordinates and forwards a PointerEvent to the guest.
+  void _pointer(int mask, Offset pos, Size box) {
+    final vnc = _vnc;
+    if (vnc == null) return;
+    final scale = (box.width / vnc.width).clamp(0.0, box.height / vnc.height);
+    final dw = vnc.width * scale;
+    final dh = vnc.height * scale;
+    final ox = (box.width - dw) / 2;
+    final oy = (box.height - dh) / 2;
+    final x = ((pos.dx - ox) / scale).round().clamp(0, vnc.width - 1);
+    final y = ((pos.dy - oy) / scale).round().clamp(0, vnc.height - 1);
+    _pointerMask = mask;
+    vnc.sendPointer(mask, x, y);
+  }
+
+  /// Typed text goes through RFB KeyEvents in VNC mode — ASCII maps 1:1,
+  /// Enter/Tab/Backspace get their keysyms, uppercase adds Shift.
+  void _typeRfb(String ch) {
+    final vnc = _vnc;
+    if (vnc == null) return;
+    int keysym;
+    var shift = false;
+    switch (ch) {
+      case '\n':
+        keysym = Keysyms.enter;
+      case '\t':
+        keysym = Keysyms.tab;
+      default:
+        final c = ch.codeUnitAt(0);
+        if (c >= 0x41 && c <= 0x5a) {
+          shift = true;
+          keysym = c + 0x20;
+        } else if (c >= 0x20 && c <= 0x7e) {
+          keysym = c;
+        } else {
+          keysym = 0x20;
+        }
+    }
+    if (shift) vnc.sendKey(Keysyms.shiftL, down: true);
+    vnc
+      ..sendKey(keysym, down: true)
+      ..sendKey(keysym, down: false);
+    if (shift) vnc.sendKey(Keysyms.shiftL, down: false);
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _vncSub?.cancel();
+    unawaited(_vnc?.dispose());
     _text.dispose();
     _frame?.dispose();
     super.dispose();
@@ -153,6 +338,40 @@ class _VmConsolePageState extends ConsumerState<VmConsolePage> {
                 child: _running
                     ? (_frame == null
                           ? const Center(child: CircularProgressIndicator())
+                          : _vncActive
+                          ? LayoutBuilder(
+                              builder: (context, constraints) =>
+                                  GestureDetector(
+                                    onTapDown: (d) => _pointer(
+                                      1,
+                                      d.localPosition,
+                                      constraints.biggest,
+                                    ),
+                                    onTapUp: (d) => _pointer(
+                                      0,
+                                      d.localPosition,
+                                      constraints.biggest,
+                                    ),
+                                    onSecondaryTapDown: (d) => _pointer(
+                                      4,
+                                      d.localPosition,
+                                      constraints.biggest,
+                                    ),
+                                    onSecondaryTapUp: (d) => _pointer(
+                                      0,
+                                      d.localPosition,
+                                      constraints.biggest,
+                                    ),
+                                    onPanUpdate: (d) => _pointer(
+                                      _pointerMask,
+                                      d.localPosition,
+                                      constraints.biggest,
+                                    ),
+                                    child: FittedBox(
+                                      child: RawImage(image: _frame),
+                                    ),
+                                  ),
+                            )
                           : InteractiveViewer(
                               child: Center(child: RawImage(image: _frame)),
                             ))
@@ -234,9 +453,13 @@ class _VmConsolePageState extends ConsumerState<VmConsolePage> {
     final t = _text.text;
     if (t.isEmpty) return;
     _text.clear();
-    // --type maps chars to sendkey chords; do the same here via HMP.
     for (final ch in t.split('')) {
-      _send('sendkey ${_keyName(ch)}');
+      if (_vncActive) {
+        _typeRfb(ch);
+      } else {
+        // --type maps chars to sendkey chords; do the same here via HMP.
+        _send('sendkey ${_keyName(ch)}');
+      }
     }
   }
 }

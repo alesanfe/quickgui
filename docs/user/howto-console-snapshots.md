@@ -34,11 +34,18 @@ Snapshot a VM while it is stopped for a consistent disk, or while
 running if you also want live state — internal snapshots store RAM
 state when the VM is running.
 
-## Console limitations
+## Console modes
 
-The embedded console renders the guest framebuffer by polling QEMU
-`screendump` (~2 s interval). It is designed for rescue work, GRUB
-menus and OS installers — not as a daily-driver display. For fluid
-interaction use a real viewer instead: the **Open external viewer**
-button launches `spicy`/SPICE with full input, audio and USB support.
-A true SPICE texture stream inside the app is tracked as future work.
+The console picks the best channel available, in order:
+
+1. **VNC streaming** — when the VM runs with `display="vnc"`, QuickGUI
+   connects a built-in RFB client (`lib/infrastructure/vnc/rfb_client.dart`)
+   to `127.0.0.1:5900+N` and streams the live framebuffer with real
+   pointer and keyboard input. Quickemu publishes the endpoint as
+   `vnc,PORT,HOST` in `<vm>.ports`.
+2. **Screendump polling** — otherwise the console polls QEMU
+   `screendump` (~2 s): enough for rescue work, GRUB menus and OS
+   installers, still one-way for input via `sendkey` chords.
+
+For full interaction (audio, USB, clipboard) use **Open external
+viewer** — `spicy`/SPICE remains the most complete path.
