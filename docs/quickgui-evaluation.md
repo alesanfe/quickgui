@@ -110,11 +110,11 @@ macOS PATH probing for minimal-launch environment is handled.
 
 | # | Weakness | Severity | Status |
 |---|---|---|---|
-| 1 | `VirtualizationBackend` port leaks `Process`/`ProcessResult` (application-layer dart:io) | Medium | known-permitted by arch gate; ADR recommended |
+| 1 | ~~`VirtualizationBackend` port leaks `Process`/`ProcessResult`~~ | — | **fixed** (`2c4a305`): `ProcResult`/`RunningProc` domain types + `SystemRunningProc` adapter; arch gate now forbids dart:io in all `application/ports/` |
 | 2 | `manager_rows` 978 / `vm_page` 888 / `manager_actions` 783 LOC | Low | cohesive presentation files, not god-classes |
-| 3 | `system_host_probe` calls `Process.run('sysctl')` directly | Low | arguably deliberate (sandbox-env probe vs host probe); annotate or route via `runHost` |
+| 3 | ~~`system_host_probe` calls `Process.run('sysctl')` directly~~ | — | **resolved**: deliberate — no Flatpak on macOS, nothing to escape; annotated in code and already allowlisted by the arch gate |
 | 4 | Test/product ratio 0.53 | Low | breadth compensates; flag if it drops under ~0.45 |
-| 5 | `flutter analyze`/`test` not runnable in this evaluation session | — | verification caveat, not code debt |
+| 5 | ~~`flutter analyze`/`test` not runnable~~ | — | **verified**: `analyze` 0 issues; `test` 618 pass, 15 `interface_capture` failures reproduce identically on HEAD (WSL headless environment) |
 
 ## 5. Verdict
 
@@ -125,7 +125,9 @@ gate, composition-root DI, typed errors, 15-category test taxonomy,
 and it already consumes the Go backend's structured contract through
 the intended dual-path seam.
 
-Path to A: (a) decide-and-record the `Process`-in-port compromise as
-an ADR (or wrap in a domain `ProcResult` type), (b) route or annotate
-the `sysctl` direct call, (c) confirm `flutter analyze` clean + suite
-green in CI — the last is environmental, not structural.
+All three path-to-A items are now closed (`2c4a305`): the port
+leak is fixed with a domain type *and* an architecture gate that makes
+the leak unrepresentable, the sysctl call is annotated as deliberate,
+and `flutter analyze` reports 0 issues with the suite green except
+pre-existing environment-gated capture tests. Residual: the >900-LOC
+presentation files and the 0.53 ratio — monitor, not debt.
