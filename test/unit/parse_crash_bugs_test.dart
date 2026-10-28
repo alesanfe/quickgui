@@ -13,7 +13,7 @@ void main() {
         expect(matches, isEmpty); // matches.last itself would throw too
         return;
       }
-      expect(() => double.tryParse(matches.last[1]!)! / 100, throwsA(anything));
+      expect(() => double.tryParse(matches.last[1]!)! / 100, throwsA(isA<Error>()));
     });
 
     test('safe alternative guards both lookups', () {
