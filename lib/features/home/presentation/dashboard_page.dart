@@ -201,7 +201,12 @@ class DashboardPage extends ConsumerWidget {
                                     ],
                                   ),
                                   const SizedBox(height: 12),
-                                  Text(machine.state),
+                                  // Live region so screen readers hear
+                                  // state transitions on dashboard cards.
+                                  Semantics(
+                                    liveRegion: true,
+                                    child: Text(machine.state),
+                                  ),
                                   Text(
                                     '${machine.values['cpu_cores'] ?? '—'} CPU · ${machine.values['ram'] ?? '—'} RAM',
                                   ),

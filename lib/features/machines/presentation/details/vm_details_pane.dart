@@ -18,6 +18,7 @@ class VmDetailsPane extends StatelessWidget {
     this.onSnapshots,
     this.onDelete,
     this.onOpenDetails,
+    this.onConsole,
     super.key,
   });
 
@@ -37,6 +38,7 @@ class VmDetailsPane extends StatelessWidget {
   final VoidCallback? onSnapshots;
   final VoidCallback? onDelete;
   final VoidCallback? onOpenDetails;
+  final VoidCallback? onConsole;
 
   @override
   Widget build(BuildContext context) {
@@ -77,10 +79,15 @@ class VmDetailsPane extends StatelessWidget {
                   style: Theme.of(context).textTheme.headlineSmall,
                 ),
               ),
-              Chip(
-                label: Text(stateLabel),
-                side: BorderSide(color: stateColor),
-                labelStyle: TextStyle(color: stateColor),
+              // Live region announces VM state changes to screen readers.
+              Semantics(
+                liveRegion: true,
+                label: stateLabel,
+                child: Chip(
+                  label: Text(stateLabel),
+                  side: BorderSide(color: stateColor),
+                  labelStyle: TextStyle(color: stateColor),
+                ),
               ),
               if (onOpenDetails != null)
                 IconButton(
@@ -107,6 +114,11 @@ class VmDetailsPane extends StatelessWidget {
                   icon: const Icon(Icons.play_arrow),
                   label: Text(context.t('Start')),
                 ),
+              OutlinedButton.icon(
+                onPressed: active ? onConsole : null,
+                icon: const Icon(Icons.terminal),
+                label: Text(context.t('Console')),
+              ),
               OutlinedButton.icon(
                 onPressed: onConfigure,
                 icon: const Icon(Icons.settings),

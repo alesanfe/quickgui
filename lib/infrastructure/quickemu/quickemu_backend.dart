@@ -412,9 +412,22 @@ class QuickemuBackend implements VirtualizationBackend {
   Future<ProcessResult> runQuickget(List<String> arguments) =>
       _process.quickget(arguments);
 
+  /// Export via the v1 envelope (`vm.export`) — typed failures reach
+  /// callers as stderr-shaped ProcessResult to keep the signature;
+  /// a pre-contract backend falls back to the raw text path.
   @override
-  Future<ProcessResult> exportVm(String vmName) =>
-      _process.quickemu(['--vm', '$vmName.conf', '--export', '$vmName.tar.gz']);
+  Future<ProcessResult> exportVm(String vmName) async {
+    final args = ['--vm', '$vmName.conf', '--export', '$vmName.tar.gz'];
+    try {
+      final response = await _structured.run('export', args);
+      return ProcessResult(0, 0, '${response.dataMap ?? ''}', '');
+    } on AppFailure catch (e) {
+      if (isBackendEnvelopeMissing(e)) {
+        return await _process.quickemu(args);
+      }
+      return ProcessResult(0, 1, '', e.userMessage);
+    }
+  }
 
   @override
   Future<ProcessResult> verifyImage(String isoPath) =>

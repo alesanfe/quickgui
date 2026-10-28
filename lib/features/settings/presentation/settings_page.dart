@@ -17,6 +17,7 @@ import 'package:quickgui/features/settings/providers/settings_providers.dart';
 import 'package:quickgui/features/settings/providers/ui_preferences_providers.dart';
 import 'package:quickgui/features/settings/providers/update_check_providers.dart';
 import 'package:quickgui/shared/providers/preferences_providers.dart';
+import 'package:quickgui/shared/widgets/shortcuts_dialog.dart';
 
 /// Full settings section: appearance, language and application
 /// behaviour (refresh interval, preferred viewer, notifications,
@@ -196,6 +197,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             leading: const Icon(Icons.monitor_heart),
             title: Text(context.t('Quickemu report')),
             onTap: _showReport,
+          ),
+          ListTile(
+            leading: const Icon(Icons.keyboard),
+            title: Text(context.t('Keyboard shortcuts')),
+            onTap: () => ShortcutsDialog.show(context),
           ),
           Padding(
             padding: const EdgeInsets.all(16),

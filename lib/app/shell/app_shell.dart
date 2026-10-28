@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:desktop_notifications/desktop_notifications.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:go_router/go_router.dart';
@@ -11,8 +12,12 @@ import 'package:window_manager/window_manager.dart';
 import 'package:quickgui/features/activity/application/download_notification_policy.dart';
 import 'package:quickgui/features/activity/domain/app_operation.dart';
 import 'package:quickgui/features/activity/providers/activity_providers.dart';
+import 'package:quickgui/features/machines/providers/backend_providers.dart';
+import 'package:quickgui/features/machines/providers/vm_library_providers.dart';
 import 'package:quickgui/features/settings/providers/ui_preferences_providers.dart';
+import 'package:quickgui/infrastructure/tray/app_tray.dart';
 import 'package:quickgui/shared/widgets/dependency_warning.dart';
+import 'package:quickgui/shared/widgets/shortcuts_dialog.dart';
 
 /// Persistent application shell: a NavigationRail on wide windows and a
 /// NavigationBar on narrow ones, hosting the six main sections.
@@ -33,6 +38,14 @@ class _AppShellState extends ConsumerState<AppShell> {
       : null;
   final DownloadNotificationPolicy _notificationPolicy =
       DownloadNotificationPolicy();
+  AppTray? _tray;
+
+  @override
+  void dispose() {
+    unawaited(_tray?.dispose() ?? Future.value());
+    _notificationsClient?.close();
+    super.dispose();
+  }
 
   /// Fires a desktop notification when a download reaches a terminal
   /// state. The activity history is the canonical record — each finished
@@ -86,6 +99,16 @@ class _AppShellState extends ConsumerState<AppShell> {
     windowManager.setTitle(
       context.t('Quickgui : a Flutter frontend for Quickget and Quickemu'),
     );
+    // Tray labels need a Localizations context, unavailable in initState.
+    _tray ??= AppTray(
+      onRefresh: () {
+        ref.invalidate(vmLibraryProvider);
+        ref.invalidate(backendInventoryProvider);
+      },
+      showLabel: context.t('Show QuickGUI'),
+      refreshLabel: context.t('Refresh'),
+      quitLabel: context.t('Quit'),
+    )..init().ignore(); // best-effort — failure leaves the app tray-less
   }
 
   List<({IconData icon, String label})> _destinations(BuildContext context) => [
@@ -126,51 +149,68 @@ class _AppShellState extends ConsumerState<AppShell> {
             Expanded(child: widget.shell),
           ],
         );
-        return Scaffold(
-          body: wide
-              ? Row(
-                  children: [
-                    NavigationRail(
-                      selectedIndex: selected,
-                      onDestinationSelected: _go,
-                      extended: expanded,
-                      labelType: expanded
-                          ? NavigationRailLabelType.none
-                          : NavigationRailLabelType.all,
-                      leading: Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Image.asset(
-                          'assets/images/logo_pink.png',
-                          height: 48,
-                          semanticLabel: 'Quickgui',
-                        ),
-                      ),
-                      destinations: [
-                        for (final (i, d) in destinations.indexed)
-                          NavigationRailDestination(
-                            icon: i == 3 ? _activityIcon(d.icon) : Icon(d.icon),
-                            label: Text(d.label),
+        // Ctrl+1..6 jumps between the six sections from anywhere in the
+        // app — section keys are not consumed by text fields, so they
+        // bubble up to this root-level binding.
+        return CallbackShortcuts(
+          bindings: {
+            for (final (i, _) in destinations.indexed)
+              SingleActivator(
+                LogicalKeyboardKey(LogicalKeyboardKey.digit1.keyId + i),
+                control: true,
+              ): () =>
+                  _go(i),
+            const SingleActivator(LogicalKeyboardKey.f1): () =>
+                ShortcutsDialog.show(context),
+          },
+          child: Scaffold(
+            body: wide
+                ? Row(
+                    children: [
+                      NavigationRail(
+                        selectedIndex: selected,
+                        onDestinationSelected: _go,
+                        extended: expanded,
+                        labelType: expanded
+                            ? NavigationRailLabelType.none
+                            : NavigationRailLabelType.all,
+                        leading: Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Image.asset(
+                            'assets/images/logo_pink.png',
+                            height: 48,
+                            semanticLabel: 'Quickgui',
                           ),
-                      ],
-                    ),
-                    const VerticalDivider(width: 1),
-                    Expanded(child: body),
-                  ],
-                )
-              : body,
-          bottomNavigationBar: wide
-              ? null
-              : NavigationBar(
-                  selectedIndex: selected,
-                  onDestinationSelected: _go,
-                  destinations: [
-                    for (final (i, d) in destinations.indexed)
-                      NavigationDestination(
-                        icon: i == 3 ? _activityIcon(d.icon) : Icon(d.icon),
-                        label: d.label,
+                        ),
+                        destinations: [
+                          for (final (i, d) in destinations.indexed)
+                            NavigationRailDestination(
+                              icon: i == 3
+                                  ? _activityIcon(d.icon)
+                                  : Icon(d.icon),
+                              label: Text(d.label),
+                            ),
+                        ],
                       ),
-                  ],
-                ),
+                      const VerticalDivider(width: 1),
+                      Expanded(child: body),
+                    ],
+                  )
+                : body,
+            bottomNavigationBar: wide
+                ? null
+                : NavigationBar(
+                    selectedIndex: selected,
+                    onDestinationSelected: _go,
+                    destinations: [
+                      for (final (i, d) in destinations.indexed)
+                        NavigationDestination(
+                          icon: i == 3 ? _activityIcon(d.icon) : Icon(d.icon),
+                          label: d.label,
+                        ),
+                    ],
+                  ),
+          ),
         );
       },
     );

@@ -296,21 +296,26 @@ extension on _ManagerState {
                 }),
               )
             : osIcon ?? const Icon(Icons.computer, size: 32),
-        subtitle: Text(
-          switch (_vmStates[currentVm] ?? 'stopped') {
-            'running' => context.t('Running'),
-            'paused' => context.t('Paused'),
-            'stale' => context.t('Stale (process exited unexpectedly)'),
-            _ => context.t('Stopped'),
-          },
-          style: TextStyle(
-            fontSize: 12,
-            color: switch (_vmStates[currentVm]) {
-              'running' => Colors.green,
-              'paused' => Theme.of(context).colorScheme.tertiary,
-              'stale' => Theme.of(context).colorScheme.error,
-              _ => Theme.of(context).colorScheme.onSurfaceVariant,
+        // Live region so screen readers announce VM state transitions
+        // (e.g. stopped → running) as the row updates.
+        subtitle: Semantics(
+          liveRegion: true,
+          child: Text(
+            switch (_vmStates[currentVm] ?? 'stopped') {
+              'running' => context.t('Running'),
+              'paused' => context.t('Paused'),
+              'stale' => context.t('Stale (process exited unexpectedly)'),
+              _ => context.t('Stopped'),
             },
+            style: TextStyle(
+              fontSize: 12,
+              color: switch (_vmStates[currentVm]) {
+                'running' => Colors.green,
+                'paused' => Theme.of(context).colorScheme.tertiary,
+                'stale' => Theme.of(context).colorScheme.error,
+                _ => Theme.of(context).colorScheme.onSurfaceVariant,
+              },
+            ),
           ),
         ),
         title: Row(

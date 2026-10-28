@@ -1489,3 +1489,60 @@ msgstr ""
 msgid "QuickGUI"
 msgstr ""
 
+msgid "Console — {0}"
+msgstr ""
+
+msgid "Type text into the machine"
+msgstr ""
+
+msgid "Live console"
+msgstr ""
+
+msgid "Machine is not running"
+msgstr ""
+
+msgid "The machine is not running — start it to use the console."
+msgstr ""
+
+msgid "Unsupported framebuffer"
+msgstr ""
+
+msgid "Open external viewer"
+msgstr ""
+
+msgid "Added {0}"
+msgstr ""
+
+msgid "Keyboard shortcuts"
+msgstr ""
+
+msgid "Show QuickGUI"
+msgstr ""
+
+msgid "Quit"
+msgstr ""
+
+msgid "Cancel multi-select / close dialogs"
+msgstr ""
+
+msgid "Create a new virtual machine"
+msgstr ""
+
+msgid "Filter the machines list"
+msgstr ""
+
+msgid "Open this shortcuts reference"
+msgstr ""
+
+msgid "Refresh the machines list"
+msgstr ""
+
+msgid "Switch between the six sections"
+msgstr ""
+
+msgid "Ctrl+1…6"
+msgstr ""
+
+msgid "Unsupported file type for drop: {0}"
+msgstr ""
+

@@ -15,6 +15,7 @@ import 'package:path/path.dart' as path;
 import 'package:quickgui/shared/providers/preferences_providers.dart';
 import 'package:quickgui/features/diagnostics/application/ports/host_probe.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
+import 'package:quickgui/features/machines/presentation/details/vm_console_page.dart';
 import 'package:quickgui/features/machines/presentation/shared/new_vm_tag.dart';
 import 'package:version/version.dart';
 
@@ -464,6 +465,17 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                       },
                       onSnapshots: () => _manageSnapshot(context, vm),
                       onDelete: () => _confirmDeleteVm(context, vm),
+                      onConsole: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => VmConsolePage(
+                            vm: vm,
+                            confPath: path.join(
+                              Directory.current.path,
+                              '$vm.conf',
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ],

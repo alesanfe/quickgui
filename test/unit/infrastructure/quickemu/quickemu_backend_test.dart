@@ -55,11 +55,6 @@ void main() {
       <(String, List<String>, Future<ProcessResult> Function(QuickemuBackend))>[
         (
           'quickemu',
-          ['--vm', 'a b.conf', '--export', 'a b.tar.gz'],
-          (b) => b.exportVm('a b'),
-        ),
-        (
-          'quickemu',
           ['--vm', 'a b.conf', '--stop'],
           (b) => b.runAction(['--vm', 'a b.conf', '--stop']),
         ),
@@ -101,6 +96,49 @@ void main() {
       expectInvocation(runner, executable, arguments);
     });
   }
+
+  group('exportVm contract path', () {
+    test('structured envelope preserves argument boundaries', () async {
+      final runner = FakeProcessRunner({
+        'quickemu --vm a b.conf --export a b.tar.gz --format json':
+            ProcessResult(
+              0,
+              0,
+              '{"schemaVersion":1,"command":"vm.export",'
+                  '"success":true,"data":{"export":"a b.tar.gz"},'
+                  '"warnings":[],"errors":[],"meta":{}}',
+              '',
+            ),
+      });
+      final r = await QuickemuBackend(runner).exportVm('a b');
+      expect(r.exitCode, 0);
+      expectInvocation(runner, 'quickemu', [
+        '--vm',
+        'a b.conf',
+        '--export',
+        'a b.tar.gz',
+        '--format',
+        'json',
+      ]);
+    });
+
+    test('pre-contract backend falls back to the raw argv', () async {
+      final raw = ProcessResult(123, 17, 'done', '');
+      final runner = FakeProcessRunner({
+        // Empty stdout on the envelope attempt = no contract support.
+        'quickemu --vm a b.conf --export a b.tar.gz --format json':
+            ProcessResult(0, 0, '', ''),
+        'quickemu --vm a b.conf --export a b.tar.gz': raw,
+      });
+      expect(await QuickemuBackend(runner).exportVm('a b'), same(raw));
+      expect(runner.invocations.last.$2, [
+        '--vm',
+        'a b.conf',
+        '--export',
+        'a b.tar.gz',
+      ]);
+    });
+  });
 
   for (final option in ['', 'desktop']) {
     test(

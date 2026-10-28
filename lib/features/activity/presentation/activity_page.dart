@@ -260,20 +260,27 @@ class OperationTile extends ConsumerWidget {
               ),
         leading: Icon(operationKindIcon(op.kind)),
         title: Text('${operationKindLabel(context, op.kind)} — ${op.target}'),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(subtitle),
-            if (op.output.isNotEmpty)
-              Text(
-                op.output.trim().split('\n').last,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            const SizedBox(height: 4),
-            LinearProgressIndicator(value: progress),
-          ],
+        // Live region: screen readers announce state transitions
+        // (queued → running → % → terminal) without a focus change.
+        subtitle: Semantics(
+          liveRegion: true,
+          label:
+              '${operationKindLabel(context, op.kind)} ${op.target}: $subtitle',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(subtitle),
+              if (op.output.isNotEmpty)
+                Text(
+                  op.output.trim().split('\n').last,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              const SizedBox(height: 4),
+              LinearProgressIndicator(value: progress),
+            ],
+          ),
         ),
         trailing: op.onCancel != null && !op.isTerminal
             ? IconButton(
