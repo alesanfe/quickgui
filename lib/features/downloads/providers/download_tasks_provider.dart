@@ -8,6 +8,7 @@ import 'package:quickgui/core/constants/preference_keys.dart';
 import 'package:quickgui/core/extensions/preferences_repository_x.dart';
 import 'package:quickgui/features/activity/domain/app_operation.dart';
 import 'package:quickgui/features/activity/providers/activity_providers.dart';
+import 'package:quickgui/features/machines/application/ports/proc.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/shared/models/operation_state.dart';
 import 'package:quickgui/shared/providers/preferences_providers.dart';
@@ -26,7 +27,7 @@ class DownloadTasks {
   }) {
     final directory = Directory.current.path;
     final target = '$os-$release';
-    Process? process;
+    RunningProc? process;
     var cancelled = false;
     final activity = ref.read(activityProvider.notifier);
     final operation = activity.start(

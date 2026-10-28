@@ -26,6 +26,8 @@ import '../support/fakes/fake_process.dart';
 import '../support/fakes/fake_virtualization_backend.dart';
 import '../support/harness/test_app.dart';
 
+import 'package:quickgui/features/machines/application/ports/proc.dart';
+
 OperatingSystem os(
   String name,
   String code, [
@@ -236,7 +238,7 @@ void main() {
     testWidgets('an unavailable image reports the backend check failure', (
       tester,
     ) async {
-      backend.lastActionResult = ProcessResult(0, 4, '', 'gone');
+      backend.lastActionResult = const ProcResult(4, '', 'gone');
       await open(
         tester,
         const CreatePage(),

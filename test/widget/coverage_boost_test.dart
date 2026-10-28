@@ -8,6 +8,7 @@ import 'package:quickgui/features/activity/domain/app_operation.dart';
 import 'package:quickgui/features/activity/presentation/operation_tile.dart';
 import 'package:quickgui/features/catalog/providers/catalog_providers.dart';
 import 'package:quickgui/features/create/application/import_image.dart';
+import 'package:quickgui/features/machines/application/ports/proc.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_connection_view.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_page.dart';
@@ -106,7 +107,7 @@ void main() {
     });
 
     testWidgets('failed conversion reports and skips import', (tester) async {
-      backend.lastActionResult = ProcessResult(0, 1, '', 'qemu-img failed');
+      backend.lastActionResult = const ProcResult(1, '', 'qemu-img failed');
       await launch(tester, '${dir.path}/bad.vmdk');
       await tester.tap(find.text('Import').last);
       await tester.pumpAndSettle();
@@ -115,7 +116,7 @@ void main() {
     });
 
     testWidgets('failed import reports the error', (tester) async {
-      backend.lastActionResult = ProcessResult(0, 2, '', 'no such iso');
+      backend.lastActionResult = const ProcResult(2, '', 'no such iso');
       await launch(tester, '${dir.path}/gone.iso');
       await tester.tap(find.text('Import').last);
       await tester.pumpAndSettle();

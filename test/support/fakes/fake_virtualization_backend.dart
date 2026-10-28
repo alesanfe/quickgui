@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:quickgui/features/machines/application/ports/proc.dart';
 
 import 'package:quickgui/core/errors/app_failure.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
@@ -18,7 +18,7 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
   FakeProcess? downloadProcess;
   Error? downloadError;
   final List<List<String>> downloadCalls = [];
-  ProcessResult? lastActionResult;
+  ProcResult? lastActionResult;
   final List<List<String>> actionCalls = [];
   final List<List<String>> quickgetCalls = [];
   final List<String> exportCalls = [];
@@ -49,7 +49,7 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
       snapshots;
 
   @override
-  Future<Process> startDownloadImage(
+  Future<RunningProc> startDownloadImage(
     String os,
     String release,
     String option,
@@ -62,9 +62,9 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
   }
 
   @override
-  Future<ProcessResult> runAction(List<String> arguments) async {
+  Future<ProcResult> runAction(List<String> arguments) async {
     actionCalls.add(List.of(arguments));
-    return lastActionResult ?? ProcessResult(0, 0, '', '');
+    return lastActionResult ?? const ProcResult(0, '', '');
   }
 
   /// Structured-contract calls, recorded separately from [actionCalls]
@@ -208,66 +208,66 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
 
   @override
   @override
-  Future<ProcessResult> monitorCommand(String target, String command) async =>
-      lastActionResult ?? ProcessResult(0, 0, '', '');
+  Future<ProcResult> monitorCommand(String target, String command) async =>
+      lastActionResult ?? const ProcResult(0, '', '');
 
   @override
-  Future<ProcessResult> runQuickget(List<String> arguments) async {
+  Future<ProcResult> runQuickget(List<String> arguments) async {
     quickgetCalls.add(List.of(arguments));
-    return lastActionResult ?? ProcessResult(0, 0, '', '');
+    return lastActionResult ?? const ProcResult(0, '', '');
   }
 
   @override
-  Future<ProcessResult> exportVm(String vmName) async {
+  Future<ProcResult> exportVm(String vmName) async {
     exportCalls.add(vmName);
-    return lastActionResult ?? ProcessResult(0, 0, '', '');
+    return lastActionResult ?? const ProcResult(0, '', '');
   }
 
   @override
-  Future<ProcessResult> verifyImage(String isoPath) async =>
-      lastActionResult ?? ProcessResult(0, 0, '', '');
+  Future<ProcResult> verifyImage(String isoPath) async =>
+      lastActionResult ?? const ProcResult(0, '', '');
 
   @override
-  Future<ProcessResult> killVmProcess(String vmName) async =>
-      lastActionResult ?? ProcessResult(0, 0, '', '');
+  Future<ProcResult> killVmProcess(String vmName) async =>
+      lastActionResult ?? const ProcResult(0, '', '');
 
   @override
-  Future<ProcessResult> openVmFolder(String vmName) async {
+  Future<ProcResult> openVmFolder(String vmName) async {
     folderCalls.add(vmName);
-    return lastActionResult ?? ProcessResult(0, 0, '', '');
+    return lastActionResult ?? const ProcResult(0, '', '');
   }
 
   @override
-  Future<ProcessResult> launchSpiceViewer(
+  Future<ProcResult> launchSpiceViewer(
     String spicePort, {
     String viewer = 'spicy',
     bool fullscreen = false,
-  }) async => lastActionResult ?? ProcessResult(0, 0, '', '');
+  }) async => lastActionResult ?? const ProcResult(0, '', '');
 
   @override
-  Future<ProcessResult> forgetSshHostKey(String sshPort) async =>
-      lastActionResult ?? ProcessResult(0, 0, '', '');
+  Future<ProcResult> forgetSshHostKey(String sshPort) async =>
+      lastActionResult ?? const ProcResult(0, '', '');
 
   @override
-  Future<ProcessResult> connectSsh({
+  Future<ProcResult> connectSsh({
     required String terminalEmulator,
     required String user,
     required String sshPort,
-  }) async => lastActionResult ?? ProcessResult(0, 0, '', '');
+  }) async => lastActionResult ?? const ProcResult(0, '', '');
 
   @override
-  Future<ProcessResult> diagnosticsReport() async =>
-      lastActionResult ?? ProcessResult(0, 0, '', '');
+  Future<ProcResult> diagnosticsReport() async =>
+      lastActionResult ?? const ProcResult(0, '', '');
 
   final List<List<String>> convertCalls = [];
 
   @override
-  Future<ProcessResult> convertDiskImage(
+  Future<ProcResult> convertDiskImage(
     String inputPath,
     String outputPath,
   ) async {
     convertCalls.add([inputPath, outputPath]);
-    return lastActionResult ?? ProcessResult(0, 0, '', '');
+    return lastActionResult ?? const ProcResult(0, '', '');
   }
 
   @override

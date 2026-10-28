@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,6 +12,8 @@ import 'package:quickgui/features/machines/presentation/shared/stop_vm_dialog.da
 import '../support/fakes/fake_preferences_repository.dart';
 import '../support/fakes/fake_virtualization_backend.dart';
 import '../support/harness/test_app.dart';
+
+import 'package:quickgui/features/machines/application/ports/proc.dart';
 
 Widget _launcher(void Function(BuildContext) go) {
   return ProviderScope(
@@ -81,7 +81,7 @@ void main() {
     await tester.pumpWidget(
       _launcher(
         (context) => showProcessOutputDialog(context, [
-          ProcessResult(0, 1, 'some output', 'some error'),
+          const ProcResult(1, 'some output', 'some error'),
         ]),
       ),
     );
@@ -94,7 +94,7 @@ void main() {
     await tester.pumpWidget(
       _launcher(
         (context) =>
-            showProcessOutputDialog(context, [ProcessResult(0, 0, '', '')]),
+            showProcessOutputDialog(context, [const ProcResult(0, '', '')]),
       ),
     );
     await tester.tap(find.text('open'));

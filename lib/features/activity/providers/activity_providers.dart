@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
+
+import 'package:quickgui/features/machines/application/ports/proc.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quickgui/core/constants/preference_keys.dart';
@@ -208,7 +209,7 @@ class ActivityController extends Notifier<ActivityState> {
     update(operation, const OperationState.running());
     try {
       final result = await action(operation);
-      if (result is ProcessResult) {
+      if (result is ProcResult) {
         final raw = '${result.stdout}\n${result.stderr}'.trim();
         final output = raw.length > 65536
             ? raw.substring(raw.length - 65536)
@@ -383,7 +384,7 @@ class ActivityController extends Notifier<ActivityState> {
   /// Specs with `regeneratesPlan` are refused here — destructive
   /// retries must rebuild a fresh plan (e.g. `DeleteVm.plan`) and be
   /// confirmed again before a spec without `planId` can run.
-  Future<ProcessResult> retry(OperationHistoryEntry entry) async {
+  Future<ProcResult> retry(OperationHistoryEntry entry) async {
     final spec = entry.retrySpec;
     if (spec == null || !entry.retryable || spec.regeneratesPlan) {
       throw StateError('${entry.kind.wire} ${entry.target} is not retryable');

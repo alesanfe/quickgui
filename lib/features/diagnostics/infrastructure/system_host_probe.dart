@@ -157,6 +157,9 @@ Future<Set<String>> _hostCpuFlags() async {
         'machdep.cpu.features',
         'machdep.cpu.leaf7_features',
       ]) {
+        // Deliberately not runHost(): Flatpak only exists on Linux, so
+        // on macOS there is no sandbox to escape and sysctl must run
+        // in-process (flatpak-spawn does not exist there).
         final result = await Process.run('sysctl', ['-n', key]);
         flags.addAll(
           '${result.stdout}'

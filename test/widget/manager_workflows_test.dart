@@ -15,6 +15,8 @@ import '../support/fakes/fake_preferences_repository.dart';
 import '../support/fakes/fake_virtualization_backend.dart';
 import '../support/harness/test_app.dart';
 
+import 'package:quickgui/features/machines/application/ports/proc.dart';
+
 class ManagerScreen {
   ManagerScreen(this.tester);
   final WidgetTester tester;
@@ -405,7 +407,7 @@ void main() {
   testWidgets('action with output opens the quickemu output dialog', (
     tester,
   ) async {
-    backend.lastActionResult = ProcessResult(0, 0, 'doctor says hi', '');
+    backend.lastActionResult = const ProcResult(0, 'doctor says hi', '');
     final screen = await open(tester);
     await screen.chooseAction('Check VM');
     await tester.pump();

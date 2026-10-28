@@ -25,6 +25,7 @@ import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/features/settings/application/ports/preferences_repository.dart';
 import 'package:quickgui/core/constants/preference_keys.dart';
 import 'package:quickgui/core/extensions/preferences_repository_x.dart';
+import 'package:quickgui/features/machines/application/ports/proc.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
 import 'package:quickgui/features/machines/application/delete_vm.dart';
 import 'package:quickgui/features/machines/application/structured_or_legacy.dart';

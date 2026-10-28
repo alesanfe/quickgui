@@ -10,7 +10,9 @@ import 'package:quickgui/infrastructure/quickemu/quickemu_process.dart';
 import 'package:quickgui/infrastructure/quickemu/structured_quickemu.dart';
 import 'package:quickgui/core/errors/app_failure.dart';
 import 'package:quickgui/core/logging/app_logging.dart';
+import 'package:quickgui/features/machines/application/ports/proc.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
+import 'package:quickgui/infrastructure/process/running_proc.dart';
 
 /// VirtualizationBackend backed by the quickemu/quickget executables.
 /// Uses the structured CLI contract (--capabilities, --format json)
@@ -151,14 +153,25 @@ class QuickemuBackend implements VirtualizationBackend {
     return parseVmSnapshotsPayload('${r.stdout}') ?? const [];
   }
 
-  @override
-  Future<Process> startDownloadImage(String os, String release, String option) {
-    return _process.startQuickget([os, release, if (option.isNotEmpty) option]);
+  /// Wraps an infra `ProcessResult` into the domain `ProcResult` —
+  /// the port boundary must not expose dart:io types.
+  static Future<ProcResult> _proc(Future<ProcessResult> r) async {
+    final x = await r;
+    return ProcResult(x.exitCode, x.stdout, x.stderr);
   }
 
   @override
-  Future<ProcessResult> runAction(List<String> arguments) =>
-      _process.quickemu(arguments);
+  Future<RunningProc> startDownloadImage(
+    String os,
+    String release,
+    String option,
+  ) async => SystemRunningProc(
+    await _process.startQuickget([os, release, if (option.isNotEmpty) option]),
+  );
+
+  @override
+  Future<ProcResult> runAction(List<String> arguments) =>
+      _proc(_process.quickemu(arguments));
 
   @override
   Future<Map<String, dynamic>> runVmJson(
@@ -409,48 +422,48 @@ class QuickemuBackend implements VirtualizationBackend {
   }
 
   @override
-  Future<ProcessResult> runQuickget(List<String> arguments) =>
-      _process.quickget(arguments);
+  Future<ProcResult> runQuickget(List<String> arguments) =>
+      _proc(_process.quickget(arguments));
 
   /// Export via the v1 envelope (`vm.export`) — typed failures reach
   /// callers as stderr-shaped ProcessResult to keep the signature;
   /// a pre-contract backend falls back to the raw text path.
   @override
-  Future<ProcessResult> exportVm(String vmName) async {
+  Future<ProcResult> exportVm(String vmName) async {
     final args = ['--vm', '$vmName.conf', '--export', '$vmName.tar.gz'];
     try {
       final response = await _structured.run('export', args);
-      return ProcessResult(0, 0, '${response.dataMap ?? ''}', '');
+      return ProcResult(0, '${response.dataMap ?? ''}', '');
     } on AppFailure catch (e) {
       if (isBackendEnvelopeMissing(e)) {
-        return await _process.quickemu(args);
+        return await _proc(_process.quickemu(args));
       }
-      return ProcessResult(0, 1, '', e.userMessage);
+      return ProcResult(1, '', e.userMessage);
     }
   }
 
   @override
-  Future<ProcessResult> verifyImage(String isoPath) =>
-      _process.chunkcheck(isoPath);
+  Future<ProcResult> verifyImage(String isoPath) =>
+      _proc(_process.chunkcheck(isoPath));
 
   @override
-  Future<ProcessResult> killVmProcess(String vmName) {
+  Future<ProcResult> killVmProcess(String vmName) {
     // Kill by pid from <vm>/<vm>.pid — `killall <name>` matches by process
     // name and can hit unrelated processes.
     final pidFile = File('$vmName/$vmName.pid');
     if (pidFile.existsSync()) {
       final pid = pidFile.readAsStringSync().trim();
-      if (pid.isNotEmpty) return _runner.run('kill', ['-9', pid]);
+      if (pid.isNotEmpty) return _proc(_runner.run('kill', ['-9', pid]));
     }
-    return _runner.run('killall', [vmName]);
+    return _proc(_runner.run('killall', [vmName]));
   }
 
   @override
-  Future<ProcessResult> openVmFolder(String vmName) =>
-      _runner.run(Platform.isMacOS ? 'open' : 'xdg-open', [vmName]);
+  Future<ProcResult> openVmFolder(String vmName) =>
+      _proc(_runner.run(Platform.isMacOS ? 'open' : 'xdg-open', [vmName]));
 
   @override
-  Future<ProcessResult> launchSpiceViewer(
+  Future<ProcResult> launchSpiceViewer(
     String spicePort, {
     String viewer = 'spicy',
     bool fullscreen = false,
@@ -460,29 +473,33 @@ class QuickemuBackend implements VirtualizationBackend {
         int.parse(spicePort) < 1 ||
         int.parse(spicePort) > 65535) {
       return Future.value(
-        ProcessResult(0, 2, '', 'Invalid viewer or SPICE port'),
+        const ProcResult(2, '', 'Invalid viewer or SPICE port'),
       );
     }
     return viewer == 'remote-viewer'
-        ? _runner.run(viewer, [
-            if (fullscreen) '--full-screen',
-            'spice://127.0.0.1:$spicePort',
-          ])
-        : _runner.run(viewer, [
-            '-h',
-            '127.0.0.1',
-            '-p',
-            spicePort,
-            if (fullscreen) '--full-screen',
-          ]);
+        ? _proc(
+            _runner.run(viewer, [
+              if (fullscreen) '--full-screen',
+              'spice://127.0.0.1:$spicePort',
+            ]),
+          )
+        : _proc(
+            _runner.run(viewer, [
+              '-h',
+              '127.0.0.1',
+              '-p',
+              spicePort,
+              if (fullscreen) '--full-screen',
+            ]),
+          );
   }
 
   @override
-  Future<ProcessResult> forgetSshHostKey(String sshPort) =>
-      _runner.run('ssh-keygen', ['-R', '[localhost]:$sshPort']);
+  Future<ProcResult> forgetSshHostKey(String sshPort) =>
+      _proc(_runner.run('ssh-keygen', ['-R', '[localhost]:$sshPort']));
 
   @override
-  Future<ProcessResult> connectSsh({
+  Future<ProcResult> connectSsh({
     required String terminalEmulator,
     required String user,
     required String sshPort,
@@ -538,21 +555,23 @@ class QuickemuBackend implements VirtualizationBackend {
     sshArgs.insert(0, terminalEmulator);
     // The argument styles above embed shell quoting on purpose, so the
     // assembled command goes through `sh -c` exactly like before.
-    return _runner.run('sh', ['-c', sshArgs.join(' ')]);
+    return _proc(_runner.run('sh', ['-c', sshArgs.join(' ')]));
   }
 
   @override
-  Future<ProcessResult> diagnosticsReport() => _process.quickreport();
+  Future<ProcResult> diagnosticsReport() => _proc(_process.quickreport());
 
   @override
-  Future<ProcessResult> convertDiskImage(String inputPath, String outputPath) =>
-      _runner.run('qemu-img', [
-        'convert',
-        '-O',
-        'qcow2',
-        inputPath,
-        outputPath,
-      ]);
+  Future<ProcResult> convertDiskImage(String inputPath, String outputPath) =>
+      _proc(
+        _runner.run('qemu-img', [
+          'convert',
+          '-O',
+          'qcow2',
+          inputPath,
+          outputPath,
+        ]),
+      );
 
   @override
   Future<String> version() async {
@@ -600,8 +619,9 @@ class QuickemuBackend implements VirtualizationBackend {
   /// Sends an HMP command to the VM monitor socket (`--monitor-cmd`)
   /// — text path, there is no structured envelope for it.
   @override
-  Future<ProcessResult> monitorCommand(String target, String command) =>
-      _process.quickemu(['--vm', '$target.conf', '--monitor-cmd', command]);
+  Future<ProcResult> monitorCommand(String target, String command) => _proc(
+    _process.quickemu(['--vm', '$target.conf', '--monitor-cmd', command]),
+  );
 
   /// Per-VM runtime metrics via `--stats` (QMP cpus/block/balloon).
   @override

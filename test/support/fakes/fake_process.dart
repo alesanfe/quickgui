@@ -1,14 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
-/// Controllable [Process] test double: tests push stdout/stderr chunks
+import 'package:quickgui/features/machines/application/ports/proc.dart';
+
+/// Controllable [RunningProc] test double: tests push stdout/stderr chunks
 /// and complete the exit code explicitly (or via [kill]).
 ///
 /// Streams are synchronous so an `emit` reaches widget listeners
 /// immediately; `finish` completes the exit code without awaiting stream
 /// closure (which would otherwise race FakeAsync microtask flushes).
-class FakeProcess implements Process {
+class FakeProcess implements RunningProc {
   final _stdout = StreamController<List<int>>(sync: true);
   final _stderr = StreamController<List<int>>(sync: true);
   final _exit = Completer<int>();
@@ -23,12 +24,6 @@ class FakeProcess implements Process {
   @override
   Future<int> get exitCode => _exit.future;
 
-  @override
-  int get pid => 4242;
-
-  @override
-  IOSink get stdin => throw UnimplementedError('stdin not used in tests');
-
   void emitOut(String chunk) => _stdout.add(utf8.encode(chunk));
 
   void emitErr(String chunk) => _stderr.add(utf8.encode(chunk));
@@ -41,7 +36,7 @@ class FakeProcess implements Process {
   }
 
   @override
-  bool kill([ProcessSignal signal = ProcessSignal.sigterm]) {
+  bool kill() {
     killed = true;
     finish(-9);
     return true;

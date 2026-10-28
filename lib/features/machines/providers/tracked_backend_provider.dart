@@ -1,5 +1,6 @@
 import 'dart:async';
-import 'dart:io';
+
+import 'package:quickgui/features/machines/application/ports/proc.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
@@ -55,13 +56,13 @@ class _TrackedBackend implements VirtualizationBackend {
   Future<List<Map<String, dynamic>>> listSnapshots(String confPath) =>
       backend.listSnapshots(confPath);
   @override
-  Future<Process> startDownloadImage(
+  Future<RunningProc> startDownloadImage(
     String os,
     String release,
     String option,
   ) => backend.startDownloadImage(os, release, option);
   @override
-  Future<ProcessResult> runAction(List<String> arguments) {
+  Future<ProcResult> runAction(List<String> arguments) {
     final index = arguments.indexOf('--vm');
     final target = index >= 0 && index + 1 < arguments.length
         ? p.basenameWithoutExtension(arguments[index + 1])
@@ -287,7 +288,7 @@ class _TrackedBackend implements VirtualizationBackend {
   }) => backend.readEvents(target, cursor: cursor);
 
   @override
-  Future<ProcessResult> runQuickget(List<String> arguments) =>
+  Future<ProcResult> runQuickget(List<String> arguments) =>
       arguments.contains('--create-config')
       ? track(
           OperationKind.import,
@@ -296,22 +297,22 @@ class _TrackedBackend implements VirtualizationBackend {
         )
       : backend.runQuickget(arguments);
   @override
-  Future<ProcessResult> exportVm(String vmName) =>
+  Future<ProcResult> exportVm(String vmName) =>
       track(OperationKind.export, vmName, (op) => backend.exportVm(vmName));
   @override
-  Future<ProcessResult> verifyImage(String isoPath) => track(
+  Future<ProcResult> verifyImage(String isoPath) => track(
     OperationKind.verify,
     p.basename(isoPath),
     (op) => backend.verifyImage(isoPath),
   );
   @override
-  Future<ProcessResult> killVmProcess(String vmName) =>
+  Future<ProcResult> killVmProcess(String vmName) =>
       track(OperationKind.stop, vmName, (op) => backend.killVmProcess(vmName));
   @override
-  Future<ProcessResult> openVmFolder(String vmName) =>
+  Future<ProcResult> openVmFolder(String vmName) =>
       backend.openVmFolder(vmName);
   @override
-  Future<ProcessResult> launchSpiceViewer(
+  Future<ProcResult> launchSpiceViewer(
     String spicePort, {
     String viewer = 'spicy',
     bool fullscreen = false,
@@ -325,10 +326,10 @@ class _TrackedBackend implements VirtualizationBackend {
     ),
   );
   @override
-  Future<ProcessResult> forgetSshHostKey(String sshPort) =>
+  Future<ProcResult> forgetSshHostKey(String sshPort) =>
       backend.forgetSshHostKey(sshPort);
   @override
-  Future<ProcessResult> connectSsh({
+  Future<ProcResult> connectSsh({
     required String terminalEmulator,
     required String user,
     required String sshPort,
@@ -342,13 +343,13 @@ class _TrackedBackend implements VirtualizationBackend {
     ),
   );
   @override
-  Future<ProcessResult> diagnosticsReport() => track(
+  Future<ProcResult> diagnosticsReport() => track(
     OperationKind.command,
     'Quickemu report',
     (op) => backend.diagnosticsReport(),
   );
   @override
-  Future<ProcessResult> convertDiskImage(String inputPath, String outputPath) =>
+  Future<ProcResult> convertDiskImage(String inputPath, String outputPath) =>
       track(
         OperationKind.convert,
         p.basename(outputPath),
@@ -364,7 +365,7 @@ class _TrackedBackend implements VirtualizationBackend {
       backend.vmStats(target);
 
   @override
-  Future<ProcessResult> monitorCommand(String target, String command) =>
+  Future<ProcResult> monitorCommand(String target, String command) =>
       backend.monitorCommand(target, command);
 
   @override

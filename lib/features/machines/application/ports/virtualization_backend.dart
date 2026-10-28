@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'proc.dart';
 
 /// Public contract between quickgui and a virtualization backend.
 ///
@@ -35,12 +35,16 @@ abstract class VirtualizationBackend {
   /// Starts a `quickget` download process for [os] [release] ([option]
   /// may be empty). The caller owns the process: its streams drive
   /// progress, exitCode reports completion, and kill() cancels it.
-  Future<Process> startDownloadImage(String os, String release, String option);
+  Future<RunningProc> startDownloadImage(
+    String os,
+    String release,
+    String option,
+  );
 
   /// Runs an arbitrary action: start/stop/pause/resume/snapshot/etc.
   /// Arguments are the full quickemu CLI tail (e.g. ['--vm','x.conf',
   /// '--snapshot','create','t1']). Returns exit code and merged output.
-  Future<ProcessResult> runAction(List<String> arguments);
+  Future<ProcResult> runAction(List<String> arguments);
 
   /// Runs [arguments] through the structured `--format json` contract
   /// and returns the envelope `data` payload. [command] is the logical
@@ -137,23 +141,23 @@ abstract class VirtualizationBackend {
   });
 
   /// Runs a quickget action (e.g. ['--create-config','name','/path.iso']).
-  Future<ProcessResult> runQuickget(List<String> arguments);
+  Future<ProcResult> runQuickget(List<String> arguments);
 
   /// Exports the VM disk and config as `vmName.tar.gz`.
-  Future<ProcessResult> exportVm(String vmName);
+  Future<ProcResult> exportVm(String vmName);
 
   /// Verifies the downloaded image at [isoPath] with `chunkcheck`.
-  Future<ProcessResult> verifyImage(String isoPath);
+  Future<ProcResult> verifyImage(String isoPath);
 
   /// Force-stops the VM via `killall`, the legacy fallback for backends
   /// too old for `--kill`.
-  Future<ProcessResult> killVmProcess(String vmName);
+  Future<ProcResult> killVmProcess(String vmName);
 
   /// Opens the VM directory in the host file manager.
-  Future<ProcessResult> openVmFolder(String vmName);
+  Future<ProcResult> openVmFolder(String vmName);
 
   /// Launches the SPICE viewer attached to [spicePort].
-  Future<ProcessResult> launchSpiceViewer(
+  Future<ProcResult> launchSpiceViewer(
     String spicePort, {
     String viewer = 'spicy',
     bool fullscreen = false,
@@ -161,22 +165,22 @@ abstract class VirtualizationBackend {
 
   /// Removes the stale known_hosts entry for the VM's SSH port, e.g.
   /// when a new guest reuses the port of a deleted VM.
-  Future<ProcessResult> forgetSshHostKey(String sshPort);
+  Future<ProcResult> forgetSshHostKey(String sshPort);
 
   /// Opens [terminalEmulator] running an ssh session into the VM as
   /// [user] on [sshPort].
-  Future<ProcessResult> connectSsh({
+  Future<ProcResult> connectSsh({
     required String terminalEmulator,
     required String user,
     required String sshPort,
   });
 
   /// Runs the backend's diagnostics report (`quickreport`).
-  Future<ProcessResult> diagnosticsReport();
+  Future<ProcResult> diagnosticsReport();
 
   /// Converts the disk image at [inputPath] to qcow2 at [outputPath]
   /// (`qemu-img convert`). Used when importing foreign image formats.
-  Future<ProcessResult> convertDiskImage(String inputPath, String outputPath);
+  Future<ProcResult> convertDiskImage(String inputPath, String outputPath);
 
   /// Streams op-state changes (`--op-watch`); replaces --op-list polling.
   Stream<Map<String, dynamic>> watchOperations(String target);
@@ -184,7 +188,7 @@ abstract class VirtualizationBackend {
   /// Sends an HMP command to the VM's QEMU monitor socket
   /// (`--monitor-cmd`). Returns the command output — the VM must be
   /// running and the backend must expose `monitorCommands`.
-  Future<ProcessResult> monitorCommand(String target, String command);
+  Future<ProcResult> monitorCommand(String target, String command);
 
   /// Per-VM QMP metrics (`--stats`).
   Future<Map<String, dynamic>?> vmStats(String target);

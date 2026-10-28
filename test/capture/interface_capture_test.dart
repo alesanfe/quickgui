@@ -36,6 +36,8 @@ import '../support/fakes/fake_preferences_repository.dart';
 import '../support/fakes/fake_virtualization_backend.dart';
 import '../support/harness/test_app.dart';
 
+import 'package:quickgui/features/machines/application/ports/proc.dart';
+
 /// Real fonts so text and icons render as in the app — every family declared
 /// in FontManifest.json (Roboto via alchemist, MaterialIcons, package fonts).
 Future<void> _loadAllFonts() async {
@@ -178,7 +180,7 @@ Widget _app({
   required Widget home,
   required bool dark,
   bool backendAvailable = true,
-  ProcessResult? actionResult,
+  ProcResult? actionResult,
   FakeHostProbe? probe,
   String? runningVm,
 }) => ProviderScope(
@@ -475,8 +477,8 @@ void main() {
 
   // Sample quickreport output so the System diagnostics dialog captures a
   // representative body instead of the fake backend's empty result.
-  final interactionActionResults = <String, ProcessResult>{
-    '17_system_diagnostics': ProcessResult(0, 0, '''
+  final interactionActionResults = <String, ProcResult>{
+    '17_system_diagnostics': const ProcResult(0, '''
 Quickemu 4.9.9
 Quickget 4.9.9
 QEMU 10.1.0
@@ -487,7 +489,7 @@ ssh-keygen — found
 chunkcheck — found
 All checks passed.
 ''', ''),
-    '20_vm_process_output': ProcessResult(0, 0, '''
+    '20_vm_process_output': const ProcResult(0, '''
 quickemu --vm debian-12.conf --status debian-12
 - guest_os=linux
 - disk_img=debian-12/disk.qcow2 (64G)

@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:quickgui/features/machines/application/ports/proc.dart';
 
 import 'package:flutter/material.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
@@ -44,10 +44,7 @@ String? actionableErrorHint(BuildContext context, String output) {
 
 /// Shows the merged stdout/stderr of backend invocations, plus an
 /// actionable hint when the output matches a known failure pattern.
-void showProcessOutputDialog(
-  BuildContext context,
-  List<ProcessResult> results,
-) {
+void showProcessOutputDialog(BuildContext context, List<ProcResult> results) {
   final output = results
       .map((r) => '${r.stdout}${r.stderr}')
       .where((s) => s.trim().isNotEmpty)

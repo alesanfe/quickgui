@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quickgui/core/errors/app_failure.dart';
@@ -12,6 +10,8 @@ import 'package:quickgui/features/machines/providers/backend_providers.dart';
 
 import '../../../support/fakes/fake_preferences_repository.dart';
 import '../../../support/fakes/fake_virtualization_backend.dart';
+
+import 'package:quickgui/features/machines/application/ports/proc.dart';
 
 ProviderContainer _container(
   FakePreferencesRepository prefs, {
@@ -60,7 +60,7 @@ void main() {
     final r = await ctrl.run(
       OperationKind.stop,
       'vm1',
-      (op) async => ProcessResult(0, 3, '', 'boom'),
+      (op) async => const ProcResult(3, '', 'boom'),
     );
     expect(r.exitCode, 3);
     final entry = c.read(activityProvider).history.single;

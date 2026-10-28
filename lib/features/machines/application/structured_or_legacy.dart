@@ -1,20 +1,19 @@
-import 'dart:io';
-
 import 'package:logging/logging.dart';
 import 'package:quickgui/core/errors/app_failure.dart';
 import 'package:quickgui/core/logging/app_logging.dart';
 import 'package:quickgui/core/telemetry/legacy_telemetry.dart';
+import 'package:quickgui/features/machines/application/ports/proc.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
 
 /// Runs [command]/[arguments] through the structured `--format json`
 /// contract ([VirtualizationBackend.runVmJson]) and returns a synthetic
-/// successful [ProcessResult] so existing callers that inspect exitCode
+/// successful [ProcResult] so existing callers that inspect exitCode
 /// and output keep working unchanged.
 ///
 /// Falls back to [VirtualizationBackend.runAction] only when the backend
 /// cannot produce an envelope at all ([isBackendEnvelopeMissing]) — real
 /// contract defects and typed failures propagate as [AppFailure].
-Future<ProcessResult> runVmActionOrLegacy(
+Future<ProcResult> runVmActionOrLegacy(
   VirtualizationBackend backend,
   String command,
   List<String> arguments,
@@ -31,7 +30,7 @@ Future<ProcessResult> runVmActionOrLegacy(
       exitCode: 0,
       legacy: false,
     );
-    return ProcessResult(0, 0, '', '');
+    return const ProcResult(0, '', '');
   } on AppFailure catch (e) {
     if (!isBackendEnvelopeMissing(e)) {
       AppLog.event(
@@ -47,7 +46,7 @@ Future<ProcessResult> runVmActionOrLegacy(
     }
     LegacyTelemetry.record(command, e.code);
     final result = await backend.runAction(arguments);
-    // Legacy failures reach callers as raw ProcessResult — classify the
+    // Legacy failures reach callers as raw ProcResult — classify the
     // stderr text so telemetry still records a typed code.
     final failureCode = result.exitCode == 0
         ? null

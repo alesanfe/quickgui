@@ -606,9 +606,7 @@ extension on _ManagerState {
     );
     if (!mounted) return;
     if (startResult is Err) {
-      _showProcessOutput([
-        ProcessResult(0, 1, '', startResult.failure.message),
-      ]);
+      _showProcessOutput([ProcResult(1, '', startResult.failure.message)]);
     }
     final VmInfo info = _parseVmInfo(currentVm);
     activeVms[currentVm] = info;
@@ -739,7 +737,7 @@ extension on _ManagerState {
     _showProcessOutput([r]);
   }
 
-  void _showProcessOutput(List<ProcessResult> results) {
+  void _showProcessOutput(List<ProcResult> results) {
     final output = results
         .map((r) => '${r.stdout}${r.stderr}')
         .where((s) => s.trim().isNotEmpty)

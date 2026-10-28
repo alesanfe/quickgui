@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,6 +18,8 @@ import '../support/fakes/fake_host_probe.dart';
 import '../support/fakes/fake_preferences_repository.dart';
 import '../support/fakes/fake_virtualization_backend.dart';
 import '../support/harness/test_app.dart';
+
+import 'package:quickgui/features/machines/application/ports/proc.dart';
 
 OperatingSystem osFixture(String code, {bool multiple = false}) {
   final os = OperatingSystem(code.toUpperCase(), code);
@@ -186,7 +187,7 @@ void main() {
   });
 
   testWidgets('unavailable image fails before customization', (tester) async {
-    backend.lastActionResult = ProcessResult(0, 1, '', 'unavailable');
+    backend.lastActionResult = const ProcResult(1, '', 'unavailable');
     final screen = await open(tester);
     await screen.chooseOs('MACOS');
     await screen.select('Download');

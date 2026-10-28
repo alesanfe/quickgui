@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:quickgui/infrastructure/process/process_runner.dart';
 import 'package:quickgui/infrastructure/quickemu/quickemu_backend.dart';
 import 'package:quickgui/infrastructure/quickemu/quickemu_parser.dart';
+import 'package:quickgui/features/machines/application/ports/proc.dart';
 
 /// Fake ProcessRunner recording invocations and returning canned results.
 class FakeProcessRunner extends ProcessRunner {
@@ -52,7 +53,7 @@ void expectInvocation(
 
 void main() {
   final commandCases =
-      <(String, List<String>, Future<ProcessResult> Function(QuickemuBackend))>[
+      <(String, List<String>, Future<ProcResult> Function(QuickemuBackend))>[
         (
           'quickemu',
           ['--vm', 'a b.conf', '--stop'],
@@ -144,7 +145,7 @@ void main() {
       () async {
         final runner = FakeProcessRunner({});
         await expectLater(
-          Future<Process>.sync(
+          Future<RunningProc>.sync(
             () =>
                 QuickemuBackend(runner)
                     .startDownloadImage('ubuntu', '24.04', option),

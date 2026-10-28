@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,6 +10,8 @@ import 'package:quickgui/shared/widgets/shortcuts_dialog.dart';
 
 import '../support/fakes/fake_virtualization_backend.dart';
 import '../support/harness/test_app.dart';
+
+import 'package:quickgui/features/machines/application/ports/proc.dart';
 
 void main() {
   setUpAll(TestLocalizationsDelegate.preload);
@@ -52,7 +52,7 @@ void main() {
       tester,
     ) async {
       final backend = FakeVirtualizationBackend()
-        ..lastActionResult = ProcessResult(0, 1, '', 'VM_MUST_BE_RUNNING');
+        ..lastActionResult = const ProcResult(1, '', 'VM_MUST_BE_RUNNING');
       await tester.pumpWidget(
         ProviderScope(
           overrides: [backendProvider.overrideWithValue(backend)],
@@ -106,7 +106,7 @@ void main() {
       tester,
     ) async {
       final backend = FakeVirtualizationBackend()
-        ..lastActionResult = ProcessResult(0, 1, '', 'VM_MUST_BE_RUNNING');
+        ..lastActionResult = const ProcResult(1, '', 'VM_MUST_BE_RUNNING');
       await tester.pumpWidget(
         ProviderScope(
           overrides: [backendProvider.overrideWithValue(backend)],
@@ -181,7 +181,7 @@ void main() {
     ) async {
       final semantics = tester.ensureSemantics();
       final backend = FakeVirtualizationBackend()
-        ..lastActionResult = ProcessResult(0, 1, '', 'VM_MUST_BE_RUNNING');
+        ..lastActionResult = const ProcResult(1, '', 'VM_MUST_BE_RUNNING');
       await tester.pumpWidget(
         ProviderScope(
           overrides: [backendProvider.overrideWithValue(backend)],
@@ -212,7 +212,7 @@ void main() {
 
     testWidgets('console text input is a focusable text field', (tester) async {
       final backend = FakeVirtualizationBackend()
-        ..lastActionResult = ProcessResult(0, 1, '', 'VM_MUST_BE_RUNNING');
+        ..lastActionResult = const ProcResult(1, '', 'VM_MUST_BE_RUNNING');
       await tester.pumpWidget(
         ProviderScope(
           overrides: [backendProvider.overrideWithValue(backend)],

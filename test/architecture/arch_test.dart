@@ -83,4 +83,20 @@ void main() {
         .toList();
     expect(bad, isEmpty, reason: bad.join(', '));
   });
+
+  /// Port signatures must not leak dart:io process types into the
+  /// application layer — callers go through `ProcResult`/`RunningProc`
+  /// (ports/proc.dart) so the boundary stays platform-free.
+  test('application port signatures do not import dart:io', () {
+    final bad = dartFiles('lib/features')
+        .where(
+          (f) => f.path.contains(
+            '${Platform.pathSeparator}ports${Platform.pathSeparator}',
+          ),
+        )
+        .where((f) => badImports(f, "import 'dart:io'"))
+        .map((f) => f.path)
+        .toList();
+    expect(bad, isEmpty, reason: bad.join(', '));
+  });
 }

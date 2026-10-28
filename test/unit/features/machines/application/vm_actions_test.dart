@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quickgui/features/machines/application/delete_vm.dart';
 import 'package:quickgui/features/machines/application/create_vm.dart';
@@ -9,6 +7,8 @@ import 'package:quickgui/features/machines/application/stop_vm.dart';
 import 'package:quickgui/core/result/result.dart';
 
 import '../../../../support/fakes/fake_virtualization_backend.dart';
+
+import 'package:quickgui/features/machines/application/ports/proc.dart';
 
 void main() {
   for (final option in <String?>[null, '', 'desktop']) {
@@ -31,7 +31,7 @@ void main() {
   );
   test('create propagates command failure', () async {
     final fake = FakeVirtualizationBackend()
-      ..lastActionResult = ProcessResult(0, 1, '', 'image unavailable');
+      ..lastActionResult = const ProcResult(1, '', 'image unavailable');
     final result = await CreateVm(fake)('ubuntu', '24.04');
     expect((result as Err<void>).failure.code, 'vm.create_failed');
   });
@@ -92,7 +92,7 @@ void main() {
 
   test('delete surfaces process failure without retrying', () async {
     final fake = FakeVirtualizationBackend()
-      ..lastActionResult = ProcessResult(0, 2, '', 'permission denied');
+      ..lastActionResult = const ProcResult(2, '', 'permission denied');
     final result = await DeleteVm(fake)('vm');
     expect((result as Err<void>).failure.code, 'vm.delete_failed');
     expect(fake.actionCalls, hasLength(1));
@@ -100,7 +100,7 @@ void main() {
 
   test('requesting a delete plan never issues a delete command', () async {
     final fake = FakeVirtualizationBackend()
-      ..lastActionResult = ProcessResult(0, 0, '{"schemaVersion":1}\n', '');
+      ..lastActionResult = const ProcResult(0, '{"schemaVersion":1}\n', '');
     final result = await DeleteVm(fake).plan('vm');
     expect(result, isA<Ok<DeletePlan>>());
     expect(fake.actionCalls, [
@@ -110,7 +110,7 @@ void main() {
 
   test('delete plan surfaces a failed process', () async {
     final fake = FakeVirtualizationBackend()
-      ..lastActionResult = ProcessResult(0, 1, '', 'invalid config');
+      ..lastActionResult = const ProcResult(1, '', 'invalid config');
     final result = await DeleteVm(fake).plan('vm');
     expect((result as Err<DeletePlan>).failure.code, 'vm.delete_plan_failed');
   });
@@ -145,14 +145,14 @@ void main() {
 
   test('start surfaces nonzero exit as a typed failure', () async {
     final fake = FakeVirtualizationBackend()
-      ..lastActionResult = ProcessResult(0, 1, '', 'bad firmware');
+      ..lastActionResult = const ProcResult(1, '', 'bad firmware');
     final result = await StartVm(fake)('vm');
     expect((result as Err<void>).failure.code, 'vm.start_failed');
   });
 
   test('start sends the right args and succeeds', () async {
     final fake = FakeVirtualizationBackend()
-      ..lastActionResult = ProcessResult(0, 0, 'ok', '');
+      ..lastActionResult = const ProcResult(0, 'ok', '');
     final r = await StartVm(fake)('vm1');
     expect(r, isA<Ok<void>>());
     expect(fake.actionCalls, [
@@ -162,7 +162,7 @@ void main() {
 
   test('stop surfaces typed failure on nonzero exit', () async {
     final fake = FakeVirtualizationBackend()
-      ..lastActionResult = ProcessResult(0, 1, '', 'boom');
+      ..lastActionResult = const ProcResult(1, '', 'boom');
     final r = await StopVm(fake)('vm1');
     expect((r as Err<void>).failure.code, 'vm.stop_failed');
   });
