@@ -17,6 +17,7 @@ import 'package:quickgui/features/settings/application/load_settings.dart';
 import 'package:quickgui/features/settings/domain/settings_state.dart';
 import 'package:quickgui/features/settings/providers/settings_providers.dart';
 import 'package:quickgui/core/result/result.dart';
+import 'package:quickgui/core/telemetry/perf_reporter.dart';
 import 'package:quickgui/infrastructure/settings/shared_preferences_repository.dart';
 import 'package:quickgui/infrastructure/process/host_process.dart';
 import 'package:quickgui/infrastructure/process/system_process_runner.dart';
@@ -27,6 +28,7 @@ import 'package:quickgui/features/catalog/infrastructure/os_icon_assets.dart';
 /// persisted settings load and finally `runApp` with all DI overrides.
 Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
+  PerfReporter.install();
 
   // Only a minimum size is enforced; the window stays resizable so lists,
   // dialogs and the config editor can use larger screens.

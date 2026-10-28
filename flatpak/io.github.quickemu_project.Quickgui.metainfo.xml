@@ -5,6 +5,9 @@
   <summary>An elegant virtual machine manager for the desktop</summary>
   <metadata_license>MIT</metadata_license>
   <project_license>MIT</project_license>
+  <developer id="io.github.quickemu_project">
+    <name>Quickemu Project</name>
+  </developer>
   <description>
     <p>Quickgui is a graphical user interface for the Quickemu virtual machine
     manager. It enables you to create and manage virtual machines from a

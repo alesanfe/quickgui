@@ -89,6 +89,84 @@ void main() {
       );
       expect(r.operationId, 'op-123');
     });
+
+    // Mutation-killers: each test below exists because a manual mutant
+    // survived the suite. They pin fail-closed and tolerance behavior.
+
+    test('missing success field fails closed (mutant: != false)', () {
+      final raw = envelope().replaceFirst('"success":true,', '');
+      final r = QuickemuResponse.parse(raw, command: 'inspect');
+      expect(r.success, isFalse);
+    });
+
+    test('non-bool success fails closed', () {
+      final raw = envelope().replaceFirst('"success":true', '"success":"yes"');
+      final r = QuickemuResponse.parse(raw, command: 'inspect');
+      expect(r.success, isFalse);
+    });
+
+    test('empty stdout reports EMPTY_RESPONSE, not MALFORMED_JSON', () {
+      expect(
+        () => QuickemuResponse.parse('  ', command: 'inspect', exitCode: 0),
+        throwsA(
+          isA<AppFailure>()
+              .having((f) => f.code, 'code', 'EMPTY_RESPONSE')
+              .having((f) => f.retryable, 'retryable', isTrue),
+        ),
+      );
+    });
+
+    test(
+      'fractional schemaVersion is rejected as missing (mutant: is num)',
+      () {
+        expect(
+          () => QuickemuResponse.parse(
+            envelope(schemaVersion: 1.5),
+            command: 'x',
+          ),
+          throwsA(
+            isA<AppFailure>().having(
+              (f) => f.code,
+              'code',
+              'MISSING_SCHEMA_VERSION',
+            ),
+          ),
+        );
+      },
+    );
+
+    test('non-map items in warnings/errors are skipped, not fatal', () {
+      final r = QuickemuResponse.parse(
+        envelope(
+          warnings: ['a string', 42, null],
+          errors: [
+            {'code': 'VM_NOT_FOUND', 'message': 'm', 'severity': 'error'},
+            'garbage',
+          ],
+        ),
+        command: 'inspect',
+      );
+      expect(r.warnings, isEmpty);
+      expect(r.errors, hasLength(1));
+      expect(r.errors.single.code, 'VM_NOT_FOUND');
+    });
+
+    test('non-bool retryable in messages fails closed', () {
+      final r = QuickemuResponse.parse(
+        envelope(
+          errors: [
+            {
+              'code': 'X',
+              'message': 'm',
+              'severity': 'error',
+              'retryable': 'yes',
+            },
+          ],
+        ),
+        command: 'inspect',
+      );
+      expect(r.errors.single.retryable, isFalse);
+    });
   });
 
   group('contract failures', () {

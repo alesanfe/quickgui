@@ -81,6 +81,7 @@ abstract class AppLog {
   static final vmLifecycle = Logger('vm.lifecycle');
   static final download = Logger('download');
   static final diagnostics = Logger('diagnostics');
+  static final perf = Logger('ui.perf');
 
   /// Structured event helper — writes to the logger and the in-memory
   /// store so diagnostics can export correlated records.

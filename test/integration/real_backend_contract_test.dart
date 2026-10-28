@@ -28,7 +28,10 @@ void main() {
         'guest_os="linux"\ndisk_img="disk.qcow2"\nram="256M"\n',
       );
   });
-  tearDownAll(() => tmp.deleteSync(recursive: true));
+  tearDownAll(() {
+    if (!hasQemu) return;
+    tmp.deleteSync(recursive: true);
+  });
 
   test('capabilities expose the 4.9.9 v1 surface', () async {
     final caps = await backend.getCapabilities();

@@ -100,6 +100,11 @@ VM .conf files are key="value" files: accessed through `VmConfigFileStore`
 
 ## Platform notes
 
+- `tray_manager` links against AppIndicator on Linux: `flutter build linux`
+  needs `libayatana-appindicator3-dev` (or `libappindicator3-dev` on
+  distros without Ayatana). Missing → CMake pkg-config error; tray init
+  itself is best-effort at runtime (headless/unsupported = no tray, no
+  crash). Flatpak builds bundle it in the manifest.
 - Linux uses `xdg-open` for folder opening, macOS uses `open`.
 - macOS app launches have a minimal PATH — `/opt/homebrew/bin` and
   `/usr/local/bin` are probed explicitly in `main()`.

@@ -1,7 +1,7 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quickgui/features/create/presentation/create_page.dart';
@@ -96,6 +96,134 @@ void main() {
         ),
       );
       expect(semantics, isNotEmpty);
+    });
+  });
+
+  // Keyboard/focus traversal — the AT contract requires every action
+  // reachable without a pointer.
+  group('keyboard traversal', () {
+    testWidgets('Tab moves focus through console input and buttons', (
+      tester,
+    ) async {
+      final backend = FakeVirtualizationBackend()
+        ..lastActionResult = ProcessResult(0, 1, '', 'VM_MUST_BE_RUNNING');
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [backendProvider.overrideWithValue(backend)],
+          child: testApp(
+            home: const VmConsolePage(vm: 'x', confPath: '/tmp/x.conf'),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      var moved = 0;
+      String? last;
+      for (var i = 0; i < 12; i++) {
+        await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+        await tester.pump();
+        final node = FocusManager.instance.primaryFocus;
+        final desc = node?.toStringShort() ?? '';
+        if (desc != last) moved++;
+        last = desc;
+      }
+      // Focus must actually travel — a broken traversal keeps the same node.
+      expect(moved, greaterThan(2));
+      expect(FocusManager.instance.primaryFocus, isNotNull);
+    });
+
+    testWidgets('Escape dismisses the shortcuts dialog', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          home: Builder(
+            builder: (context) => FilledButton(
+              onPressed: () => showDialog<void>(
+                context: context,
+                builder: (_) => const ShortcutsDialog(),
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ShortcutsDialog), findsOneWidget);
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pumpAndSettle();
+      expect(find.byType(ShortcutsDialog), findsNothing);
+    });
+  });
+
+  // AT-SPI semantic contract — what Orca/voiceover must observe. Pins the
+  // semantics properties that accessibility tools consume.
+  group('AT-SPI contract', () {
+    testWidgets('state chip exposes live region semantics', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          home: const Scaffold(
+            body: VmDetailsPane(name: 'vm1', state: 'running', conf: {}),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is Semantics && (w.properties.liveRegion ?? false),
+        ),
+        findsWidgets,
+      );
+    });
+
+    testWidgets('icon buttons carry button flag and a11y label', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      final backend = FakeVirtualizationBackend()
+        ..lastActionResult = ProcessResult(0, 1, '', 'VM_MUST_BE_RUNNING');
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [backendProvider.overrideWithValue(backend)],
+          child: testApp(
+            home: const VmConsolePage(vm: 'x', confPath: '/tmp/x.conf'),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      final iconButtons = find.byType(IconButton);
+      expect(iconButtons, findsWidgets);
+      var labelled = 0;
+      final total = tester.widgetList(iconButtons).length;
+      for (var i = 0; i < total; i++) {
+        final node = tester.getSemantics(iconButtons.at(i));
+        final data = node.getSemanticsData();
+        if (data.flagsCollection.isButton &&
+            (data.label.isNotEmpty || data.tooltip.isNotEmpty)) {
+          labelled++;
+        }
+      }
+      // Every icon button Orca can reach must announce a purpose.
+      expect(total, greaterThan(0));
+      expect(labelled, total);
+      semantics.dispose();
+    });
+
+    testWidgets('console text input is a focusable text field', (tester) async {
+      final backend = FakeVirtualizationBackend()
+        ..lastActionResult = ProcessResult(0, 1, '', 'VM_MUST_BE_RUNNING');
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [backendProvider.overrideWithValue(backend)],
+          child: testApp(
+            home: const VmConsolePage(vm: 'x', confPath: '/tmp/x.conf'),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+      expect(find.byWidgetPredicate((w) => w is EditableText), findsOneWidget);
     });
   });
 }

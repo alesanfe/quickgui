@@ -104,9 +104,7 @@ void main() {
             ProcessResult(
               0,
               0,
-              '{"schemaVersion":1,"command":"vm.export",'
-                  '"success":true,"data":{"export":"a b.tar.gz"},'
-                  '"warnings":[],"errors":[],"meta":{}}',
+              '{"schemaVersion":1,"command":"vm.export","success":true,"data":{"export":"a b.tar.gz"},"warnings":[],"errors":[],"meta":{}}',
               '',
             ),
       });

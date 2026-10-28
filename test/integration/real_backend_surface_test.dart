@@ -21,7 +21,10 @@ void main() {
     );
     File('${tmp.path}/disk.qcow2').writeAsStringSync('x');
   });
-  tearDownAll(() => tmp.deleteSync(recursive: true));
+  tearDownAll(() {
+    if (!hasQemu) return;
+    tmp.deleteSync(recursive: true);
+  });
 
   void env(String cmd, List<String> args, {String? expectCommand}) {
     test(cmd, () async {
