@@ -93,7 +93,10 @@ void main() {
       final runner = FakeProcessRunner({
         '$executable ${arguments.join(' ')}': result,
       });
-      expect(await invoke(QuickemuBackend(runner)), same(result));
+      final r = await invoke(QuickemuBackend(runner));
+      expect(r.exitCode, result.exitCode);
+      expect(r.stdout, result.stdout);
+      expect(r.stderr, result.stderr);
       expectInvocation(runner, executable, arguments);
     });
   }
@@ -129,7 +132,10 @@ void main() {
             ProcessResult(0, 0, '', ''),
         'quickemu --vm a b.conf --export a b.tar.gz': raw,
       });
-      expect(await QuickemuBackend(runner).exportVm('a b'), same(raw));
+      final r = await QuickemuBackend(runner).exportVm('a b');
+      expect(r.exitCode, raw.exitCode);
+      expect(r.stdout, raw.stdout);
+      expect(r.stderr, raw.stderr);
       expect(runner.invocations.last.$2, [
         '--vm',
         'a b.conf',
