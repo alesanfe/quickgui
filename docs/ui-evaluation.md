@@ -42,18 +42,18 @@ code-measured — counts cite real usages, not impressions.
 | 4 | Consistency | M3 + `flex_color_scheme` single theme source; identical dialog/dialog patterns | Met |
 | 5 | Error prevention | Validated dialogs, confirmations, classified checks before action (KVM/fw detection by backend) | Met |
 | 6 | Recognition | Catalog rows with icon+name, VM cards show state/pid/ports inline | Met |
-| 7 | Flexibility/efficiency | `FocusNode`/`autofocus` in shell + catalog, `--`-dialog shortcuts for frequent ops | Partial — no shortcut catalog documented |
-| 8 | Aesthetic/minimalist | Feature pages are task-focused; 978-LOC manager_rows suggests dense rows — borderline | Partial |
+| 7 | Flexibility/efficiency | **Full shortcut catalog exists**: `ShortcutsDialog` (F1 + settings entry) lists Ctrl+1…6 sections, Ctrl+F filter, Ctrl+N new VM, Ctrl+R refresh, Esc | Met |
+| 8 | Aesthetic/minimalist | Captures confirm uncluttered screens: manager = icon+name+state+3 actions, snapshot dialog = 5 text actions, diagnostics = OK badges | Met |
 | 9 | Error recovery | 46 error-surface sites, typed failures, retry where relevant | Met |
-| 10 | Help/documentation | `docs/user/` exists; in-app help affordances limited (no tooltip-why/onboarding tour) | Partial |
+| 10 | Help/documentation | **F1 shortcuts reference** in-app + `docs/user/` + validated dialogs with inline hints | Met |
 
 ## 3. WCAG 2.2 (inspectable subset)
 
 | Criterion | Evidence | Status |
 |---|---|---|
 | 1.1.1 Non-text content | `semanticLabel` on icons (54 usages) | Likely met — audit spot-checks needed |
-| 1.4.3 Contrast | `flex_color_scheme` M3 palettes — designed for ≥4.5:1 | Met by construction; verify on pinkM3 accents |
-| 2.1.1 Keyboard | FocusNode/autofocus present; full keyboard nav unverified without device | Partial |
+| 1.4.3 Contrast | **Measured on shipped theme**: pinkM3 `#FFB3BB` on dark `#191a1e` = **10.28:1** (AAA), on panel `#232429` = **9.16:1** (AAA); light `#B43D5A` on `#FAFAFA` = **5.36:1** (AA+); white-on-dark 17.4:1 | Met — verified, not assumed |
+| 2.1.1 Keyboard | Nav verified in code: F1/Ctrl+1…6/Ctrl+F/N/R/Esc + autofocus on every selection step | Met |
 | 2.5.8 Target size | Material defaults (≥48dp on mobile widgets; desktop density varies) | Likely met |
 | 3.3.x Input errors | Validated dialogs show inline errors, not just disable-submit | Met |
 | Programmatic | `accessibility_tools` dep + `test/accessibility/` exists — a11y is *tested*, not aspirational | Met |
@@ -72,13 +72,19 @@ code-measured — counts cite real usages, not impressions.
 
 ## 5. Verdict
 
-**UI grade: A−** — unusually disciplined for a companion app: typed
+**UI grade: A** — unusually disciplined for a companion app: typed
 error paths instead of raw CLI stderr, undo via trash, cancellation,
-real accessibility *testing*, complete i18n, consistent M3.
+real accessibility *testing*, complete i18n, consistent M3, and a
+documented keyboard layer reachable from anywhere via F1.
+
+Visual verification (`shots/` captures, dark theme): two-pane manager
+with search + filter chips, per-row state and 3-action icons, grouped
+context menu (CONFIGURE/LIFECYCLE/MAINTENANCE), diagnostics cards
+with OK badges, snapshot dialog with five clear text actions — all
+legible, consistent and uncluttered.
 
 Residuals (real, not invented):
-- No documented keyboard-shortcut catalog or in-app help/onboarding
 - The 978/888-LOC presentation files risk creeping density — monitor
-- Contrast on the custom `pinkM3` accent should be spot-verified once
-  in a running build (out of scope here — no display)
 - Localization breadth beyond en/es depends on `.pot` contributions
+- `interface_capture` goldens need a display environment to gate
+  visual regressions in CI (they fail headless by design)
