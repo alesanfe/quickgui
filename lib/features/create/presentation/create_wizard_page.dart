@@ -330,7 +330,10 @@ class _CreateWizardPageState extends ConsumerState<CreateWizardPage> {
           ],
           onChanged: (id) {
             if (id == null) return;
-            final p = vmProfiles.firstWhere((e) => e.id == id);
+            final p = vmProfiles.firstWhere(
+              (e) => e.id == id,
+              orElse: () => _profile,
+            );
             setState(() {
               _profile = p;
               if (p.id != 'custom') {

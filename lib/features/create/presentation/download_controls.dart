@@ -343,7 +343,10 @@ class _DownloadControlsState extends ConsumerState<DownloadControls> {
                       if (id == null) return;
                       setState(
                         () => applyProfile(
-                          vmProfiles.firstWhere((p) => p.id == id),
+                          vmProfiles.firstWhere(
+                            (p) => p.id == id,
+                            orElse: () => profile,
+                          ),
                         ),
                       );
                     },

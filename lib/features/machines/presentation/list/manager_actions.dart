@@ -665,7 +665,11 @@ extension on _ManagerState {
       if (quickemuVersion >= Version(4, 9, 6)) {
         StopVm(_backend)(currentVm);
       } else {
-        unawaited(_backend.killVmProcess(currentVm));
+        unawaitedLogged(
+          _backend.killVmProcess(currentVm),
+          AppLog.vmLifecycle,
+          'kill $currentVm',
+        );
       }
       setState(() {
         _activeVms.remove(currentVm);

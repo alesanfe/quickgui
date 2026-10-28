@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:path/path.dart' as p;
+import 'package:quickgui/core/logging/app_logging.dart';
 
 import 'package:quickgui/features/machines/presentation/details/vm_connection_view.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
@@ -140,7 +141,7 @@ class _VmConsolePageState extends ConsumerState<VmConsolePage> {
   void _fallbackToScreendump() {
     _vncSub?.cancel();
     _vncSub = null;
-    unawaited(_vnc?.dispose());
+    unawaitedLogged(_vnc?.dispose(), AppLog.vmLifecycle, 'dispose vnc');
     _vnc = null;
     _vncActive = false;
     _grab();
@@ -242,7 +243,7 @@ class _VmConsolePageState extends ConsumerState<VmConsolePage> {
   void dispose() {
     _timer?.cancel();
     _vncSub?.cancel();
-    unawaited(_vnc?.dispose());
+    unawaitedLogged(_vnc?.dispose(), AppLog.vmLifecycle, 'dispose vnc');
     _text.dispose();
     _frame?.dispose();
     super.dispose();

@@ -1,6 +1,5 @@
-import 'dart:async';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:quickgui/core/logging/app_logging.dart';
 import 'package:quickgui/features/settings/application/update_settings.dart';
 import 'package:quickgui/features/settings/domain/settings_state.dart';
 import 'package:quickgui/shared/providers/preferences_providers.dart';
@@ -24,7 +23,11 @@ class SettingsController extends Notifier<SettingsState> {
   void _update(SettingsState next) {
     if (next == state) return;
     state = next;
-    unawaited(UpdateSettings(ref.read(preferencesRepositoryProvider))(next));
+    unawaitedLogged(
+      UpdateSettings(ref.read(preferencesRepositoryProvider))(next),
+      AppLog.preferences,
+      'persist settings',
+    );
   }
 }
 

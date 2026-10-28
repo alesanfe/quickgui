@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:version/version.dart';
+import 'package:quickgui/core/logging/app_logging.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
 import 'package:quickgui/features/machines/application/structured_or_legacy.dart';
 import 'package:quickgui/features/machines/application/stop_vm.dart';
@@ -68,7 +69,11 @@ Future<VmStopChoice> showStopVmDialog(
     if (quickemuVersion >= Version(4, 9, 6)) {
       await StopVm(backend)(vm);
     } else {
-      unawaited(backend.killVmProcess(vm));
+      unawaitedLogged(
+        backend.killVmProcess(vm),
+        AppLog.vmLifecycle,
+        'kill $vm',
+      );
     }
     return VmStopChoice.killed;
   }

@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quickgui/core/constants/preference_keys.dart';
 import 'package:quickgui/core/errors/app_failure.dart';
 import 'package:quickgui/core/extensions/preferences_repository_x.dart';
+import 'package:quickgui/core/logging/app_logging.dart';
 import 'package:quickgui/features/activity/domain/app_operation.dart';
 import 'package:quickgui/features/machines/application/structured_or_legacy.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
@@ -42,7 +43,7 @@ class ActivityController extends Notifier<ActivityState> {
 
   @override
   ActivityState build() {
-    unawaited(_restore());
+    unawaitedLogged(_restore(), AppLog.preferences, 'restore activity');
     return const ActivityState();
   }
 
@@ -77,7 +78,7 @@ class ActivityController extends Notifier<ActivityState> {
       active: state.active,
       history: [...state.history, ...history].take(_historyLimit).toList(),
     );
-    unawaited(reconcile());
+    unawaitedLogged(reconcile(), AppLog.preferences, 'reconcile activity');
   }
 
   /// Re-checks interrupted history entries against the backend: an op
@@ -144,7 +145,7 @@ class ActivityController extends Notifier<ActivityState> {
     }
     if (!changed || !ref.mounted) return;
     state = ActivityState(active: state.active, history: history);
-    unawaited(_persist());
+    unawaitedLogged(_persist(), AppLog.preferences, 'persist activity');
   }
 
   OperationHistoryEntry? _decode(String raw) {
@@ -180,7 +181,7 @@ class ActivityController extends Notifier<ActivityState> {
       active: [op, ...state.active],
       history: state.history,
     );
-    unawaited(_persistActive());
+    unawaitedLogged(_persistActive(), AppLog.preferences, 'persist active ops');
     // Push stream: op-state events keep this op's progress live
     // without any --op-list polling.
     startOperationWatch(target);
@@ -328,7 +329,7 @@ class ActivityController extends Notifier<ActivityState> {
           ...state.history,
         ].take(_historyLimit).toList(),
       );
-      unawaited(_persist());
+      unawaitedLogged(_persist(), AppLog.preferences, 'persist activity');
     } else {
       // New list instance so Riverpod notifies listeners.
       state = ActivityState(active: [...state.active], history: state.history);
@@ -367,7 +368,7 @@ class ActivityController extends Notifier<ActivityState> {
         ...state.history,
       ].take(_historyLimit).toList(),
     );
-    unawaited(_persist());
+    unawaitedLogged(_persist(), AppLog.preferences, 'persist activity');
   }
 
   /// Marks an in-flight operation as interrupted — the outcome could
@@ -408,7 +409,7 @@ class ActivityController extends Notifier<ActivityState> {
       active: state.active.where((o) => o.id != op.id).toList(),
       history: state.history,
     );
-    unawaited(_persistActive());
+    unawaitedLogged(_persistActive(), AppLog.preferences, 'persist active ops');
   }
 
   Future<void> cancel(AppOperation op) async {
@@ -420,7 +421,7 @@ class ActivityController extends Notifier<ActivityState> {
 
   void clearHistory() {
     state = ActivityState(active: state.active);
-    unawaited(_persist());
+    unawaitedLogged(_persist(), AppLog.preferences, 'persist activity');
   }
 
   Future<void> _persist() async {

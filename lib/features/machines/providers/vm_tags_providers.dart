@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quickgui/core/constants/preference_keys.dart';
 import 'package:quickgui/core/extensions/preferences_repository_x.dart';
+import 'package:quickgui/core/logging/app_logging.dart';
 import 'package:quickgui/shared/providers/preferences_providers.dart';
 
 /// User-defined grouping tags per VM. Persisted as a JSON map
@@ -11,7 +12,7 @@ import 'package:quickgui/shared/providers/preferences_providers.dart';
 class VmTagsController extends Notifier<Map<String, List<String>>> {
   @override
   Map<String, List<String>> build() {
-    unawaited(_load());
+    unawaitedLogged(_load(), AppLog.preferences, 'load vm tags');
     return const {};
   }
 

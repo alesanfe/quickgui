@@ -1,4 +1,21 @@
+import 'dart:async';
+
 import 'package:logging/logging.dart';
+
+/// Fire-and-forget wrapper for best-effort futures. A bare
+/// `unawaited()` leaves a rejection unhandled — it escapes to the
+/// zone as an opaque async error and is logged nowhere useful. This
+/// routes the failure to the structured logger instead, so dropped
+/// work is at least diagnosable.
+void unawaitedLogged(Future<Object?>? future, Logger logger, String what) {
+  unawaited(() async {
+    try {
+      await future;
+    } catch (e) {
+      logger.warning('$what failed: $e');
+    }
+  }());
+}
 
 /// One structured log record kept in the bounded in-memory store.
 class AppLogRecord {

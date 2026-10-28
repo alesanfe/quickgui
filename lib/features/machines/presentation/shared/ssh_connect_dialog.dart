@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:quickgui/core/extensions/preferences_repository_x.dart';
+import 'package:quickgui/core/logging/app_logging.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
 import 'package:quickgui/features/settings/application/ports/preferences_repository.dart';
 
@@ -37,7 +38,11 @@ Future<void> showSshConnectDialog(
             // Remove the stale known_hosts entry, e.g.
             // when a new guest reuses the SSH port of a
             // deleted VM.
-            unawaited(backend.forgetSshHostKey(sshPort));
+            unawaitedLogged(
+              backend.forgetSshHostKey(sshPort),
+              AppLog.vmLifecycle,
+              'forget ssh key :$sshPort',
+            );
           },
           child: Text(context.t('Forget host key')),
         ),
@@ -54,11 +59,13 @@ Future<void> showSshConnectDialog(
   );
   if (result != true) return;
   await prefs.set('sshUser_$vm', usernameController.text);
-  unawaited(
+  unawaitedLogged(
     backend.connectSsh(
       terminalEmulator: terminalEmulator,
       user: usernameController.text,
       sshPort: sshPort,
     ),
+    AppLog.vmLifecycle,
+    'ssh :$sshPort',
   );
 }

@@ -333,11 +333,13 @@ extension on _ManagerState {
               ),
               onPressed: () {
                 final tags = ref.read(vmTagsProvider.notifier);
-                if (tags.tagsFor(currentVm).contains('_favorite')) {
-                  tags.removeTag(currentVm, '_favorite');
-                } else {
-                  tags.addTag(currentVm, '_favorite');
-                }
+                unawaitedLogged(
+                  tags.tagsFor(currentVm).contains('_favorite')
+                      ? tags.removeTag(currentVm, '_favorite')
+                      : tags.addTag(currentVm, '_favorite'),
+                  AppLog.preferences,
+                  'toggle favorite $currentVm',
+                );
               },
             ),
             if (_cards) ...[
@@ -432,7 +434,11 @@ extension on _ManagerState {
                       ),
                     );
                   case 'folder':
-                    unawaited(_backend.openVmFolder(currentVm));
+                    unawaitedLogged(
+                      _backend.openVmFolder(currentVm),
+                      AppLog.vmLifecycle,
+                      'open folder $currentVm',
+                    );
                   case 'snapshot':
                     _manageSnapshot(context, currentVm);
                   case 'shared':
@@ -883,8 +889,10 @@ extension on _ManagerState {
                 onPressed: !_spicy || vmInfo.spicePort == null
                     ? null
                     : () {
-                        unawaited(
+                        unawaitedLogged(
                           _backend.launchSpiceViewer(vmInfo.spicePort!),
+                          AppLog.vmLifecycle,
+                          'spice viewer :${vmInfo.spicePort!}',
                         );
                       },
               ),
@@ -934,8 +942,10 @@ extension on _ManagerState {
                                   // Remove the stale known_hosts entry, e.g.
                                   // when a new guest reuses the SSH port of a
                                   // deleted VM.
-                                  unawaited(
+                                  unawaitedLogged(
                                     _backend.forgetSshHostKey(vmInfo.sshPort!),
+                                    AppLog.vmLifecycle,
+                                    'forget ssh key :${vmInfo.sshPort!}',
                                   );
                                 },
                                 child: Text(context.t('Forget host key')),
@@ -958,12 +968,14 @@ extension on _ManagerState {
                               'sshUser_$currentVm',
                               usernameController.text,
                             );
-                            unawaited(
+                            unawaitedLogged(
                               _backend.connectSsh(
                                 terminalEmulator: _terminalEmulator!,
                                 user: usernameController.text,
                                 sshPort: vmInfo.sshPort!,
                               ),
+                              AppLog.vmLifecycle,
+                              'ssh :${vmInfo.sshPort!}',
                             );
                           }
                         });
