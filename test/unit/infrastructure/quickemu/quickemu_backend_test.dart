@@ -226,6 +226,61 @@ void main() {
     expect(runner.calls, isEmpty);
   });
 
+  // The .pid file is untrusted content: "-1" makes `kill -9 -1` signal
+  // every process of the user, and a name like "-i" turns the killall
+  // fallback into an option. Both must be validated before reaching argv.
+  group('killVmProcess arg safety', () {
+    late Directory dir;
+    late Directory original;
+    setUp(() {
+      original = Directory.current;
+      dir = Directory.systemTemp.createTempSync('qg-kill-');
+      Directory.current = dir;
+    });
+    tearDown(() {
+      Directory.current = original;
+      dir.deleteSync(recursive: true);
+    });
+
+    for (final badPid in ['-1', '0', 'abc', '12x']) {
+      test('pidfile "$badPid" never reaches kill argv', () async {
+        Directory('vm').createSync();
+        File('vm/vm.pid').writeAsStringSync(badPid);
+        final runner = FakeProcessRunner({});
+        await QuickemuBackend(runner).killVmProcess('vm');
+        for (final inv in runner.invocations) {
+          expect(
+            inv.$2,
+            isNot(contains(badPid)),
+            reason: 'malformed pid must not be a kill operand',
+          );
+        }
+        // Malformed pidfile falls back to name-based kill, preserving
+        // the recovery path for a torn pid write.
+        expect(
+          runner.invocations.map((i) => '${i.$1} ${i.$2.join(' ')}').toList(),
+          ['killall vm'],
+        );
+      });
+    }
+
+    test('absent pidfile keeps the killall fallback', () async {
+      Directory('vm').createSync();
+      final runner = FakeProcessRunner({});
+      await QuickemuBackend(runner).killVmProcess('vm');
+      expect(
+        runner.invocations.map((i) => '${i.$1} ${i.$2.join(' ')}').toList(),
+        ['killall vm'],
+      );
+    });
+
+    test('killall fallback rejects an option-looking vm name', () async {
+      final runner = FakeProcessRunner({});
+      await QuickemuBackend(runner).killVmProcess('-i');
+      expect(runner.invocations, isEmpty);
+    });
+  });
+
   test('structured catalogue avoids the legacy subprocess', () async {
     final runner = FakeProcessRunner({
       'quickget --list-json': ProcessResult(0, 0, '[]', ''),

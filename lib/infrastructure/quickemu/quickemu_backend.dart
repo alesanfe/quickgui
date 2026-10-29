@@ -446,14 +446,56 @@ class QuickemuBackend implements VirtualizationBackend {
   Future<ProcResult> verifyImage(String isoPath) =>
       _proc(_process.chunkcheck(isoPath));
 
+  /// A .pid file is untrusted content: "-1" turns `kill -9` into a
+  /// signal for every process of the user, and non-numeric values are
+  /// meaningless. Digits only, then a positive pid.
+  static int? _safePid(String raw) {
+    if (!RegExp(r'^\d+$').hasMatch(raw)) return null;
+    final pid = int.tryParse(raw);
+    return pid != null && pid > 0 ? pid : null;
+  }
+
+  /// On Linux the VM's qemu always carries its state dir in argv — a
+  /// recycled pid running something else must not be killed. When the
+  /// kernel hides cmdline (non-linux, permissions) the caller keeps
+  /// the previous liveness-only behavior.
+  static bool _pidLooksLikeVm(int pid, String vmName) {
+    try {
+      final cl = File('/proc/$pid/cmdline')
+          .readAsStringSync()
+          .replaceAll('\x00', ' ');
+      if (cl.isEmpty) return true;
+      return cl.contains('/$vmName/') ||
+          cl.contains('process=$vmName,') ||
+          cl.endsWith('process=$vmName');
+    } catch (_) {
+      return true;
+    }
+  }
+
   @override
   Future<ProcResult> killVmProcess(String vmName) {
     // Kill by pid from <vm>/<vm>.pid — `killall <name>` matches by process
     // name and can hit unrelated processes.
     final pidFile = File('$vmName/$vmName.pid');
     if (pidFile.existsSync()) {
-      final pid = pidFile.readAsStringSync().trim();
-      if (pid.isNotEmpty) return _proc(_runner.run('kill', ['-9', pid]));
+      final pid = _safePid(pidFile.readAsStringSync().trim());
+      if (pid != null) {
+        if (!_pidLooksLikeVm(pid, vmName)) {
+          return Future.value(
+            const ProcResult(1, '', 'pid does not belong to this VM'),
+          );
+        }
+        return _proc(_runner.run('kill', ['-9', '$pid']));
+      }
+      // Malformed pidfile (torn write or hostile content): the pid
+      // never reaches kill argv — fall through to the name-based
+      // recovery path instead.
+    }
+    // killall treats a leading-dash name as an option — spaces are
+    // fine (single argv element), an option-looking name is not.
+    if (vmName.isEmpty || vmName.startsWith('-')) {
+      return Future.value(const ProcResult(1, '', 'invalid vm name'));
     }
     return _proc(_runner.run('killall', [vmName]));
   }
