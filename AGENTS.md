@@ -65,7 +65,7 @@ flutter build linux|macos   # release build
 ## External tool integration
 
 All external commands (quickget, quickemu, quickreport, spicy, ssh-keygen,
-chunkcheck, tar, xdg-open/open) MUST go through `runHost()` / `hostWrap()`
+`quickget chunkcheck`, tar, xdg-open/open) MUST go through `runHost()` / `hostWrap()`
 in `lib/infrastructure/process/host_process.dart` so they escape the Flatpak
 sandbox via `flatpak-spawn --host` when needed. Never call
 `Process.run`/`Shell().run` with a bare command for these tools.

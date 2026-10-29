@@ -65,8 +65,8 @@ void main() {
           (b) => b.runQuickget(['ubuntu', '24.04', 'desktop']),
         ),
         (
-          'chunkcheck',
-          ['image ; echo bad.iso'],
+          'quickget',
+          ['chunkcheck', 'image ; echo bad.iso'],
           (b) => b.verifyImage('image ; echo bad.iso'),
         ),
         ('killall', ['a b'], (b) => b.killVmProcess('a b')),

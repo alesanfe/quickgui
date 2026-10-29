@@ -47,7 +47,7 @@ Generated from `assets/capabilities/capability_manifest.json` by `tool/generate_
 | `vm.disk.compact` | disks | `--disk-compact` | vm_menu.maintenance.disk_compact | 1 | Sí |
 | `vm.disk.create` | disks | `--create-disk` | — | 0 | Pendiente |
 | `vm.disk.resizeCommit` | disks | `--resize-commit` | — | 0 | Pendiente |
-| `vm.image.verify` | disks | `chunkcheck` | vm_menu.maintenance.verify_image | 1 | Sí |
+| `vm.image.verify` | disks | `quickget chunkcheck` | vm_menu.maintenance.verify_image | 1 | Sí |
 | `vm.monitor.cmd` | monitor | `--monitor-cmd` | vm_menu.maintenance.monitor_cmd | 1 | Sí |
 | `vm.input.sendKeys` | monitor | `--send-keys` | vm_menu.maintenance.send_keys | 1 | Sí |
 | `vm.input.type` | monitor | `--type` | vm_menu.maintenance.type_text | 1 | Sí |

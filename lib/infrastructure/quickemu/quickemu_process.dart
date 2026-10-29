@@ -18,7 +18,7 @@ class QuickemuProcess {
   Future<ProcessResult> quickreport() => _runner.run(quickreportBinary, []);
 
   Future<ProcessResult> chunkcheck(String isoPath) =>
-      _runner.run(chunkcheckBinary, [isoPath]);
+      _runner.run(quickgetBinary, [...chunkcheckSubcommand, isoPath]);
 
   Future<Process> startQuickget(List<String> arguments) =>
       _runner.start(quickgetBinary, arguments);
