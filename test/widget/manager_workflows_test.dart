@@ -435,6 +435,23 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  // .ports is external file content — a comma-less or empty-value line
+  // must not crash the parser (parts[1] RangeError) nor register a
+  // bogus port; valid entries keep working.
+  testWidgets('malformed ports file lines are skipped without crashing', (
+    tester,
+  ) async {
+    backend.states = {
+      'linux-test': {'state': 'running'},
+    };
+    Directory('linux-test').createSync();
+    File('linux-test/linux-test.ports')
+        .writeAsStringSync('ssh\nspice,5930\nssh,\n');
+    await open(tester);
+    expect(find.textContaining('SPICE port: 5930'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('app lifecycle pause and resume keeps the list stable', (
     tester,
   ) async {

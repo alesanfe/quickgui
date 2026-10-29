@@ -494,9 +494,19 @@ class QuickemuBackend implements VirtualizationBackend {
           );
   }
 
+  /// sshPort comes from the VM's .ports file — untrusted content that
+  /// lands in a `sh -c` string (connectSsh) or an argv element
+  /// (forgetSshHostKey). Only a plain numeric port is ever valid.
+  static bool _validPort(String port) =>
+      RegExp(r'^\d{1,5}$').hasMatch(port) && (int.tryParse(port) ?? 0) <= 65535;
+
   @override
-  Future<ProcResult> forgetSshHostKey(String sshPort) =>
-      _proc(_runner.run('ssh-keygen', ['-R', '[localhost]:$sshPort']));
+  Future<ProcResult> forgetSshHostKey(String sshPort) {
+    if (!_validPort(sshPort)) {
+      return Future.value(const ProcResult(1, '', 'invalid ssh port'));
+    }
+    return _proc(_runner.run('ssh-keygen', ['-R', '[localhost]:$sshPort']));
+  }
 
   @override
   Future<ProcResult> connectSsh({
@@ -506,9 +516,13 @@ class QuickemuBackend implements VirtualizationBackend {
   }) {
     // The ssh user comes from the VM .conf and is interpolated into a
     // `sh -c` string — reject anything that is not a plain login name.
+    // sshPort is likewise file content interpolated into that string.
     final safeUser = RegExp(r'^[a-zA-Z_][a-zA-Z0-9_.-]*$').hasMatch(user)
         ? user
         : '';
+    if (!_validPort(sshPort)) {
+      return Future.value(const ProcResult(1, '', 'invalid ssh port'));
+    }
     var sshArgs = <String>[
       'ssh',
       '-p',

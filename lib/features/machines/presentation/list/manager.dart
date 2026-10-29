@@ -207,6 +207,11 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
       final List<String> lines = portsFile.readAsLinesSync();
       for (final line in lines) {
         final List<String> parts = line.split(',');
+        // .ports is external content — a comma-less line must not
+        // crash on parts[1], and a trailing empty field is no value.
+        if (parts.length < 2 || parts[1].isEmpty) {
+          continue;
+        }
         switch (parts[0]) {
           case 'ssh':
             info.sshPort = parts[1];

@@ -200,6 +200,32 @@ void main() {
     }
   }
 
+  // sshPort lands inside a `sh -c` command string — a non-numeric port
+  // from a hostile .ports file would inject shell commands. The sink
+  // must reject it before the terminal invocation is even built.
+  for (final badPort in [
+    '2222;touch /tmp/x',
+    '22 -oProxyCommand=x',
+    '',
+    'port',
+  ]) {
+    test('connectSsh rejects port "$badPort" before the shell', () async {
+      final runner = FakeProcessRunner({});
+      final r = await QuickemuBackend(
+        runner,
+      ).connectSsh(terminalEmulator: 'xterm', user: 'alice', sshPort: badPort);
+      expect(r.exitCode, isNot(0));
+      expect(runner.calls, isEmpty, reason: 'port must never reach sh -c');
+    });
+  }
+
+  test('forgetSshHostKey rejects a non-numeric port', () async {
+    final runner = FakeProcessRunner({});
+    final r = await QuickemuBackend(runner).forgetSshHostKey('22 -F /etc/x');
+    expect(r.exitCode, isNot(0));
+    expect(runner.calls, isEmpty);
+  });
+
   test('structured catalogue avoids the legacy subprocess', () async {
     final runner = FakeProcessRunner({
       'quickget --list-json': ProcessResult(0, 0, '[]', ''),
