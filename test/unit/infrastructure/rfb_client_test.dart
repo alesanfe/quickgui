@@ -8,6 +8,10 @@ import 'package:quickgui/infrastructure/vnc/rfb_client.dart';
 /// A minimal in-process RFB server: completes the handshake with canned
 /// bytes, records what the client sends, and replays scripted server
 /// messages.
+///
+/// Handshake bytes the server *reads* (client version, security choice,
+/// ClientInit) are consumed on a private buffer so they can never race
+/// with the test-side take/takeMessage reads on [received].
 class MockRfbServer {
   MockRfbServer._(this.server);
 
@@ -39,22 +43,97 @@ class MockRfbServer {
     }
     final all = received.toBytes();
     received.clear();
+    if (all.length > n) received.add(all.sublist(n));
     return Uint8List.fromList(all.sublist(0, n));
   }
 
-  /// Runs the scripted server side of the session.
+  /// Reads the next client→server message of type [type], discarding
+  /// any other message types (the client's periodic
+  /// FramebufferUpdateRequests interleave otherwise).
+  Future<Uint8List> takeMessage(int type) async {
+    for (;;) {
+      final t = (await take(1))[0];
+      switch (t) {
+        case 0: // SetPixelFormat — fixed 19B tail
+          final rest = await take(19);
+          if (t == type) return Uint8List.fromList([t, ...rest]);
+        case 2: // SetEncodings — 3B pad+count, then count u32s
+          final hdr = await take(3);
+          final count = ByteData.sublistView(hdr).getUint16(1);
+          final body = await take(count * 4);
+          if (t == type) {
+            return Uint8List.fromList([t, ...hdr, ...body]);
+          }
+        case 3: // FramebufferUpdateRequest — fixed 9B tail; skip
+          await take(9);
+        case 4: // KeyEvent — fixed 7B tail
+          final rest = await take(7);
+          if (t == type) return Uint8List.fromList([t, ...rest]);
+        case 5: // PointerEvent — fixed 5B tail
+          final rest = await take(5);
+          if (t == type) return Uint8List.fromList([t, ...rest]);
+        case 6: // ClientCutText — 7B pad+len, then len bytes
+          final hdr = await take(7);
+          final len = ByteData.sublistView(hdr).getUint32(3);
+          final body = await take(len);
+          if (t == type) {
+            return Uint8List.fromList([t, ...hdr, ...body]);
+          }
+        default:
+          throw StateError('unknown client message type $t');
+      }
+    }
+  }
+
+  /// Runs the scripted server side of the session. Handshake bytes are
+  /// read from a private inbox — never [received].
   void serve({required List<int> serverInitTail}) {
-    server.listen((sock) async {
+    server.listen((sock) {
       client = sock;
-      sock.listen(_push);
-      sock.add('RFB 003.008\n'.codeUnits);
-      await take(12); // client version
-      sock.add([2, 1, 2]); // two security types: None + VNC-auth
-      await take(1); // client picks 1
-      sock.add([0, 0, 0, 0]); // SecurityResult OK
-      await take(1); // ClientInit
-      sock.add(serverInitTail); // ServerInit
-      // then read SetPixelFormat (20B) + SetEncodings (12B)
+      var forwarded = false;
+      final inbox = BytesBuilder(copy: false);
+      final inboxWaiters = <Completer<void>>[];
+
+      Future<Uint8List> readWire(int n) async {
+        while (inbox.length < n) {
+          final c = Completer<void>();
+          inboxWaiters.add(c);
+          await c.future;
+        }
+        final all = inbox.toBytes();
+        inbox.clear();
+        if (all.length > n) inbox.add(all.sublist(n));
+        return Uint8List.fromList(all.sublist(0, n));
+      }
+
+      sock.listen((d) {
+        if (forwarded) {
+          _push(d);
+          return;
+        }
+        inbox.add(d);
+        for (final w in List<Completer<void>>.of(inboxWaiters)) {
+          if (!w.isCompleted) w.complete();
+        }
+        inboxWaiters.clear();
+      });
+
+      () async {
+        sock.add('RFB 003.008\n'.codeUnits);
+        await readWire(12); // client version
+        sock.add([2, 1, 2]); // two security types: None + VNC-auth
+        await readWire(1); // client picks 1
+        sock.add([0, 0, 0, 0]); // SecurityResult OK
+        await readWire(1); // ClientInit
+        sock.add(serverInitTail); // ServerInit
+        forwarded = true;
+        // Any surplus already-read bytes belong to the post-handshake
+        // stream — hand them to received.
+        if (inbox.length > 0) {
+          _push(inbox.toBytes());
+          inbox.clear();
+        }
+      }();
     });
   }
 
@@ -112,16 +191,14 @@ void main() {
     expect(client.height, 480);
     expect(client.serverName, 'vm1');
     // Client must have picked security type 1 (None).
-    final fmt = await server.take(20);
-    expect(fmt[0], 0); // SetPixelFormat
+    final fmt = await server.takeMessage(0);
     expect(fmt[4], 32); // bpp
     expect(fmt[5], 24); // depth
     expect(fmt[7], 1); // trueColour
     expect(fmt[14], 16); // rshift
     expect(fmt[15], 8); // gshift
     expect(fmt[16], 0); // bshift
-    final enc = await server.take(12);
-    expect(enc[0], 2); // SetEncodings
+    final enc = await server.takeMessage(2);
     expect(enc.sublist(4, 8), [0, 0, 0, 0]); // Raw
     expect(enc.sublist(8, 12), [0, 0, 0, 1]); // CopyRect
   });
@@ -161,14 +238,12 @@ void main() {
   test('sendKey and sendPointer emit wire-format events', () async {
     server.serve(serverInitTail: serverInit());
     await client.connect('127.0.0.1', server.port);
-    await server.take(32); // consume fmt+enc
     client.sendKey(Keysyms.enter, down: true);
-    final key = await server.take(8);
-    expect(key[0], 4);
-    expect(key[1], 1);
+    final key = await server.takeMessage(4);
+    expect(key[1], 1); // down
     expect(ByteData.sublistView(key).getUint32(4), Keysyms.enter);
     client.sendPointer(1 | 4, 300, 200);
-    final ptr = await server.take(6);
+    final ptr = await server.takeMessage(5);
     expect(ptr, [5, 5, 1, 44, 0, 200]);
   });
 

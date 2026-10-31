@@ -1573,11 +1573,188 @@ msgstr "Abrir esta referencia de atajos"
 msgid "Refresh the machines list"
 msgstr "Actualizar la lista de máquinas"
 
-msgid "Switch between the six sections"
-msgstr "Cambiar entre las seis secciones"
+msgid "Switch between the seven sections"
+msgstr "Cambiar entre las siete secciones"
 
-msgid "Ctrl+1…6"
+msgid "Ctrl+1…7"
 msgstr "Ctrl+1…6"
 
 msgid "Unsupported file type for drop: {0}"
 msgstr "Tipo de archivo no soportado para soltar: {0}"
+
+msgid "Automation"
+msgstr "Automatización"
+
+msgid "Automation run"
+msgstr "Ejecución de automatización"
+
+msgid "Describe the machine you want; quickprovision obtains the image, installs it, provisions it, verifies the result and seals a snapshot — a ready-to-use VM appears in Machines."
+msgstr "Describe la máquina que quieres; quickprovision obtiene la imagen, la instala, la provisiona, verifica el resultado y sella un snapshot — una VM lista para usar aparece en Máquinas."
+
+msgid "Machine"
+msgstr "Máquina"
+
+msgid "Name"
+msgstr "Nombre"
+
+msgid "Hostname"
+msgstr "Nombre de host"
+
+msgid "Username"
+msgstr "Usuario"
+
+msgid "SSH timeout (min)"
+msgstr "Tiempo de espera SSH (min)"
+
+msgid "Packages (comma separated)"
+msgstr "Paquetes (separados por comas)"
+
+msgid "Services to enable (comma separated)"
+msgstr "Servicios a habilitar (separados por comas)"
+
+msgid "Post-install checks"
+msgstr "Comprobaciones post-instalación"
+
+msgid "Shut down when done"
+msgstr "Apagar al terminar"
+
+msgid "Snapshot name"
+msgstr "Nombre del snapshot"
+
+msgid "Preview plan"
+msgstr "Vista previa del plan"
+
+msgid "Start automation run"
+msgstr "Iniciar ejecución de automatización"
+
+msgid "quickprovision could not resolve this profile."
+msgstr "quickprovision no pudo resolver este perfil."
+
+msgid "The quickprovision binary was not found on PATH."
+msgstr "No se encontró el binario quickprovision en PATH."
+
+msgid "Automation runs need the quickprovision engine that ships with quickemu. Install or update quickemu and try again."
+msgstr "Las ejecuciones de automatización necesitan el motor quickprovision incluido con quickemu. Instala o actualiza quickemu e inténtalo de nuevo."
+
+msgid "Plan — {0}"
+msgstr "Plan — {0}"
+
+msgid "Checks"
+msgstr "Comprobaciones"
+
+msgid "Event log"
+msgstr "Registro de eventos"
+
+msgid "Cancel run"
+msgstr "Cancelar ejecución"
+
+msgid "Resume run"
+msgstr "Reanudar ejecución"
+
+msgid "New run"
+msgstr "Nueva ejecución"
+
+msgid "Open in Machines"
+msgstr "Abrir en Máquinas"
+
+msgid "Idle"
+msgstr "Inactivo"
+
+msgid "Guest addresses"
+msgstr "Direcciones del invitado"
+
+msgid "The guest agent is not answering — install and enable qemu-guest-agent inside the guest to see its network addresses."
+msgstr "El agente del invitado no responde — instala y activa qemu-guest-agent dentro del invitado para ver sus direcciones de red."
+
+msgid "No address reported yet — the guest may still be booting."
+msgstr "Aún no se ha informado de ninguna dirección — es posible que el invitado siga arrancando."
+
+msgid "The address query failed — refresh to retry."
+msgstr "La consulta de direcciones falló — actualiza para reintentar."
+
+msgid "Address copied"
+msgstr "Dirección copiada"
+
+msgid "IPv4"
+msgstr "IPv4"
+
+msgid "IPv6"
+msgstr "IPv6"
+
+msgid "Health"
+msgstr "Salud"
+
+msgid "Machine state"
+msgstr "Estado de la máquina"
+
+msgid "Guest agent"
+msgstr "Agente del invitado"
+
+msgid "This backend cannot query the agent."
+msgstr "Este backend no puede consultar el agente."
+
+msgid "Forwarded ports"
+msgstr "Puertos redirigidos"
+
+msgid "SPICE/SSH port forwards registered."
+msgstr "Redirecciones de puertos SPICE/SSH registradas."
+
+msgid "No forwarded ports registered yet."
+msgstr "Aún no hay puertos redirigidos registrados."
+
+msgid "Host disk space"
+msgstr "Espacio en disco del anfitrión"
+
+msgid "Free space unknown."
+msgstr "Espacio libre desconocido."
+
+msgid "{0} GiB free."
+msgstr "{0} GiB libres."
+
+msgid "Recent issues"
+msgstr "Problemas recientes"
+
+msgid "No crashes or failed operations in the last 24 h."
+msgstr "Sin fallos ni operaciones fallidas en las últimas 24 h."
+
+msgid "{0} journal event(s) need attention (24 h)."
+msgstr "{0} evento(s) del journal requieren atención (24 h)."
+
+msgid "Stale — the process exited unexpectedly."
+msgstr "Obsoleto — el proceso terminó inesperadamente."
+
+msgid "Answering — network details available."
+msgstr "Responde — detalles de red disponibles."
+
+msgid "Up, but no network address yet."
+msgstr "Activo, pero aún sin dirección de red."
+
+msgid "Not answering — qemu-guest-agent missing or stopped."
+msgstr "No responde — qemu-guest-agent ausente o detenido."
+
+msgid "Connect via"
+msgstr "Conectar mediante"
+
+msgid "Forwarded port (localhost:{0})"
+msgstr "Puerto redirigido (localhost:{0})"
+
+msgid "Guest address {0}"
+msgstr "Dirección del invitado {0}"
+
+msgid "Guest SSH port"
+msgstr "Puerto SSH del invitado"
+
+msgid "Command copied"
+msgstr "Comando copiado"
+
+msgid "Copy command"
+msgstr "Copiar comando"
+
+msgid "{0} machines"
+msgstr "{0} máquinas"
+
+msgid "Pause the virtual machine"
+msgstr "Pausar la máquina virtual"
+
+msgid "Resume the virtual machine"
+msgstr "Reanudar la máquina virtual"

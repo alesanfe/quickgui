@@ -1544,3 +1544,102 @@ msgstr "Ctrl+1…6"
 
 msgid "Unsupported file type for drop: {0}"
 msgstr "Unsupported file type for drop: {0}"
+
+msgid "Guest addresses"
+msgstr "Guest addresses"
+
+msgid "The guest agent is not answering — install and enable qemu-guest-agent inside the guest to see its network addresses."
+msgstr "The guest agent is not answering — install and enable qemu-guest-agent inside the guest to see its network addresses."
+
+msgid "No address reported yet — the guest may still be booting."
+msgstr "No address reported yet — the guest may still be booting."
+
+msgid "The address query failed — refresh to retry."
+msgstr "The address query failed — refresh to retry."
+
+msgid "Address copied"
+msgstr "Address copied"
+
+msgid "IPv4"
+msgstr "IPv4"
+
+msgid "IPv6"
+msgstr "IPv6"
+
+msgid "Health"
+msgstr "Health"
+
+msgid "Machine state"
+msgstr "Machine state"
+
+msgid "Guest agent"
+msgstr "Guest agent"
+
+msgid "This backend cannot query the agent."
+msgstr "This backend cannot query the agent."
+
+msgid "Forwarded ports"
+msgstr "Forwarded ports"
+
+msgid "SPICE/SSH port forwards registered."
+msgstr "SPICE/SSH port forwards registered."
+
+msgid "No forwarded ports registered yet."
+msgstr "No forwarded ports registered yet."
+
+msgid "Host disk space"
+msgstr "Host disk space"
+
+msgid "Free space unknown."
+msgstr "Free space unknown."
+
+msgid "{0} GiB free."
+msgstr "{0} GiB free."
+
+msgid "Recent issues"
+msgstr "Recent issues"
+
+msgid "No crashes or failed operations in the last 24 h."
+msgstr "No crashes or failed operations in the last 24 h."
+
+msgid "{0} journal event(s) need attention (24 h)."
+msgstr "{0} journal event(s) need attention (24 h)."
+
+msgid "Stale — the process exited unexpectedly."
+msgstr "Stale — the process exited unexpectedly."
+
+msgid "Answering — network details available."
+msgstr "Answering — network details available."
+
+msgid "Up, but no network address yet."
+msgstr "Up, but no network address yet."
+
+msgid "Not answering — qemu-guest-agent missing or stopped."
+msgstr "Not answering — qemu-guest-agent missing or stopped."
+
+msgid "Connect via"
+msgstr "Connect via"
+
+msgid "Forwarded port (localhost:{0})"
+msgstr "Forwarded port (localhost:{0})"
+
+msgid "Guest address {0}"
+msgstr "Guest address {0}"
+
+msgid "Guest SSH port"
+msgstr "Guest SSH port"
+
+msgid "Command copied"
+msgstr "Command copied"
+
+msgid "Copy command"
+msgstr "Copy command"
+
+msgid "{0} machines"
+msgstr "{0} machines"
+
+msgid "Pause the virtual machine"
+msgstr "Pause the virtual machine"
+
+msgid "Resume the virtual machine"
+msgstr "Resume the virtual machine"

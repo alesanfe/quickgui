@@ -14,7 +14,7 @@ class ShortcutsDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final entries = <(String, String)>[
-      (context.t('Ctrl+1…6'), context.t('Switch between the six sections')),
+      (context.t('Ctrl+1…7'), context.t('Switch between the seven sections')),
       (context.t('Ctrl+F'), context.t('Filter the machines list')),
       (context.t('Ctrl+N'), context.t('Create a new virtual machine')),
       (context.t('Ctrl+R'), context.t('Refresh the machines list')),

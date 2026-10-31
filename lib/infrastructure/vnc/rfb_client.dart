@@ -1,6 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+
+import 'keymap.dart';
+
+export 'keymap.dart' show Keysyms;
 
 /// A single framebuffer rectangle delivered by the server — either new
 /// pixels (raw) or a copy of an existing region (CopyRect).
@@ -54,12 +59,17 @@ class RfbClient {
 
   final _rects = StreamController<List<RfbRect>>.broadcast();
   final _errors = StreamController<Object>.broadcast();
+  final _cutText = StreamController<String>.broadcast();
 
   /// Completed framebuffer updates (rect lists), in wire order.
   Stream<List<RfbRect>> get rects => _rects.stream;
 
   /// Socket/protocol errors after connect (the connect itself throws).
   Stream<Object> get errors => _errors.stream;
+
+  /// Text the guest sent via ServerCutText (RFB clipboard), decoded as
+  /// Latin-1 per RFC 6143 §7.6.4.
+  Stream<String> get cutText => _cutText.stream;
 
   bool get connected => _handshook && _socket != null;
 
@@ -220,10 +230,15 @@ class RfbClient {
             await _read(n * 6);
           case 2: // Bell — ignore
             break;
-          case 3: // ServerCutText
+          case 3: // ServerCutText — guest clipboard
             await _read(3);
             final len = await _u32();
-            await _read(len);
+            if (len > 0 && len <= 16 * 1024 * 1024) {
+              final text = latin1.decode(await _read(len));
+              if (!_cutText.isClosed) _cutText.add(text);
+            } else {
+              await _read(len.clamp(0, 16 * 1024 * 1024));
+            }
           default:
             throw StateError('unknown server message $type');
         }
@@ -253,6 +268,25 @@ class RfbClient {
     s.add([5, mask, x >> 8, x & 0xff, y >> 8, y & 0xff]);
   }
 
+  /// ClientCutText — pushes host clipboard text to the guest.
+  /// Non-Latin-1 characters are replaced with '?' (the RFB wire
+  /// encoding has no Unicode).
+  void sendCutText(String text) {
+    final s = _socket;
+    if (s == null) return;
+    final bytes = Uint8List(text.length);
+    for (var i = 0; i < text.length; i++) {
+      final c = text.codeUnitAt(i);
+      bytes[i] = c <= 0xff ? c : 0x3f;
+    }
+    final header = ByteData(8)
+      ..setUint8(0, 6)
+      ..setUint32(4, bytes.length);
+    s
+      ..add(header.buffer.asUint8List())
+      ..add(bytes);
+  }
+
   Future<void> close() async {
     _updateTimer?.cancel();
     _updateTimer = null;
@@ -271,42 +305,9 @@ class RfbClient {
     await close();
     await _rects.close();
     await _errors.close();
+    await _cutText.close();
   }
 }
 
-/// X11 keysyms the console needs beyond ASCII (which is its own keysym).
-abstract final class Keysyms {
-  static const backspace = 0xFF08;
-  static const tab = 0xFF09;
-  static const enter = 0xFF0D;
-  static const escape = 0xFF1B;
-  static const insert = 0xFF63;
-  static const delete = 0xFFFF;
-  static const home = 0xFF50;
-  static const end = 0xFF57;
-  static const pageUp = 0xFF55;
-  static const pageDown = 0xFF56;
-  static const left = 0xFF51;
-  static const up = 0xFF52;
-  static const right = 0xFF53;
-  static const down = 0xFF54;
-  static const f1 = 0xFFBE;
-  static const f2 = 0xFFBF;
-  static const f3 = 0xFFC0;
-  static const f4 = 0xFFC1;
-  static const f5 = 0xFFC2;
-  static const f6 = 0xFFC3;
-  static const f7 = 0xFFC4;
-  static const f8 = 0xFFC5;
-  static const f9 = 0xFFC6;
-  static const f10 = 0xFFC7;
-  static const f11 = 0xFFC8;
-  static const f12 = 0xFFC9;
-  static const shiftL = 0xFFE1;
-  static const shiftR = 0xFFE2;
-  static const ctrlL = 0xFFE3;
-  static const ctrlR = 0xFFE4;
-  static const altL = 0xFFE9;
-  static const altR = 0xFFEA;
-  static const superL = 0xFFEB;
-}
+/// X11 keysyms live in `keymap.dart` (exported above) so the physical
+/// keyboard map and the client share one table.

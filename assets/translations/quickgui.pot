@@ -1537,12 +1537,395 @@ msgstr ""
 msgid "Refresh the machines list"
 msgstr ""
 
-msgid "Switch between the six sections"
-msgstr ""
-
-msgid "Ctrl+1…6"
-msgstr ""
-
 msgid "Unsupported file type for drop: {0}"
 msgstr ""
 
+msgid "Release keyboard (Ctrl+Alt+G)"
+msgstr ""
+
+msgid "Capture keyboard input"
+msgstr ""
+
+msgid "Console scaling"
+msgstr ""
+
+msgid "Fit to window"
+msgstr ""
+
+msgid "Stretch"
+msgstr ""
+
+msgid "Native size"
+msgstr ""
+
+msgid "Integer scale"
+msgstr ""
+
+msgid "Manual zoom"
+msgstr ""
+
+msgid "Paste clipboard into guest"
+msgstr ""
+
+msgid "Clipboard sync: on"
+msgstr ""
+
+msgid "Clipboard sync: off"
+msgstr ""
+
+msgid "Fullscreen (F11)"
+msgstr ""
+
+msgid "Keyboard captured"
+msgstr ""
+
+msgid "Keyboard captured — Ctrl+Alt+G to release"
+msgstr ""
+
+msgid "Waiting for the display to come up…"
+msgstr ""
+
+msgid "Connection lost — reconnecting ({0})…"
+msgstr ""
+
+msgid "Ctrl+Alt+G releases the keyboard"
+msgstr ""
+
+msgid "F11 or Esc exits fullscreen"
+msgstr ""
+
+msgid "Exit fullscreen"
+msgstr ""
+
+msgid "Paste into console"
+msgstr ""
+
+msgid "The clipboard contains {0} lines. Sending them will type each line into the guest — continue?"
+msgstr ""
+
+msgid "Paste"
+msgstr ""
+
+msgid "Send {0}"
+msgstr ""
+
+msgid "This sends a system-level key combination to the guest. Continue?"
+msgstr ""
+
+msgid "Zoom out"
+msgstr ""
+
+msgid "Zoom in"
+msgstr ""
+
+msgid "Clear filters"
+msgstr ""
+
+msgid "Search by machine, message or error code"
+msgstr ""
+
+msgid "Clear search"
+msgstr ""
+
+msgid "Filter by machine"
+msgstr ""
+
+msgid "All machines"
+msgstr ""
+
+msgid "Machine"
+msgstr ""
+
+msgid "Filter by time"
+msgstr ""
+
+msgid "All time"
+msgstr ""
+
+msgid "Last hour"
+msgstr ""
+
+msgid "Last 24 hours"
+msgstr ""
+
+msgid "Last 7 days"
+msgstr ""
+
+msgid "Last 30 days"
+msgstr ""
+
+msgid "Requires action"
+msgstr ""
+
+msgid "Retrying"
+msgstr ""
+
+msgid "Recovered"
+msgstr ""
+
+msgid "Permanently failed"
+msgstr ""
+
+msgid "Acknowledged"
+msgstr ""
+
+msgid "Ignored"
+msgstr ""
+
+msgid " (attempt {0})"
+msgstr ""
+
+msgid "Acknowledge"
+msgstr ""
+
+msgid "Copy diagnostic"
+msgstr ""
+
+msgid "Diagnostic copied"
+msgstr ""
+
+msgid "Automation"
+msgstr ""
+
+msgid "Automation run"
+msgstr ""
+
+msgid "Describe the machine you want; quickprovision obtains the image, installs it, provisions it, verifies the result and seals a snapshot — a ready-to-use VM appears in Machines."
+msgstr ""
+
+msgid "Name"
+msgstr ""
+
+msgid "Hostname"
+msgstr ""
+
+msgid "Username"
+msgstr ""
+
+msgid "SSH timeout (min)"
+msgstr ""
+
+msgid "Packages (comma separated)"
+msgstr ""
+
+msgid "Services to enable (comma separated)"
+msgstr ""
+
+msgid "Post-install checks"
+msgstr ""
+
+msgid "Shut down when done"
+msgstr ""
+
+msgid "Snapshot name"
+msgstr ""
+
+msgid "Preview plan"
+msgstr ""
+
+msgid "Start automation run"
+msgstr ""
+
+msgid "quickprovision could not resolve this profile."
+msgstr ""
+
+msgid "The quickprovision binary was not found on PATH."
+msgstr ""
+
+msgid "Automation runs need the quickprovision engine that ships with quickemu. Install or update quickemu and try again."
+msgstr ""
+
+msgid "Plan — {0}"
+msgstr ""
+
+msgid "Checks"
+msgstr ""
+
+msgid "Event log"
+msgstr ""
+
+msgid "Copy"
+msgstr ""
+
+msgid "Cancel run"
+msgstr ""
+
+msgid "Resume run"
+msgstr ""
+
+msgid "New run"
+msgstr ""
+
+msgid "Open in Machines"
+msgstr ""
+
+msgid "Idle"
+msgstr ""
+
+msgid "Ctrl+1…7"
+msgstr ""
+
+msgid "Switch between the seven sections"
+msgstr ""
+
+msgid "Notify about machine events"
+msgstr ""
+
+msgid "Starts, stops, crashes and operation results"
+msgstr ""
+
+msgid "Event types"
+msgstr ""
+
+msgid "Muted machines"
+msgstr ""
+
+msgid "Notifications silenced"
+msgstr ""
+
+msgid "Silence notifications for an hour"
+msgstr ""
+
+msgid "Unmute"
+msgstr ""
+
+msgid "Machine started"
+msgstr ""
+
+msgid "Machine stopped"
+msgstr ""
+
+msgid "Machine crashed"
+msgstr ""
+
+msgid "Machine paused"
+msgstr ""
+
+msgid "Machine resumed"
+msgstr ""
+
+msgid "Machine deleted"
+msgstr ""
+
+msgid "Machine paused or resumed"
+msgstr ""
+
+msgid "Operation finished"
+msgstr ""
+
+msgid "Operation failed"
+msgstr ""
+
+msgid "Snapshot finished"
+msgstr ""
+
+msgid "Backup problem"
+msgstr ""
+
+msgid "Guest agent lost"
+msgstr ""
+
+msgid "{0} stopped unexpectedly. Open Activity for details."
+msgstr ""
+
+msgid "The host is running low on disk space."
+msgstr ""
+
+msgid "Guest addresses"
+msgstr ""
+
+msgid "The guest agent is not answering — install and enable qemu-guest-agent inside the guest to see its network addresses."
+msgstr ""
+
+msgid "No address reported yet — the guest may still be booting."
+msgstr ""
+
+msgid "The address query failed — refresh to retry."
+msgstr ""
+
+msgid "Address copied"
+msgstr ""
+
+msgid "IPv4"
+msgstr ""
+
+msgid "IPv6"
+msgstr ""
+
+msgid "Health"
+msgstr ""
+
+msgid "Machine state"
+msgstr ""
+
+msgid "Guest agent"
+msgstr ""
+
+msgid "This backend cannot query the agent."
+msgstr ""
+
+msgid "Forwarded ports"
+msgstr ""
+
+msgid "SPICE/SSH port forwards registered."
+msgstr ""
+
+msgid "No forwarded ports registered yet."
+msgstr ""
+
+msgid "Host disk space"
+msgstr ""
+
+msgid "Free space unknown."
+msgstr ""
+
+msgid "{0} GiB free."
+msgstr ""
+
+msgid "Recent issues"
+msgstr ""
+
+msgid "No crashes or failed operations in the last 24 h."
+msgstr ""
+
+msgid "{0} journal event(s) need attention (24 h)."
+msgstr ""
+
+msgid "Stale — the process exited unexpectedly."
+msgstr ""
+
+msgid "Answering — network details available."
+msgstr ""
+
+msgid "Up, but no network address yet."
+msgstr ""
+
+msgid "Not answering — qemu-guest-agent missing or stopped."
+msgstr ""
+
+msgid "Connect via"
+msgstr ""
+
+msgid "Forwarded port (localhost:{0})"
+msgstr ""
+
+msgid "Guest address {0}"
+msgstr ""
+
+msgid "Guest SSH port"
+msgstr ""
+
+msgid "Command copied"
+msgstr ""
+
+msgid "Copy command"
+msgstr ""
+
+msgid "{0} machines"
+msgstr ""
+
+msgid "Pause the virtual machine"
+msgstr ""
+
+msgid "Resume the virtual machine"
+msgstr ""
