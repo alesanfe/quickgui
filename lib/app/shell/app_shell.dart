@@ -14,13 +14,15 @@ import 'package:quickgui/features/activity/domain/app_operation.dart';
 import 'package:quickgui/features/activity/providers/activity_providers.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/features/machines/providers/vm_library_providers.dart';
+import 'package:quickgui/features/notifications/providers/notification_providers.dart';
 import 'package:quickgui/features/settings/providers/ui_preferences_providers.dart';
+import 'package:quickgui/infrastructure/quickemu/vm_event_log.dart';
 import 'package:quickgui/infrastructure/tray/app_tray.dart';
 import 'package:quickgui/shared/widgets/dependency_warning.dart';
 import 'package:quickgui/shared/widgets/shortcuts_dialog.dart';
 
 /// Persistent application shell: a NavigationRail on wide windows and a
-/// NavigationBar on narrow ones, hosting the six main sections.
+/// NavigationBar on narrow ones, hosting the main sections.
 class AppShell extends ConsumerStatefulWidget {
   const AppShell({required this.shell, super.key});
 
@@ -93,6 +95,35 @@ class _AppShellState extends ConsumerState<AppShell> {
     }
   }
 
+  /// Fires a desktop notification for backend journal events (QG-080):
+  /// VM started/stopped/crashed, operation outcomes, snapshot/backup
+  /// results, guest-agent loss and low disk space. The policy filters
+  /// and groups before anything reaches the desktop (QG-081).
+  void _onVmEvent(VmEvent event) {
+    final client = _notificationsClient;
+    if (client == null) return;
+    final request = ref
+        .read(vmNotificationPolicyProvider)
+        .decide(
+          event,
+          ref.read(notificationSettingsProvider),
+          DateTime.now().millisecondsSinceEpoch,
+        );
+    if (request == null) return;
+    unawaited(
+      runZonedGuarded(() async {
+        try {
+          await client.notify(
+            context.t(request.titleKey),
+            body: context.t(request.bodyKey, args: request.bodyArgs),
+            appName: 'Quickgui',
+            expireTimeoutMs: request.urgent ? 30000 : 10000,
+          );
+        } catch (_) {}
+      }, (_, _) {}),
+    );
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -111,13 +142,20 @@ class _AppShellState extends ConsumerState<AppShell> {
     )..init().ignore(); // best-effort — failure leaves the app tray-less
   }
 
-  List<({IconData icon, String label})> _destinations(BuildContext context) => [
-    (icon: Icons.home_outlined, label: context.t('Home')),
-    (icon: Icons.computer, label: context.t('Machines')),
-    (icon: Icons.add_circle_outline, label: context.t('Create')),
-    (icon: Icons.notifications_none, label: context.t('Activity')),
-    (icon: Icons.health_and_safety, label: context.t('Diagnostics')),
-    (icon: Icons.settings, label: context.t('Settings')),
+  List<({IconData icon, String label, bool badge})> _destinations(
+    BuildContext context,
+  ) => [
+    (icon: Icons.home_outlined, label: context.t('Home'), badge: false),
+    (icon: Icons.computer, label: context.t('Machines'), badge: false),
+    (icon: Icons.add_circle_outline, label: context.t('Create'), badge: false),
+    (icon: Icons.auto_awesome, label: context.t('Automation'), badge: false),
+    (icon: Icons.notifications_none, label: context.t('Activity'), badge: true),
+    (
+      icon: Icons.health_and_safety,
+      label: context.t('Diagnostics'),
+      badge: false,
+    ),
+    (icon: Icons.settings, label: context.t('Settings'), badge: false),
   ];
 
   void _go(int index) => widget.shell.goBranch(
@@ -137,6 +175,10 @@ class _AppShellState extends ConsumerState<AppShell> {
   @override
   Widget build(BuildContext context) {
     ref.listen(activityProvider, (_, _) => _onActivityChanged());
+    ref.listen(vmEventsProvider, (_, next) {
+      final event = next.asData?.value;
+      if (event != null) _onVmEvent(event);
+    });
     final destinations = _destinations(context);
     final selected = widget.shell.currentIndex;
     return LayoutBuilder(
@@ -183,9 +225,9 @@ class _AppShellState extends ConsumerState<AppShell> {
                           ),
                         ),
                         destinations: [
-                          for (final (i, d) in destinations.indexed)
+                          for (final (_, d) in destinations.indexed)
                             NavigationRailDestination(
-                              icon: i == 3
+                              icon: d.badge
                                   ? _activityIcon(d.icon)
                                   : Icon(d.icon),
                               label: Text(d.label),
@@ -203,9 +245,9 @@ class _AppShellState extends ConsumerState<AppShell> {
                     selectedIndex: selected,
                     onDestinationSelected: _go,
                     destinations: [
-                      for (final (i, d) in destinations.indexed)
+                      for (final (_, d) in destinations.indexed)
                         NavigationDestination(
-                          icon: i == 3 ? _activityIcon(d.icon) : Icon(d.icon),
+                          icon: d.badge ? _activityIcon(d.icon) : Icon(d.icon),
                           label: d.label,
                         ),
                     ],

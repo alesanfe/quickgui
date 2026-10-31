@@ -18,6 +18,8 @@ import 'package:quickgui/features/catalog/presentation/operating_system_selectio
 import 'package:quickgui/features/catalog/presentation/version_selection.dart';
 import 'package:quickgui/features/catalog/providers/catalog_providers.dart';
 import 'package:quickgui/features/activity/presentation/activity_page.dart';
+import 'package:quickgui/features/automation/presentation/automation_page.dart';
+import 'package:quickgui/features/automation/providers/automation_providers.dart';
 import 'package:quickgui/features/create/presentation/create_page.dart';
 import 'package:quickgui/features/diagnostics/presentation/diagnostics_page.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
@@ -219,6 +221,9 @@ Widget _app({
         ],
     ),
     initialSettingsProvider.overrideWithValue(SettingsState(darkMode: dark)),
+    // Pin the availability probe so the automation form renders
+    // regardless of whether the capture host has quickprovision installed.
+    automationAvailableProvider.overrideWith((ref) async => true),
     // The dashboard lists machines via a real directory scan — pin a
     // fixed library so captures are host-independent.
     vmLibraryProvider.overrideWith((ref) async => _captureMachines),
@@ -312,6 +317,7 @@ void main() {
     '04_diagnostics': const DiagnosticsPage(),
     '05_os_selection': const OperatingSystemSelection(),
     '06_version_selection': VersionSelection(operatingSystem: _captureOs),
+    '07_automation': const AutomationPage(),
     '10_settings': const SettingsPage(),
     '11_activity': const ActivityPage(),
   };

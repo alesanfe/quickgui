@@ -13,6 +13,9 @@ import 'package:quickgui/app/localization/supported_locales.dart';
 import 'package:quickgui/core/constants/preference_keys.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
+import 'package:quickgui/features/machines/providers/vm_library_providers.dart';
+import 'package:quickgui/features/notifications/domain/vm_event_notification.dart';
+import 'package:quickgui/features/notifications/providers/notification_providers.dart';
 import 'package:quickgui/features/settings/providers/settings_providers.dart';
 import 'package:quickgui/features/settings/providers/ui_preferences_providers.dart';
 import 'package:quickgui/features/settings/providers/update_check_providers.dart';
@@ -164,6 +167,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             value: prefs.notifyOnComplete,
             onChanged: prefsCtl.setNotifyOnComplete,
           ),
+          _vmNotificationSection(context),
           SwitchListTile(
             title: Text(context.t('Confirm risky actions')),
             subtitle: Text(
@@ -230,6 +234,100 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ),
         ],
       ),
+    );
+  }
+
+  /// VM-event notification preferences (QG-081): master switch, per
+  /// event-kind toggles, temporary silence and per-VM mutes.
+  Widget _vmNotificationSection(BuildContext context) {
+    final notif = ref.watch(notificationSettingsProvider);
+    final notifCtl = ref.read(notificationSettingsProvider.notifier);
+    final muted = notif.mutedNow(DateTime.now().millisecondsSinceEpoch);
+    final kindLabels = {
+      NotificationEventKind.vmStarted: context.t('Machine started'),
+      NotificationEventKind.vmStopped: context.t('Machine stopped'),
+      NotificationEventKind.vmCrashed: context.t('Machine crashed'),
+      NotificationEventKind.vmPausedResumed: context.t(
+        'Machine paused or resumed',
+      ),
+      NotificationEventKind.vmDeleted: context.t('Machine deleted'),
+      NotificationEventKind.opCompleted: context.t('Operation finished'),
+      NotificationEventKind.opFailed: context.t('Operation failed'),
+      NotificationEventKind.snapshot: context.t('Snapshot finished'),
+      NotificationEventKind.backup: context.t('Backup problem'),
+      NotificationEventKind.qga: context.t('Guest agent lost'),
+      NotificationEventKind.lowDisk: context.t('Low disk space'),
+    };
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SwitchListTile(
+          title: Text(context.t('Notify about machine events')),
+          subtitle: Text(
+            context.t('Starts, stops, crashes and operation results'),
+          ),
+          value: notif.enabled,
+          onChanged: notifCtl.setEnabled,
+        ),
+        if (notif.enabled) ...[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: ExpansionTile(
+              tilePadding: EdgeInsets.zero,
+              title: Text(context.t('Event types')),
+              children: [
+                for (final kind in NotificationEventKind.values)
+                  SwitchListTile(
+                    dense: true,
+                    title: Text(kindLabels[kind] ?? kind.name),
+                    value: notif.kindEnabled(kind),
+                    onChanged: (v) => notifCtl.setKind(kind, v),
+                  ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: ExpansionTile(
+              tilePadding: EdgeInsets.zero,
+              title: Text(context.t('Muted machines')),
+              children: [
+                for (final vm
+                    in ref
+                            .watch(vmLibraryProvider)
+                            .asData
+                            ?.value
+                            .map((m) => m.name)
+                            .toList() ??
+                        const <String>[])
+                  SwitchListTile(
+                    dense: true,
+                    title: Text(vm),
+                    value: notif.mutedVms.contains(vm),
+                    onChanged: (v) => notifCtl.setVmMuted(vm, v),
+                  ),
+              ],
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.do_not_disturb_on_outlined),
+            title: Text(
+              muted
+                  ? context.t('Notifications silenced')
+                  : context.t('Silence notifications for an hour'),
+            ),
+            trailing: muted
+                ? TextButton(
+                    onPressed: notifCtl.unmute,
+                    child: Text(context.t('Unmute')),
+                  )
+                : null,
+            onTap: muted
+                ? null
+                : () => notifCtl.muteFor(const Duration(hours: 1)),
+          ),
+        ],
+      ],
     );
   }
 

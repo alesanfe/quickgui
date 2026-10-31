@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:quickgui/app/shell/app_shell.dart';
 import 'package:quickgui/features/home/presentation/dashboard_page.dart';
 import 'package:quickgui/features/activity/presentation/activity_page.dart';
+import 'package:quickgui/features/automation/presentation/automation_page.dart';
 import 'package:quickgui/features/create/presentation/create_page.dart';
 import 'package:quickgui/features/diagnostics/presentation/diagnostics_page.dart';
 import 'package:quickgui/features/machines/presentation/list/manager.dart';
@@ -54,6 +55,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/create',
                 builder: (context, state) => const CreatePage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/automation',
+                builder: (context, state) => const AutomationPage(),
               ),
             ],
           ),
