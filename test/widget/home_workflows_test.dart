@@ -323,7 +323,13 @@ void main() {
       backend.backendVersion = '4.9.7';
       await open(tester, const SettingsPage(), fullPage: true);
       // '2.0.0' in the About tile ('Version {0} — Powered by Quickemu')
-      // and '4.9.7' in the Backend version tile.
+      // and '4.9.7' in the Backend version tile. The About section sits
+      // below the fold of the settings ListView — scroll it into view.
+      await tester.scrollUntilVisible(
+        find.textContaining('2.0.0'),
+        400,
+        scrollable: find.byType(Scrollable),
+      );
       expect(find.textContaining('2.0.0'), findsWidgets);
       expect(find.textContaining('4.9.7'), findsWidgets);
       expect(tester.takeException(), isNull);

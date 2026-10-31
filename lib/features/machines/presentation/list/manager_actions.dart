@@ -616,6 +616,22 @@ extension on _ManagerState {
     });
   }
 
+  /// Card quick-action (QG-031): pause a running VM or resume a
+  /// paused one — the batch path already proves the command pair.
+  Future<void> _pauseResumeVm(String currentVm) async {
+    final paused = _vmStates[currentVm] == 'paused';
+    final r = await runVmActionOrLegacy(_backend, paused ? 'resume' : 'pause', [
+      '--vm',
+      _vmConfFiles[currentVm] ?? '$currentVm.conf',
+      if (paused) '--resume' else '--pause',
+    ]);
+    if (!mounted) return;
+    _showProcessOutput([r]);
+    if (r.exitCode == 0) {
+      setState(() => _vmStates[currentVm] = paused ? 'running' : 'paused');
+    }
+  }
+
   Future<void> _stopVm(String currentVm) async {
     final choice = await showDialog<String>(
       context: context,

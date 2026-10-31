@@ -214,18 +214,76 @@ extension on _ManagerState {
         ),
       );
     }
-    final List<List<Widget>> rows = filteredVms.map((vm) {
-      return _buildRow(vm, buttonColor);
-    }).toList();
-    for (final row in rows) {
-      if (_cards) {
-        widgetList.add(Card(child: Column(children: row)));
-      } else {
-        widgetList.addAll(row);
+    void addVmRows(Iterable<String> vms) {
+      for (final vm in vms) {
+        final row = _buildRow(vm, buttonColor);
+        if (_cards) {
+          widgetList.add(Card(child: Column(children: row)));
+        } else {
+          widgetList.addAll(row);
+        }
+      }
+    }
+
+    // QG-032 — when any visible VM carries a `group:name` tag, section
+    // the list by collection (collapsible, state kept per name);
+    // ungrouped machines sort last.
+    final grouped = groupMachines(filteredVms, tags);
+    final hasCollections = grouped.keys.any((key) => key != null);
+    if (!hasCollections) {
+      addVmRows(grouped[null] ?? const []);
+    } else {
+      for (final entry in grouped.entries) {
+        final collection = entry.key;
+        if (collection != null) {
+          final collapsed = _collapsedGroups.contains(collection);
+          widgetList.add(
+            ListTile(
+              dense: true,
+              leading: Icon(
+                collapsed ? Icons.chevron_right : Icons.expand_more,
+              ),
+              title: Text(
+                collection,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+              subtitle: Text(
+                context.t('{0} machines', args: ['${entry.value.length}']),
+              ),
+              onTap: () => setState(() {
+                collapsed
+                    ? _collapsedGroups.remove(collection)
+                    : _collapsedGroups.add(collection);
+              }),
+            ),
+          );
+          if (!collapsed) addVmRows(entry.value);
+        } else {
+          addVmRows(entry.value);
+        }
       }
     }
 
     return ListView(padding: const EdgeInsets.all(16.0), children: widgetList);
+  }
+
+  /// Warn chip when the VM journal recorded crashes or failed
+  /// operations in the last 24 h — the journal is read once per
+  /// library refresh, not tailed (QG-023/QG-041).
+  Widget _journalBadge(String vm) {
+    final issues = ref.watch(vmRecentIssuesProvider(vm)).asData?.value ?? 0;
+    if (issues == 0) return const SizedBox.shrink();
+    return Tooltip(
+      message: context.t(
+        '{0} journal event(s) need attention (24 h).',
+        args: ['$issues'],
+      ),
+      child: Icon(
+        Icons.warning_amber,
+        size: 18,
+        color: Theme.of(context).colorScheme.error,
+      ),
+    );
   }
 
   List<Widget> _buildRow(String currentVm, Color buttonColor) {
@@ -360,6 +418,7 @@ extension on _ManagerState {
                 ),
                 child: const Icon(Icons.download_done, size: 18),
               ),
+            _journalBadge(currentVm),
           ],
         ),
         trailing: Row(
@@ -387,6 +446,21 @@ extension on _ManagerState {
                   : context.t('Not running'),
               onPressed: !active ? null : () => _stopVm(currentVm),
             ),
+            if (active)
+              IconButton(
+                icon: Icon(
+                  _vmStates[currentVm] == 'paused'
+                      ? Icons.play_circle_outline
+                      : Icons.pause_circle_outline,
+                  semanticLabel: _vmStates[currentVm] == 'paused'
+                      ? 'Resume'
+                      : 'Pause',
+                ),
+                tooltip: _vmStates[currentVm] == 'paused'
+                    ? context.t('Resume the virtual machine')
+                    : context.t('Pause the virtual machine'),
+                onPressed: () => _pauseResumeVm(currentVm),
+              ),
             VmActionsMenu(
               icon: const Icon(Icons.more_vert, semanticLabel: 'More actions'),
               tooltip: context.t('More actions'),

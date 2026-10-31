@@ -6,6 +6,7 @@ import 'package:quickgui/features/machines/application/structured_or_legacy.dart
 import 'package:quickgui/features/machines/providers/tracked_backend_provider.dart';
 
 import 'package:quickgui/features/machines/presentation/details/vm_connection_view.dart';
+import 'package:quickgui/features/machines/presentation/details/vm_health_card.dart';
 import 'package:quickgui/features/machines/domain/forms/vm_inputs.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_settings_page.dart';
 import 'package:quickgui/shared/dialogs/validated_text_dialog.dart';
@@ -410,6 +411,11 @@ class _VmPageState extends ConsumerState<VmPage> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        VmHealthCard(
+          vm: widget.vmName,
+          confPath: _confPath,
+          state: '${_status['state'] ?? 'unknown'}',
+        ),
         for (final key in _keys)
           Builder(
             builder: (context) {

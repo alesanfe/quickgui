@@ -3,8 +3,12 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
+import 'package:quickgui/core/errors/app_failure.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
+import 'package:quickgui/features/machines/domain/guest_ip.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
+import 'package:quickgui/features/machines/providers/tracked_backend_provider.dart';
+import 'package:quickgui/infrastructure/quickemu/vm_event_log.dart';
 
 class LibraryMachine {
   const LibraryMachine({
@@ -96,4 +100,61 @@ final vmLibraryProvider = FutureProvider<List<LibraryMachine>>((ref) async {
 final hostFreeSpaceProvider = FutureProvider<int?>((ref) async {
   final probe = ref.watch(hostProbeProvider);
   return await probe.freeSpaceBytes(await probe.workingDirectory());
+});
+
+/// Guest network addresses via QGA for the VM at `confPath` (QG-050) —
+/// one query per open details page, refreshed by journal events rather
+/// than by polling: `vm.started`/`qga.*` events invalidate it.
+// ignore: specify_nonobvious_property_types
+final guestIpProvider = FutureProvider.family<GuestIpInfo, String>((
+  ref,
+  confPath,
+) async {
+  try {
+    final data = await ref.watch(trackedBackendProvider).guestIpInfo(confPath);
+    if (data == null) {
+      return const GuestIpInfo(status: GuestIpStatus.unsupported);
+    }
+    return GuestIpInfo.parse(data);
+  } on AppFailure catch (e) {
+    if (GuestIpInfo.agentMissingCodes.contains(e.code)) {
+      return const GuestIpInfo(status: GuestIpStatus.agentMissing);
+    }
+    rethrow;
+  }
+});
+
+/// Issue events (crashes, failed ops) in the last 24 h for the
+/// health card (QG-041) — one-shot read, no journal tail.
+// ignore: specify_nonobvious_property_types
+final vmRecentIssuesProvider = FutureProvider.family<int, String>((
+  ref,
+  vm,
+) async {
+  final probe = ref.watch(hostProbeProvider);
+  final directory = await probe.workingDirectory();
+  final root = directory.isEmpty ? Directory.current.path : directory;
+  return await VmEventLog(p.join(root, vm, '$vm.events.jsonl'))
+      .recentIssueCount(const Duration(hours: 24));
+});
+
+/// Live journal for one VM (`<vm>/<vm>.events.jsonl`) — replays from
+/// the journal start, then tails appends. State-changing events and
+/// gaps invalidate the library so the UI reacts without polling the
+/// backend for every card (QG-022/QG-023).
+// ignore: specify_nonobvious_property_types
+final vmEventJournalProvider = StreamProvider.family<VmEvent, String>((
+  ref,
+  vm,
+) async* {
+  final probe = ref.watch(hostProbeProvider);
+  final directory = await probe.workingDirectory();
+  final root = directory.isEmpty ? Directory.current.path : directory;
+  final log = VmEventLog(p.join(root, vm, '$vm.events.jsonl'));
+  await for (final event in log.watch()) {
+    if (event is VmEventGap || event.changesState) {
+      ref.invalidate(vmLibraryProvider);
+    }
+    yield event;
+  }
 });

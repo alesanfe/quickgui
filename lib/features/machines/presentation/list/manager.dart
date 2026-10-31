@@ -9,6 +9,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:go_router/go_router.dart';
 import 'package:quickgui/features/machines/presentation/shared/vm_actions_menu.dart';
+import 'package:quickgui/features/machines/providers/vm_library_providers.dart';
 import 'package:quickgui/features/machines/providers/vm_tags_providers.dart';
 import 'package:quickgui/features/machines/providers/tracked_backend_provider.dart';
 import 'package:path/path.dart' as path;
@@ -36,6 +37,7 @@ import 'package:quickgui/features/machines/application/start_vm.dart';
 import 'package:quickgui/features/machines/application/stop_vm.dart';
 import 'package:quickgui/core/result/result.dart';
 import 'package:quickgui/features/machines/domain/vminfo.dart';
+import 'package:quickgui/features/machines/domain/vm_grouping.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_config_editor.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_details_pane.dart';
 import 'package:quickgui/features/machines/domain/vm_config_value.dart';
@@ -75,6 +77,7 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
   bool _batchBusy = false;
   bool _cards = false;
   final Set<String> _selection = {};
+  final Set<String> _collapsedGroups = {};
   DateTime? _refreshedAt;
 
   Map<String, String> _vmConfFiles = {};
@@ -242,19 +245,35 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
     final Map<String, VmInfo> activeVms = {};
     final Map<String, String> vmStates = {};
 
-    // Prefer the structured backend contract when the installed
-    // quickemu advertises it; fall back to the pid-file scan otherwise.
+    // One inventory call for the whole registry instead of a per-VM
+    // inspect spawn (QG-022). The registry is quickemu's own source of
+    // truth; an empty registry (pre-launch or legacy backend) degrades
+    // to the structured per-VM inspect, then the pid-file scan.
     _backendCaps ??= await _backend.getCapabilities();
     final Map<String, String> backendStates = {};
     final caps = _backendCaps?['capabilities'];
     if (caps is Map && caps['structuredStatus'] == true) {
-      for (final name in switch (await ListVms(_backend)()) {
-        Ok(:final value) => value,
-        Err() => const <String>[],
-      }) {
-        final inspected = await InspectVm(_backend)(name);
-        if (inspected case Ok(:final value)) {
-          backendStates[name] = '${value['state']}';
+      try {
+        final inventory = await _backend.listInventory();
+        for (final entry in inventory.values) {
+          if (entry is Map &&
+              entry['vm'] is String &&
+              entry['state'] is String) {
+            backendStates['${entry['vm']}'] = '${entry['state']}';
+          }
+        }
+      } catch (_) {
+        // Inventory unsupported/failed: fall through to inspect.
+      }
+      if (backendStates.isEmpty) {
+        for (final name in switch (await ListVms(_backend)()) {
+          Ok(:final value) => value,
+          Err() => const <String>[],
+        }) {
+          final inspected = await InspectVm(_backend)(name);
+          if (inspected case Ok(:final value)) {
+            backendStates[name] = '${value['state']}';
+          }
         }
       }
     }
@@ -268,7 +287,9 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
         vmConfFiles[name] = entity.path;
         var running = backendStates[name] == 'running';
         var state = backendStates[name] ?? 'stopped';
-        if (backendStates.isEmpty) {
+        // Per-VM fallback: absent from the registry (or no registry at
+        // all) → verify the pid file locally, zero process spawns.
+        if (!backendStates.containsKey(name)) {
           final File pidFile = File('$name/$name.pid');
           if (pidFile.existsSync()) {
             final int? pid = int.tryParse(pidFile.readAsStringSync().trim());
