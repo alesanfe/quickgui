@@ -2,6 +2,11 @@
 const String quickemuBinary = 'quickemu';
 const String quickgetBinary = 'quickget';
 const String quickreportBinary = 'quickreport';
+
+/// The automation engine — a sibling of the quickemu toolchain that
+/// quickgui shells out to for install/provision/verify runs.
+const String quickprovisionBinary = 'quickprovision';
+
 /// The old standalone `chunkcheck` helper is now a `quickget` subcommand.
 const List<String> chunkcheckSubcommand = ['chunkcheck'];
 

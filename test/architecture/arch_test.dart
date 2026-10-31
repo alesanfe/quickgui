@@ -67,6 +67,10 @@ void main() {
     const allowedRunAction = {
       'structured_or_legacy.dart',
       'tracked_backend_provider.dart',
+      // ApiRoutingBackend is plumbing: it forwards calls to the injected
+      // VirtualizationBackend port when the API cannot serve them —
+      // the tracked boundary still sits on top of it.
+      'api_routing_backend_provider.dart',
       // delete_vm.plan() keeps a legacy text fallback because the
       // pre-contract --delete-plan output is line-oriented plan data.
       'delete_vm.dart',

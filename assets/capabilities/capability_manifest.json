@@ -1152,7 +1152,10 @@
       "criticality": "medium",
       "backend": {
         "executable": "external",
-        "operation": "chunkcheck"
+        "operation": "chunkcheck",
+        "flags": [
+          "--chunkcheck"
+        ]
       },
       "gui": {
         "requirement": "optional",

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:quickgui/core/constants/preference_keys.dart';
 import 'package:quickgui/core/errors/app_failure.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
@@ -131,10 +132,11 @@ void main() {
       File('${dir.path}/a/disk.qcow2').writeAsStringSync('xxxx');
       File('${dir.path}/note.txt').writeAsStringSync('not a vm');
       File('${dir.path}/novm.conf').writeAsStringSync('ram="2G"\n');
-      // The provider inspects VMs by their full path minus extension.
+      // The provider inspects VMs by their full path minus extension —
+      // p.join keeps the key identical on every platform's separator.
       backend.states = {
-        '${dir.path}/a': {'name': 'a', 'state': 'running', 'pid': 111},
-        '${dir.path}/b': {'name': 'b', 'state': 'stopped'},
+        p.join(dir.path, 'a'): {'name': 'a', 'state': 'running', 'pid': 111},
+        p.join(dir.path, 'b'): {'name': 'b', 'state': 'stopped'},
       };
       host.alivePids = {111};
       Directory('${dir.path}/a').createSync(recursive: true);
@@ -157,7 +159,11 @@ void main() {
       Directory('${dir.path}/gone').createSync();
       File('${dir.path}/gone/gone.pid').writeAsStringSync('999');
       backend.states = {
-        '${dir.path}/gone': {'name': 'gone', 'state': 'running', 'pid': 999},
+        p.join(dir.path, 'gone'): {
+          'name': 'gone',
+          'state': 'running',
+          'pid': 999,
+        },
       };
       host.alivePids = const {}; // pid 999 not alive
       final c = container();

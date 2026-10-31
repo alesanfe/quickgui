@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quickgui/core/errors/app_failure.dart';
 import 'package:quickgui/infrastructure/process/process_runner.dart';
 import 'package:quickgui/infrastructure/quickemu/quickemu_backend.dart';
 import 'package:quickgui/infrastructure/quickemu/quickemu_parser.dart';
@@ -597,6 +598,12 @@ void main() {
             (b) => b.startWithProfile('vm1', 'dev'),
           ),
           ('plugins', ['--plugins'], 'host.plugins', (b) => b.listPlugins()),
+          (
+            'guest-ip',
+            ['guest', 'ip', '--vm', 'vm1.conf'],
+            'vm.ip',
+            (b) => b.guestIpInfo('vm1.conf'),
+          ),
         ];
 
     for (final (command, args, envelopeCmd, invoke) in cases) {
@@ -632,5 +639,128 @@ void main() {
         ]);
       },
     );
+
+    group('guestIpInfo (vm.ip)', () {
+      const key = 'quickemu guest ip --vm vm1.conf --format json';
+
+      test('returns the parsed data map on success', () async {
+        final runner = FakeProcessRunner({
+          key: ProcessResult(
+            0,
+            0,
+            envelope(
+              'vm.ip',
+              '{"vm":"vm1","ipv4":["10.0.2.15"],"ipv6":["fe80::1"],'
+                  '"iface":"enp0s3"}',
+            ),
+            '',
+          ),
+        });
+        final data = await QuickemuBackend(runner).guestIpInfo('vm1.conf');
+        expect(data?['ipv4'], ['10.0.2.15']);
+        expect(data?['ipv6'], ['fe80::1']);
+        expect(data?['iface'], 'enp0s3');
+      });
+
+      test('old backend without guest verbs -> null (unsupported)', () async {
+        // Empty stdout AND empty stderr = pre-contract backend that
+        // dies silently: EMPTY_RESPONSE is the only failure kind
+        // allowed to degrade to "unsupported" (a readable stderr is
+        // COMMAND_FAILED — a real error, not a missing feature).
+        final runner = FakeProcessRunner({key: ProcessResult(0, 1, '', '')});
+        expect(await QuickemuBackend(runner).guestIpInfo('vm1.conf'), isNull);
+      });
+
+      test('typed QGA failures propagate — agent missing is not '
+          '"unsupported"', () async {
+        final runner = FakeProcessRunner({
+          key: ProcessResult(
+            0,
+            1,
+            '{"schemaVersion":1,"command":"vm.ip","success":false,'
+                '"data":null,"warnings":[],"errors":[{"code":"agent_not_ready",'
+                '"message":"guest agent is not answering","retryable":true}], '
+                '"meta":{"quickemuVersion":"5.0.0","timestamp":"t"}}',
+            '',
+          ),
+        });
+        await expectLater(
+          QuickemuBackend(runner).guestIpInfo('vm1.conf'),
+          throwsA(
+            isA<AppFailure>().having((f) => f.code, 'code', 'agent_not_ready'),
+          ),
+        );
+      });
+    });
+
+    group('connectSsh host targeting (QG-051)', () {
+      test('guest host builds user@host argv via sh -c', () async {
+        final runner = FakeProcessRunner({
+          'sh -c xterm -e ssh -p 22 alice@192.168.1.20': ProcessResult(
+            0,
+            0,
+            '',
+            '',
+          ),
+        });
+        await QuickemuBackend(runner).connectSsh(
+          terminalEmulator: 'xterm',
+          user: 'alice',
+          sshPort: '22',
+          host: '192.168.1.20',
+        );
+        expectInvocation(runner, 'sh', [
+          '-c',
+          'xterm -e ssh -p 22 alice@192.168.1.20',
+        ]);
+      });
+
+      test('no host keeps the forwarded-port localhost path', () async {
+        final runner = FakeProcessRunner({
+          'sh -c xterm -e ssh -p 2222 bob@localhost': ProcessResult(
+            0,
+            0,
+            '',
+            '',
+          ),
+        });
+        await QuickemuBackend(
+          runner,
+        ).connectSsh(terminalEmulator: 'xterm', user: 'bob', sshPort: '2222');
+        expectInvocation(runner, 'sh', [
+          '-c',
+          'xterm -e ssh -p 2222 bob@localhost',
+        ]);
+      });
+
+      test('hostile host strings are rejected before the shell', () async {
+        final backend = QuickemuBackend(FakeProcessRunner({}));
+        for (final host in ['x; rm -rf /', r'a$(id)', '`whoami`', 'a|b']) {
+          final r = await backend.connectSsh(
+            terminalEmulator: 'xterm',
+            user: 'alice',
+            sshPort: '22',
+            host: host,
+          );
+          expect(r.exitCode, 1, reason: 'host=$host must be rejected');
+        }
+      });
+
+      test('IPv6 literals with zone ids are valid hosts', () async {
+        final runner = FakeProcessRunner({
+          'sh -c xterm -e ssh -p 22 fe80::1%eth0': ProcessResult(0, 0, '', ''),
+        });
+        await QuickemuBackend(runner).connectSsh(
+          terminalEmulator: 'xterm',
+          user: '',
+          sshPort: '22',
+          host: 'fe80::1%eth0',
+        );
+        expectInvocation(runner, 'sh', [
+          '-c',
+          'xterm -e ssh -p 22 fe80::1%eth0',
+        ]);
+      });
+    });
   });
 }

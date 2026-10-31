@@ -248,12 +248,19 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
   Future<ProcResult> forgetSshHostKey(String sshPort) async =>
       lastActionResult ?? const ProcResult(0, '', '');
 
+  String? lastSshTarget;
+
   @override
   Future<ProcResult> connectSsh({
     required String terminalEmulator,
     required String user,
     required String sshPort,
-  }) async => lastActionResult ?? const ProcResult(0, '', '');
+    String? host,
+  }) async {
+    lastSshTarget =
+        '${user.isEmpty ? '' : '$user@'}${host ?? 'localhost'}:$sshPort';
+    return lastActionResult ?? const ProcResult(0, '', '');
+  }
 
   @override
   Future<ProcResult> diagnosticsReport() async =>
@@ -276,6 +283,17 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
 
   @override
   Future<Map<String, dynamic>?> vmStats(String target) async => null;
+
+  Map<String, dynamic>? guestIp;
+  Exception? guestIpError;
+  int guestIpCalls = 0;
+
+  @override
+  Future<Map<String, dynamic>?> guestIpInfo(String confPath) async {
+    guestIpCalls++;
+    if (guestIpError != null) throw guestIpError!;
+    return guestIp;
+  }
 
   @override
   Future<Map<String, dynamic>> listInventory() async => {};

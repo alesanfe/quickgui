@@ -7,11 +7,11 @@ import 'package:path/path.dart' as p;
 import 'package:quickgui/features/activity/domain/app_operation.dart';
 import 'package:quickgui/features/activity/providers/activity_providers.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';
-import 'package:quickgui/features/machines/providers/backend_providers.dart';
+import 'package:quickgui/features/machines/providers/api_routing_backend_provider.dart';
 
 final trackedBackendProvider = Provider<VirtualizationBackend>(
   (ref) => _TrackedBackend(
-    ref.watch(backendProvider),
+    ref.watch(apiRoutingBackendProvider),
     <T>(kind, target, action, {retrySpec, onCancel}) => ref
         .read(activityProvider.notifier)
         .run<T>(kind, target, action, retrySpec: retrySpec, onCancel: onCancel),
@@ -333,13 +333,15 @@ class _TrackedBackend implements VirtualizationBackend {
     required String terminalEmulator,
     required String user,
     required String sshPort,
+    String? host,
   }) => track(
     OperationKind.command,
-    'SSH :$sshPort',
+    'SSH ${host ?? 'localhost'}:$sshPort',
     (op) => backend.connectSsh(
       terminalEmulator: terminalEmulator,
       user: user,
       sshPort: sshPort,
+      host: host,
     ),
   );
   @override
@@ -363,6 +365,11 @@ class _TrackedBackend implements VirtualizationBackend {
   @override
   Future<Map<String, dynamic>?> vmStats(String target) =>
       backend.vmStats(target);
+
+  /// Read-only guest query — same policy as vmStats: no activity op.
+  @override
+  Future<Map<String, dynamic>?> guestIpInfo(String confPath) =>
+      backend.guestIpInfo(confPath);
 
   @override
   Future<ProcResult> monitorCommand(String target, String command) =>

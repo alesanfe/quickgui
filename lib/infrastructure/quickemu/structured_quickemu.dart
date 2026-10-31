@@ -49,6 +49,7 @@ class StructuredQuickemu {
       'kill',
       'start',
       'stop',
+      'vm.ip',
     };
     const medium = {
       'doctor',

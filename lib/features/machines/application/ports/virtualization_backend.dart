@@ -168,11 +168,15 @@ abstract class VirtualizationBackend {
   Future<ProcResult> forgetSshHostKey(String sshPort);
 
   /// Opens [terminalEmulator] running an ssh session into the VM as
-  /// [user] on [sshPort].
+  /// [user] on [sshPort]. [host] defaults to `localhost` (the
+  /// forwarded-port path); a bridged guest address reported by the
+  /// agent may be passed instead — it is validated before reaching
+  /// the shell string (QG-051).
   Future<ProcResult> connectSsh({
     required String terminalEmulator,
     required String user,
     required String sshPort,
+    String? host,
   });
 
   /// Runs the backend's diagnostics report (`quickreport`).
@@ -192,6 +196,14 @@ abstract class VirtualizationBackend {
 
   /// Per-VM QMP metrics (`--stats`).
   Future<Map<String, dynamic>?> vmStats(String target);
+
+  /// Guest network addresses via the QEMU Guest Agent
+  /// (`quickemu guest ip` → `vm.ip`). Returns `{ipv4, ipv6, iface}` —
+  /// or null when the backend predates the guest verbs. Typed QGA
+  /// failures (`channel_missing`, `agent_not_ready`…) propagate as
+  /// AppFailure so callers can distinguish "no agent" from
+  /// "no address yet" (QG-050).
+  Future<Map<String, dynamic>?> guestIpInfo(String confPath);
 
   /// Global VM inventory (`--inventory` -> vms.json).
   Future<Map<String, dynamic>> listInventory();

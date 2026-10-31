@@ -60,7 +60,7 @@ const Set<String> _knownBackendOptions = {
   '--arch', '--check-all-arch', '--cloud-init', '--create-config',
   '--disable-unattended', '--download', '--insecure',
   '--list-csv', '--list-json', '--open-homepage', '--show', '--unattended',
-  '--update', '--url', '--minimum-trust',
+  '--update', '--url', '--minimum-trust', '--chunkcheck',
 };
 
 /// quickemu checkout candidates (Windows worktree and the WSL mirror).

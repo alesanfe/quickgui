@@ -383,6 +383,24 @@ class QuickemuBackend implements VirtualizationBackend {
   }
 
   @override
+  Future<Map<String, dynamic>?> guestIpInfo(String confPath) async {
+    try {
+      final response = await _structured.run('vm.ip', [
+        'guest',
+        'ip',
+        '--vm',
+        confPath,
+      ]);
+      return response.dataMap;
+    } on AppFailure catch (e) {
+      // Old backend without the guest verbs → unsupported; typed QGA
+      // failures (agent missing, timeout) propagate to the caller.
+      if (isBackendEnvelopeMissing(e)) return null;
+      rethrow;
+    }
+  }
+
+  @override
   Future<Map<String, dynamic>?> hostInfo() async {
     try {
       final response = await _structured.run('host-info', ['--host-info']);
@@ -542,6 +560,15 @@ class QuickemuBackend implements VirtualizationBackend {
   static bool _validPort(String port) =>
       RegExp(r'^\d{1,5}$').hasMatch(port) && (int.tryParse(port) ?? 0) <= 65535;
 
+  /// IPv4/IPv6 literals (incl. zone ids) and plain hostnames — every
+  /// character that could break the terminal `sh -c` string (spaces,
+  /// quotes, `;`, `$`, backticks, `|`, `&`, `<`, `>`, parens) is
+  /// excluded by construction (QG-051).
+  static bool _validHost(String host) =>
+      host.isNotEmpty &&
+      host.length <= 253 &&
+      RegExp(r'^[a-zA-Z0-9][a-zA-Z0-9.:%_-]*$').hasMatch(host);
+
   @override
   Future<ProcResult> forgetSshHostKey(String sshPort) {
     if (!_validPort(sshPort)) {
@@ -555,21 +582,28 @@ class QuickemuBackend implements VirtualizationBackend {
     required String terminalEmulator,
     required String user,
     required String sshPort,
+    String? host,
   }) {
     // The ssh user comes from the VM .conf and is interpolated into a
     // `sh -c` string — reject anything that is not a plain login name.
     // sshPort is likewise file content interpolated into that string.
+    // host (a bridged guest address, QG-051) gets the same treatment:
+    // IP literals and hostnames only, no shell metacharacters.
     final safeUser = RegExp(r'^[a-zA-Z_][a-zA-Z0-9_.-]*$').hasMatch(user)
         ? user
         : '';
     if (!_validPort(sshPort)) {
       return Future.value(const ProcResult(1, '', 'invalid ssh port'));
     }
+    if (host != null && !_validHost(host)) {
+      return Future.value(const ProcResult(1, '', 'invalid ssh host'));
+    }
+    final target = host ?? 'localhost';
     var sshArgs = <String>[
       'ssh',
       '-p',
       sshPort,
-      if (safeUser.isEmpty) 'localhost' else '$safeUser@localhost',
+      if (safeUser.isEmpty) target else '$safeUser@$target',
     ];
     // Set the arguments to execute the ssh command in the default terminal.
     // Strip the extension as x-terminal-emulator may point to a .wrapper
