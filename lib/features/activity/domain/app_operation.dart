@@ -15,7 +15,8 @@ enum OperationKind {
   import,
   convert,
   restore,
-  command;
+  command,
+  automation;
 
   /// Stable wire name for persistence.
   String get wire => name;
@@ -69,6 +70,46 @@ class AppOperation {
 
 /// Terminal status persisted in the activity history.
 enum OperationStatus { succeeded, failed, cancelled, interrupted }
+
+/// Lifecycle of a failure in the activity centre (QG-013). Distinct
+/// from [OperationStatus] — the status records how the operation ended;
+/// the lifecycle tracks what the *user* has done with that outcome.
+enum OperationLifecycle {
+  /// Newly recorded, not yet reviewed.
+  newEntry,
+
+  /// User saw it and marked it reviewed.
+  acknowledged,
+
+  /// A retry is currently in flight for this failure.
+  retrying,
+
+  /// A retry for this failure succeeded.
+  recovered,
+
+  /// Failed and not retryable — nothing more to do automatically.
+  permanentlyFailed,
+
+  /// Ended by user cancellation.
+  cancelled,
+
+  /// User dismissed it without action.
+  ignored,
+
+  /// Needs the user's attention (failed-retryable or interrupted).
+  requiresAction;
+
+  /// Default lifecycle for a freshly finished operation.
+  static OperationLifecycle forStatus(
+    OperationStatus status, {
+    required bool retryable,
+  }) => switch (status) {
+    OperationStatus.failed => retryable ? requiresAction : permanentlyFailed,
+    OperationStatus.interrupted => requiresAction,
+    OperationStatus.cancelled => cancelled,
+    OperationStatus.succeeded => newEntry,
+  };
+}
 
 /// Typed description of how to re-run an operation — never a raw
 /// command-line string. Arguments are the normalised quickemu tail
@@ -136,6 +177,8 @@ class OperationHistoryEntry {
     this.retrySpec,
     this.retryOf,
     this.backendOperationId,
+    this.lifecycle = OperationLifecycle.newEntry,
+    this.occurrences = 1,
   });
 
   final OperationKind kind;
@@ -170,11 +213,75 @@ class OperationHistoryEntry {
   /// or query the async-operation registry.
   final String? backendOperationId;
 
+  /// Failure lifecycle — tracks user acknowledgement/retry outcome
+  /// (QG-013).
+  final OperationLifecycle lifecycle;
+
+  /// How many times an identical failure was recorded — identical
+  /// failures are merged instead of spamming the list (QG-013).
+  final int occurrences;
+
   /// True when the entry can be re-dispatched directly (typed args and
   /// no plan regeneration required). Destructive retries that need a
   /// fresh plan stay retryable but must go through the plan flow first.
   bool get canRetry =>
       retryable && retrySpec != null && !retrySpec!.regeneratesPlan;
+
+  /// Whether this entry needs the user's attention — the basis of the
+  /// "requires action" filter (QG-014).
+  bool get requiresAction => lifecycle == OperationLifecycle.requiresAction;
+
+  /// Copy with a new lifecycle/occurrence count — entries are treated
+  /// as immutable from the UI's perspective.
+  OperationHistoryEntry copyWith({
+    OperationLifecycle? lifecycle,
+    int? occurrences,
+    OperationStatus? status,
+    DateTime? completedAt,
+  }) => OperationHistoryEntry(
+    id: id,
+    kind: kind,
+    target: target,
+    startedAt: startedAt,
+    completedAt: completedAt ?? this.completedAt,
+    status: status ?? this.status,
+    message: message,
+    failureCode: failureCode,
+    retryable: retryable,
+    retrySpec: retrySpec,
+    retryOf: retryOf,
+    backendOperationId: backendOperationId,
+    lifecycle: lifecycle ?? this.lifecycle,
+    occurrences: occurrences ?? this.occurrences,
+  );
+
+  /// One-line diagnostic for the "copy diagnostic" action (QG-015):
+  /// stable code, kind, target, times and backend correlation id —
+  /// never includes secrets or raw argv.
+  String toDiagnosticLine() {
+    final parts = <String>[
+      'kind=${kind.wire}',
+      'target=$target',
+      'status=${status.name}',
+      'lifecycle=${lifecycle.name}',
+      if (failureCode != null) 'code=$failureCode',
+      if (id != null) 'id=$id',
+      if (retryOf != null) 'retryOf=$retryOf',
+      if (backendOperationId != null) 'backendOp=$backendOperationId',
+      'started=${startedAt.toIso8601String()}',
+      'completed=${completedAt.toIso8601String()}',
+      if (occurrences > 1) 'occurrences=$occurrences',
+    ];
+    return '${parts.join(' ')}${message.isNotEmpty ? ' — $message' : ''}';
+  }
+
+  /// True when [other] is the same failure for dedupe purposes — same
+  /// kind, target, terminal status and failure code.
+  bool sameFailureAs(OperationHistoryEntry other) =>
+      kind == other.kind &&
+      target == other.target &&
+      status == other.status &&
+      failureCode == other.failureCode;
 
   Map<String, dynamic> toJson() => {
     if (id != null) 'id': id,
@@ -189,6 +296,8 @@ class OperationHistoryEntry {
     if (retrySpec != null) 'retrySpec': retrySpec!.toJson(),
     if (retryOf != null) 'retryOf': retryOf,
     if (backendOperationId != null) 'backendOperationId': backendOperationId,
+    if (lifecycle != OperationLifecycle.newEntry) 'lifecycle': lifecycle.name,
+    if (occurrences > 1) 'occurrences': occurrences,
   };
 
   static OperationHistoryEntry? fromJson(Map<String, dynamic> json) {
@@ -216,6 +325,133 @@ class OperationHistoryEntry {
       backendOperationId: json['backendOperationId'] is String
           ? json['backendOperationId'] as String
           : null,
+      lifecycle:
+          OperationLifecycle.values
+              .where((l) => l.name == json['lifecycle'])
+              .firstOrNull ??
+          OperationLifecycle.forStatus(
+            OperationStatus.values
+                    .where((s) => s.name == json['status'])
+                    .firstOrNull ??
+                OperationStatus.succeeded,
+            retryable: json['retryable'] == true,
+          ),
+      occurrences: json['occurrences'] is int ? json['occurrences'] as int : 1,
     );
   }
+}
+
+/// Composable, persisted filter set for the activity centre (QG-014).
+/// Pure — unit-tested without a widget tree.
+class ActivityFilter {
+  const ActivityFilter({
+    this.status,
+    this.kind,
+    this.target,
+    this.retryableOnly = false,
+    this.requiresActionOnly = false,
+    this.maxAge,
+    this.query = '',
+  });
+
+  /// Terminal status filter — null means "all statuses".
+  final OperationStatus? status;
+
+  /// Operation kind filter.
+  final OperationKind? kind;
+
+  /// VM/target filter — exact target name.
+  final String? target;
+
+  /// Only entries the backend marked safe to retry.
+  final bool retryableOnly;
+
+  /// Only entries whose lifecycle needs user attention.
+  final bool requiresActionOnly;
+
+  /// Only entries completed within this window — null means all time.
+  final Duration? maxAge;
+
+  /// Free-text search across target, message, kind and failure code.
+  final String query;
+
+  bool matches(OperationHistoryEntry e, DateTime now) {
+    if (status != null) {
+      // The "cancelled" bucket historically groups cancelled and
+      // interrupted — mirroring the existing tab semantics.
+      final match = status == OperationStatus.cancelled
+          ? (e.status == OperationStatus.cancelled ||
+                e.status == OperationStatus.interrupted)
+          : e.status == status;
+      if (!match) return false;
+    }
+    if (kind != null && e.kind != kind) return false;
+    if (target != null && e.target != target) return false;
+    if (retryableOnly && !e.retryable) return false;
+    if (requiresActionOnly && !e.requiresAction) return false;
+    if (maxAge != null && now.difference(e.completedAt) > maxAge!) {
+      return false;
+    }
+    if (query.isNotEmpty) {
+      final q = query.toLowerCase();
+      final hay =
+          '${e.target} ${e.message} ${e.kind.wire} '
+                  '${e.failureCode ?? ''}'
+              .toLowerCase();
+      if (!hay.contains(q)) return false;
+    }
+    return true;
+  }
+
+  /// Whether any filter is active — drives the "clear filters" button.
+  bool get isActive =>
+      status != null ||
+      kind != null ||
+      target != null ||
+      retryableOnly ||
+      requiresActionOnly ||
+      maxAge != null ||
+      query.isNotEmpty;
+
+  ActivityFilter copyWith({
+    OperationStatus? Function()? status,
+    OperationKind? Function()? kind,
+    String? Function()? target,
+    bool? retryableOnly,
+    bool? requiresActionOnly,
+    Duration? Function()? maxAge,
+    String? query,
+  }) => ActivityFilter(
+    status: status != null ? status() : this.status,
+    kind: kind != null ? kind() : this.kind,
+    target: target != null ? target() : this.target,
+    retryableOnly: retryableOnly ?? this.retryableOnly,
+    requiresActionOnly: requiresActionOnly ?? this.requiresActionOnly,
+    maxAge: maxAge != null ? maxAge() : this.maxAge,
+    query: query ?? this.query,
+  );
+
+  Map<String, dynamic> toJson() => {
+    if (status != null) 'status': status!.name,
+    if (kind != null) 'kind': kind!.wire,
+    if (target != null) 'target': target,
+    if (retryableOnly) 'retryableOnly': true,
+    if (requiresActionOnly) 'requiresActionOnly': true,
+    if (maxAge != null) 'maxAgeMinutes': maxAge!.inMinutes,
+    if (query.isNotEmpty) 'query': query,
+  };
+
+  factory ActivityFilter.fromJson(Map<String, dynamic> json) => ActivityFilter(
+    status: OperationStatus.values
+        .where((s) => s.name == json['status'])
+        .firstOrNull,
+    kind: OperationKind.fromWire(json['kind']),
+    target: json['target'] is String ? json['target'] as String : null,
+    retryableOnly: json['retryableOnly'] == true,
+    requiresActionOnly: json['requiresActionOnly'] == true,
+    maxAge: json['maxAgeMinutes'] is int
+        ? Duration(minutes: json['maxAgeMinutes'] as int)
+        : null,
+    query: '${json['query'] ?? ''}',
+  );
 }

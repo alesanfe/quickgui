@@ -303,31 +303,37 @@ class ActivityController extends Notifier<ActivityState> {
         OperationFailed(:final message) => message,
         _ => op.output,
       };
+      final retryable = switch (next) {
+        OperationFailed(:final retryable) => retryable,
+        _ => false,
+      };
+      final newEntry = OperationHistoryEntry(
+        id: op.id,
+        kind: op.kind,
+        target: op.target,
+        startedAt: op.startedAt,
+        completedAt: op.completedAt!,
+        status: status,
+        message: message,
+        failureCode: switch (next) {
+          OperationFailed(:final code) => code,
+          _ => null,
+        },
+        retryable: retryable,
+        retrySpec: op.retrySpec,
+        retryOf: op.retryOf,
+        backendOperationId: op.backendOperationId,
+        lifecycle: OperationLifecycle.forStatus(status, retryable: retryable),
+      );
+      // QG-013: identical failures burst when e.g. a reconnect loop
+      // keeps failing — merge them into one entry with a counter
+      // instead of flooding the list.
+      final deduped = _mergeDuplicateFailure(state.history, newEntry);
       state = ActivityState(
         active: state.active.where((o) => o.id != op.id).toList(),
-        history: [
-          OperationHistoryEntry(
-            id: op.id,
-            kind: op.kind,
-            target: op.target,
-            startedAt: op.startedAt,
-            completedAt: op.completedAt!,
-            status: status,
-            message: message,
-            failureCode: switch (next) {
-              OperationFailed(:final code) => code,
-              _ => null,
-            },
-            retryable: switch (next) {
-              OperationFailed(:final retryable) => retryable,
-              _ => false,
-            },
-            retrySpec: op.retrySpec,
-            retryOf: op.retryOf,
-            backendOperationId: op.backendOperationId,
-          ),
-          ...state.history,
-        ].take(_historyLimit).toList(),
+        history: (deduped ?? [newEntry, ...state.history])
+            .take(_historyLimit)
+            .toList(),
       );
       unawaitedLogged(_persist(), AppLog.preferences, 'persist activity');
     } else {
@@ -371,6 +377,82 @@ class ActivityController extends Notifier<ActivityState> {
     unawaitedLogged(_persist(), AppLog.preferences, 'persist activity');
   }
 
+  /// Merges [newEntry] into an identical recent history entry when one
+  /// exists — same kind/target/status/failureCode within the dedupe
+  /// window — bumping its counter and timestamp. Returns the merged
+  /// history, or null when [newEntry] is unique (QG-013).
+  List<OperationHistoryEntry>? _mergeDuplicateFailure(
+    List<OperationHistoryEntry> history,
+    OperationHistoryEntry newEntry,
+  ) {
+    if (newEntry.status != OperationStatus.failed) return null;
+    // Retry attempts are distinct events — never merge them away, the
+    // attempt lineage (retryOf) must stay visible (QG-015).
+    if (newEntry.retryOf != null) return null;
+    for (var i = 0; i < history.length && i < 10; i++) {
+      final e = history[i];
+      if (!e.sameFailureAs(newEntry)) continue;
+      if (newEntry.completedAt.difference(e.completedAt).inMinutes.abs() > 5) {
+        continue;
+      }
+      final merged = [...history];
+      merged[i] = e.copyWith(
+        occurrences: e.occurrences + 1,
+        completedAt: newEntry.completedAt,
+      );
+      return merged;
+    }
+    return null;
+  }
+
+  /// Sets the failure lifecycle on a persisted entry (QG-013) —
+  /// acknowledge a warning, ignore a stale failure, etc.
+  void setLifecycle(OperationHistoryEntry entry, OperationLifecycle lifecycle) {
+    final idx = state.history.indexWhere(
+      (e) => entry.id != null ? e.id == entry.id : identical(e, entry),
+    );
+    if (idx < 0) return;
+    final history = [...state.history];
+    history[idx] = history[idx].copyWith(lifecycle: lifecycle);
+    state = ActivityState(active: state.active, history: history);
+    unawaitedLogged(_persist(), AppLog.preferences, 'persist activity');
+  }
+
+  /// Acknowledge a failure that requires action — keeps it visible in
+  /// history but out of the "requires action" filter.
+  void acknowledge(OperationHistoryEntry entry) =>
+      setLifecycle(entry, OperationLifecycle.acknowledged);
+
+  /// Dismiss a failure without acting on it.
+  void ignore(OperationHistoryEntry entry) =>
+      setLifecycle(entry, OperationLifecycle.ignored);
+
+  /// 1-based attempt number of [entry] within its retry chain — the
+  /// original attempt is 1, each retry +1 (QG-015).
+  int attemptNumber(OperationHistoryEntry entry) {
+    var depth = 1;
+    var cursor = entry;
+    final seen = <String>{};
+    while (cursor.retryOf != null && seen.add(cursor.retryOf!)) {
+      final parent = state.history
+          .where((e) => e.id == cursor.retryOf)
+          .firstOrNull;
+      if (parent == null) break;
+      cursor = parent;
+      depth++;
+    }
+    return depth;
+  }
+
+  /// True when a retry for [entry] (or for the same target+kind) is
+  /// already in flight — prevents duplicate concurrent retries
+  /// (QG-015).
+  bool retryInFlight(OperationHistoryEntry entry) => state.active.any(
+    (op) =>
+        op.retryOf == entry.id ||
+        (op.kind == entry.kind && op.target == entry.target),
+  );
+
   /// Marks an in-flight operation as interrupted — the outcome could
   /// not be confirmed (backend lost, process orphaned, app closing).
   /// Distinct from `failed`: reconciliation or a safe retry may still
@@ -390,17 +472,53 @@ class ActivityController extends Notifier<ActivityState> {
     if (spec == null || !entry.retryable || spec.regeneratesPlan) {
       throw StateError('${entry.kind.wire} ${entry.target} is not retryable');
     }
-    return await run(
-      entry.kind,
-      entry.target,
-      (op) => runVmActionOrLegacy(
-        ref.read(backendProvider),
-        spec.command,
-        spec.arguments,
-      ),
-      retrySpec: spec,
-      retryOf: entry.id,
-    );
+    // QG-015: never dispatch a second concurrent retry for the same
+    // failure — the activity list would show two identical in-flight
+    // ops racing on the same target.
+    if (retryInFlight(entry)) {
+      throw StateError(
+        '${entry.kind.wire} ${entry.target} already has an '
+        'operation in flight',
+      );
+    }
+    setLifecycle(entry, OperationLifecycle.retrying);
+    try {
+      final result = await run(
+        entry.kind,
+        entry.target,
+        (op) => runVmActionOrLegacy(
+          ref.read(backendProvider),
+          spec.command,
+          spec.arguments,
+        ),
+        retrySpec: spec,
+        retryOf: entry.id,
+      );
+      if (result.exitCode == 0) {
+        setLifecycle(entry, OperationLifecycle.recovered);
+      } else {
+        // The retry ran but the backend still failed — its own
+        // history entry records the outcome; the original failure
+        // goes back to needing attention.
+        setLifecycle(
+          entry,
+          OperationLifecycle.forStatus(
+            entry.status,
+            retryable: entry.retryable,
+          ),
+        );
+      }
+      return result;
+    } catch (_) {
+      // The failed attempt produced its own history entry; the
+      // original returns to its natural lifecycle so the "requires
+      // action" filter reflects reality again.
+      setLifecycle(
+        entry,
+        OperationLifecycle.forStatus(entry.status, retryable: entry.retryable),
+      );
+      rethrow;
+    }
   }
 
   /// Removes a finished op from the active list without recording it.

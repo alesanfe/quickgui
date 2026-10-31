@@ -266,4 +266,425 @@ void main() {
       );
     });
   });
+
+  group('failure lifecycle (QG-013)', () {
+    OperationHistoryEntry entry({
+      OperationStatus status = OperationStatus.failed,
+      bool retryable = false,
+      String? id,
+      String? retryOf,
+    }) => OperationHistoryEntry(
+      id: id,
+      kind: OperationKind.start,
+      target: 'vm1',
+      startedAt: DateTime.fromMillisecondsSinceEpoch(0),
+      completedAt: DateTime.fromMillisecondsSinceEpoch(1),
+      status: status,
+      retryable: retryable,
+      retryOf: retryOf,
+    );
+
+    test('failed-retryable starts as requiresAction', () async {
+      final prefs = FakePreferencesRepository();
+      final c = _container(prefs);
+      addTearDown(c.dispose);
+      final ctrl = c.read(activityProvider.notifier);
+
+      await expectLater(
+        ctrl.run(
+          OperationKind.start,
+          'vm1',
+          (op) async => throw const AppFailure(
+            AppFailureKind.timeout,
+            'BACKEND_TIMEOUT',
+            'Timed out',
+            retryable: true,
+          ),
+        ),
+        throwsA(isA<AppFailure>()),
+      );
+
+      final e = c.read(activityProvider).history.single;
+      expect(e.lifecycle, OperationLifecycle.requiresAction);
+      expect(e.requiresAction, isTrue);
+    });
+
+    test('non-retryable failure starts as permanentlyFailed', () async {
+      final prefs = FakePreferencesRepository();
+      final c = _container(prefs);
+      addTearDown(c.dispose);
+      final ctrl = c.read(activityProvider.notifier);
+
+      await ctrl.run(
+        OperationKind.start,
+        'vm1',
+        (op) async => const ProcResult(3, '', 'boom'),
+      );
+
+      final e = c.read(activityProvider).history.single;
+      expect(e.status, OperationStatus.failed);
+      expect(e.lifecycle, OperationLifecycle.permanentlyFailed);
+      expect(e.requiresAction, isFalse);
+    });
+
+    test('interrupted starts as requiresAction', () {
+      final prefs = FakePreferencesRepository();
+      final c = _container(prefs);
+      addTearDown(c.dispose);
+      final ctrl = c.read(activityProvider.notifier);
+      final op = ctrl.start(OperationKind.export, 'vm1');
+      ctrl.markInterrupted(op);
+      expect(
+        c.read(activityProvider).history.single.lifecycle,
+        OperationLifecycle.requiresAction,
+      );
+    });
+
+    test('acknowledge and ignore transition lifecycle', () async {
+      final prefs = FakePreferencesRepository();
+      final c = _container(prefs);
+      addTearDown(c.dispose);
+      final ctrl = c.read(activityProvider.notifier);
+      final op = ctrl.start(OperationKind.export, 'vm1');
+      ctrl.markInterrupted(op);
+      final e = c.read(activityProvider).history.single;
+
+      ctrl.acknowledge(e);
+      expect(
+        c.read(activityProvider).history.single.lifecycle,
+        OperationLifecycle.acknowledged,
+      );
+      ctrl.ignore(c.read(activityProvider).history.single);
+      expect(
+        c.read(activityProvider).history.single.lifecycle,
+        OperationLifecycle.ignored,
+      );
+    });
+
+    test('lifecycle round-trips through json', () {
+      final e = entry(
+        id: 'a',
+        retryable: true,
+      ).copyWith(lifecycle: OperationLifecycle.acknowledged);
+      final decoded = OperationHistoryEntry.fromJson(e.toJson())!;
+      expect(decoded.lifecycle, OperationLifecycle.acknowledged);
+      // Entries persisted before the field existed derive a sensible
+      // default from status+retryable.
+      final legacy = OperationHistoryEntry.fromJson({
+        'kind': 'start',
+        'target': 'vm1',
+        'startedAt': '2026-01-01T00:00:00.000Z',
+        'completedAt': '2026-01-01T00:01:00.000Z',
+        'status': 'failed',
+        'message': '',
+        'retryable': true,
+      })!;
+      expect(legacy.lifecycle, OperationLifecycle.requiresAction);
+    });
+
+    test('identical failures merge into one entry with a counter', () {
+      final prefs = FakePreferencesRepository();
+      final c = _container(prefs);
+      addTearDown(c.dispose);
+      final ctrl = c.read(activityProvider.notifier);
+
+      for (var i = 0; i < 3; i++) {
+        final op = ctrl.start(OperationKind.start, 'vm1');
+        ctrl.update(
+          op,
+          const OperationState.failed(
+            code: 'BACKEND_TIMEOUT',
+            message: 'Timed out',
+            retryable: true,
+          ),
+        );
+      }
+      final history = c.read(activityProvider).history;
+      expect(history, hasLength(1));
+      expect(history.single.occurrences, 3);
+    });
+
+    test('distinct failures are not merged', () {
+      final prefs = FakePreferencesRepository();
+      final c = _container(prefs);
+      addTearDown(c.dispose);
+      final ctrl = c.read(activityProvider.notifier);
+
+      for (final code in ['A', 'B']) {
+        final op = ctrl.start(OperationKind.start, 'vm1');
+        ctrl.update(op, OperationState.failed(code: code, message: 'x'));
+      }
+      expect(c.read(activityProvider).history, hasLength(2));
+    });
+  });
+
+  group('retry guards and lineage (QG-015)', () {
+    const spec = RetrySpec(
+      command: 'start',
+      arguments: ['--vm', 'vm1.conf'],
+      idempotent: true,
+    );
+
+    test('concurrent retry of same target is refused', () async {
+      final prefs = FakePreferencesRepository();
+      final backend = FakeVirtualizationBackend()
+        ..jsonResponses['start'] = {'state': 'ok'};
+      final c = _container(prefs, backend: backend);
+      addTearDown(c.dispose);
+      final ctrl = c.read(activityProvider.notifier);
+
+      final entry = OperationHistoryEntry(
+        id: 'orig',
+        kind: OperationKind.start,
+        target: 'vm1',
+        startedAt: DateTime.fromMillisecondsSinceEpoch(0),
+        completedAt: DateTime.fromMillisecondsSinceEpoch(1),
+        status: OperationStatus.failed,
+        retryable: true,
+        retrySpec: spec,
+      );
+      // An unrelated op already in flight on the same target+kind
+      // must block a second dispatch.
+      ctrl.start(OperationKind.start, 'vm1');
+      expect(ctrl.retryInFlight(entry), isTrue);
+      await expectLater(ctrl.retry(entry), throwsStateError);
+    });
+
+    test('successful retry marks original recovered', () async {
+      final prefs = FakePreferencesRepository();
+      final backend = FakeVirtualizationBackend()
+        ..jsonResponses['start'] = {'state': 'ok'};
+      final c = _container(prefs, backend: backend);
+      addTearDown(c.dispose);
+      final ctrl = c.read(activityProvider.notifier);
+
+      // Seed a retryable failure through the normal path — a typed
+      // AppFailure with an idempotent spec.
+      await expectLater(
+        ctrl.run(
+          OperationKind.start,
+          'vm2',
+          (op) async => throw const AppFailure(
+            AppFailureKind.timeout,
+            'BACKEND_TIMEOUT',
+            'Timed out',
+            retryable: true,
+          ),
+          retrySpec: spec,
+        ),
+        throwsA(isA<AppFailure>()),
+      );
+      final failed = c.read(activityProvider).history.single;
+      expect(failed.canRetry, isTrue);
+      expect(failed.lifecycle, OperationLifecycle.requiresAction);
+
+      await ctrl.retry(failed);
+
+      final orig = c
+          .read(activityProvider)
+          .history
+          .firstWhere((e) => e.id == failed.id);
+      expect(orig.lifecycle, OperationLifecycle.recovered);
+      final attempt = c
+          .read(activityProvider)
+          .history
+          .firstWhere((e) => e.retryOf == failed.id);
+      expect(attempt.status, OperationStatus.succeeded);
+      expect(ctrl.attemptNumber(attempt), 2);
+      expect(ctrl.attemptNumber(orig), 1);
+      // The retry attempt is never merged into the original failure.
+      expect(
+        c.read(activityProvider).history.where((e) => e.target == 'vm2'),
+        hasLength(2),
+      );
+    });
+
+    test('failed retry returns original to requiresAction', () async {
+      final prefs = FakePreferencesRepository();
+      final backend = FakeVirtualizationBackend();
+      // No json response → envelope missing → runVmActionOrLegacy
+      // falls back to runAction; make that fail too.
+      backend.lastActionResult = const ProcResult(1, '', 'still broken');
+      final c = _container(prefs, backend: backend);
+      addTearDown(c.dispose);
+      final ctrl = c.read(activityProvider.notifier);
+
+      await expectLater(
+        ctrl.run(
+          OperationKind.start,
+          'vm1',
+          (op) async => throw const AppFailure(
+            AppFailureKind.timeout,
+            'BACKEND_TIMEOUT',
+            'Timed out',
+            retryable: true,
+          ),
+          retrySpec: spec,
+        ),
+        throwsA(isA<AppFailure>()),
+      );
+      final failed = c.read(activityProvider).history.single;
+
+      // retry() rethrows the ProcResult-less failure path — the
+      // legacy ProcResult is returned, not thrown, so check state.
+      final result = await ctrl.retry(failed);
+      expect(result.exitCode, 1);
+      final orig = c
+          .read(activityProvider)
+          .history
+          .firstWhere((e) => e.id == failed.id);
+      expect(orig.lifecycle, OperationLifecycle.requiresAction);
+    });
+  });
+
+  group('activity filters (QG-014)', () {
+    final now = DateTime.now();
+    OperationHistoryEntry entry({
+      OperationKind kind = OperationKind.start,
+      String target = 'vm1',
+      OperationStatus status = OperationStatus.failed,
+      bool retryable = false,
+      OperationLifecycle? lifecycle,
+      Duration age = Duration.zero,
+      String message = '',
+      String? code,
+    }) => OperationHistoryEntry(
+      kind: kind,
+      target: target,
+      startedAt: now.subtract(age),
+      completedAt: now.subtract(age),
+      status: status,
+      message: message,
+      failureCode: code,
+      retryable: retryable,
+      lifecycle:
+          lifecycle ??
+          OperationLifecycle.forStatus(status, retryable: retryable),
+    );
+
+    test('matches by kind, target, status and free text', () {
+      final e = entry(
+        kind: OperationKind.snapshot,
+        target: 'web-vm',
+        message: 'disk full',
+        code: 'LOW_SPACE',
+      );
+      expect(
+        const ActivityFilter(kind: OperationKind.snapshot).matches(e, now),
+        isTrue,
+      );
+      expect(
+        const ActivityFilter(kind: OperationKind.clone).matches(e, now),
+        isFalse,
+      );
+      expect(const ActivityFilter(target: 'web-vm').matches(e, now), isTrue);
+      expect(const ActivityFilter(target: 'db-vm').matches(e, now), isFalse);
+      expect(const ActivityFilter(query: 'disk full').matches(e, now), isTrue);
+      expect(const ActivityFilter(query: 'low_space').matches(e, now), isTrue);
+      expect(const ActivityFilter(query: 'network').matches(e, now), isFalse);
+    });
+
+    test('cancelled bucket groups cancelled and interrupted', () {
+      expect(
+        const ActivityFilter(status: OperationStatus.cancelled)
+            .matches(entry(status: OperationStatus.interrupted), now),
+        isTrue,
+      );
+      expect(
+        const ActivityFilter(status: OperationStatus.failed)
+            .matches(entry(status: OperationStatus.succeeded), now),
+        isFalse,
+      );
+    });
+
+    test('retryableOnly and requiresActionOnly', () {
+      final retryable = entry(retryable: true);
+      final plain = entry(status: OperationStatus.succeeded);
+      expect(
+        const ActivityFilter(retryableOnly: true).matches(retryable, now),
+        isTrue,
+      );
+      expect(
+        const ActivityFilter(retryableOnly: true).matches(plain, now),
+        isFalse,
+      );
+      expect(
+        const ActivityFilter(requiresActionOnly: true).matches(retryable, now),
+        isTrue,
+      );
+      expect(
+        const ActivityFilter(requiresActionOnly: true).matches(plain, now),
+        isFalse,
+      );
+      // Acknowledged failures leave the requires-action bucket.
+      final acked = entry(
+        retryable: true,
+        lifecycle: OperationLifecycle.acknowledged,
+      );
+      expect(
+        const ActivityFilter(requiresActionOnly: true).matches(acked, now),
+        isFalse,
+      );
+    });
+
+    test('maxAge filters out older entries', () {
+      final recent = entry(age: const Duration(minutes: 30));
+      final old = entry(age: const Duration(days: 2));
+      const filter = ActivityFilter(maxAge: Duration(hours: 1));
+      expect(filter.matches(recent, now), isTrue);
+      expect(filter.matches(old, now), isFalse);
+    });
+
+    test('isActive and json round-trip', () {
+      const empty = ActivityFilter();
+      expect(empty.isActive, isFalse);
+      const filter = ActivityFilter(
+        kind: OperationKind.snapshot,
+        target: 'vm1',
+        retryableOnly: true,
+        requiresActionOnly: true,
+        maxAge: Duration(hours: 24),
+        query: 'oops',
+      );
+      expect(filter.isActive, isTrue);
+      final decoded = ActivityFilter.fromJson(filter.toJson());
+      expect(decoded.kind, OperationKind.snapshot);
+      expect(decoded.target, 'vm1');
+      expect(decoded.retryableOnly, isTrue);
+      expect(decoded.requiresActionOnly, isTrue);
+      expect(decoded.maxAge, const Duration(hours: 24));
+      expect(decoded.query, 'oops');
+    });
+  });
+
+  group('diagnostics (QG-015)', () {
+    test('toDiagnosticLine carries stable metadata, no secrets', () {
+      final entry = OperationHistoryEntry(
+        id: 'op7',
+        kind: OperationKind.start,
+        target: 'vm1',
+        startedAt: DateTime.fromMillisecondsSinceEpoch(1000),
+        completedAt: DateTime.fromMillisecondsSinceEpoch(2000),
+        status: OperationStatus.failed,
+        failureCode: 'BACKEND_TIMEOUT',
+        retryable: true,
+        retryOf: 'op3',
+        backendOperationId: 'op-123',
+        retrySpec: const RetrySpec(
+          command: 'start',
+          arguments: ['--vm', 'vm1.conf'],
+          idempotent: true,
+        ),
+      );
+      final line = entry.toDiagnosticLine();
+      expect(line, contains('kind=start'));
+      expect(line, contains('target=vm1'));
+      expect(line, contains('code=BACKEND_TIMEOUT'));
+      expect(line, contains('retryOf=op3'));
+      expect(line, contains('backendOp=op-123'));
+      // RetrySpec argv is intentionally absent — logical command only.
+      expect(line, isNot(contains('vm1.conf')));
+      expect(line, isNot(contains('password')));
+    });
+  });
 }

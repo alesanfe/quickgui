@@ -1,12 +1,20 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
+import 'package:quickgui/core/constants/preference_keys.dart';
+import 'package:quickgui/core/extensions/preferences_repository_x.dart';
 import 'package:quickgui/features/activity/domain/app_operation.dart';
 import 'package:quickgui/features/activity/providers/activity_providers.dart';
 import 'package:quickgui/shared/models/operation_state.dart';
+import 'package:quickgui/shared/providers/preferences_providers.dart';
 
 /// Activity centre: tabbed view of in-flight operations plus the
-/// persisted history, filterable by kind and retryability.
+/// persisted history, filterable by status, kind, target, age,
+/// retryability, attention state and free text (QG-014). Filters are
+/// persisted across sessions.
 class ActivityPage extends ConsumerStatefulWidget {
   const ActivityPage({super.key});
 
@@ -18,27 +26,82 @@ enum _StatusTab { running, succeeded, failed, cancelled, all }
 
 class _ActivityPageState extends ConsumerState<ActivityPage> {
   _StatusTab _tab = _StatusTab.all;
-  OperationKind? _kindFilter;
-  bool _retryableOnly = false;
+  ActivityFilter _filter = const ActivityFilter();
+  final _searchCtrl = TextEditingController();
+  var _restored = false;
 
-  bool _matchesTab(OperationHistoryEntry e) => switch (_tab) {
-    _StatusTab.succeeded => e.status == OperationStatus.succeeded,
-    _StatusTab.failed => e.status == OperationStatus.failed,
-    _StatusTab.cancelled =>
-      e.status == OperationStatus.cancelled ||
-          e.status == OperationStatus.interrupted,
-    _StatusTab.running => false,
-    _StatusTab.all => true,
-  };
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
 
-  bool _matchesFilters(OperationHistoryEntry e) =>
-      (_kindFilter == null || e.kind == _kindFilter) &&
-      (!_retryableOnly || e.retryable);
+  Future<void> _restoreFilters() async {
+    final prefs = ref.read(preferencesRepositoryProvider);
+    final raw = await prefs.getAs<String>(prefActivityFilters);
+    if (!mounted || raw == null || raw.isEmpty) return;
+    try {
+      final json = jsonDecode(raw);
+      if (json is Map<String, dynamic>) {
+        setState(() {
+          _filter = ActivityFilter.fromJson(json);
+          _searchCtrl.text = _filter.query;
+          _tab = switch (_filter.status) {
+            OperationStatus.succeeded => _StatusTab.succeeded,
+            OperationStatus.failed => _StatusTab.failed,
+            OperationStatus.cancelled => _StatusTab.cancelled,
+            _ => _StatusTab.all,
+          };
+        });
+      }
+    } catch (_) {
+      // Corrupt preference: keep defaults.
+    }
+  }
+
+  void _apply(ActivityFilter next) {
+    setState(() => _filter = next);
+    final prefs = ref.read(preferencesRepositoryProvider);
+    prefs.set(prefActivityFilters, jsonEncode(next.toJson()));
+  }
+
+  void _setTab(_StatusTab tab) {
+    setState(() => _tab = tab);
+    _apply(
+      _filter.copyWith(
+        status: () => switch (tab) {
+          _StatusTab.succeeded => OperationStatus.succeeded,
+          _StatusTab.failed => OperationStatus.failed,
+          _StatusTab.cancelled => OperationStatus.cancelled,
+          _ => null,
+        },
+      ),
+    );
+  }
+
+  void _clearFilters() {
+    _searchCtrl.clear();
+    setState(() => _tab = _StatusTab.all);
+    _apply(const ActivityFilter());
+  }
+
+  static final _timeRanges = <(Duration?, String)>[
+    (null, 'All time'),
+    (const Duration(hours: 1), 'Last hour'),
+    (const Duration(hours: 24), 'Last 24 hours'),
+    (const Duration(days: 7), 'Last 7 days'),
+    (const Duration(days: 30), 'Last 30 days'),
+  ];
 
   @override
   Widget build(BuildContext context) {
+    if (!_restored) {
+      _restored = true;
+      _restoreFilters();
+    }
     final activity = ref.watch(activityProvider);
     final all = activity.history;
+    final now = DateTime.now();
     final counts = <OperationStatus, int>{
       for (final s in OperationStatus.values)
         s: all.where((e) => e.status == s).length,
@@ -48,14 +111,21 @@ class _ActivityPageState extends ConsumerState<ActivityPage> {
         (counts[OperationStatus.cancelled] ?? 0) + interrupted;
     final kinds = all.map((e) => e.kind).toSet().toList()
       ..sort((a, b) => a.index.compareTo(b.index));
+    final targets = all.map((e) => e.target).toSet().toList()..sort();
 
     final filtered = [
       for (final e in all)
-        if (_matchesTab(e) && _matchesFilters(e)) e,
+        if (_filter.matches(e, now)) e,
     ];
     final visibleActive = [
       for (final op in activity.active)
-        if (_kindFilter == null || op.kind == _kindFilter) op,
+        if ((_filter.kind == null || op.kind == _filter.kind) &&
+            (_filter.target == null || op.target == _filter.target) &&
+            (_filter.query.isEmpty ||
+                '${op.target} ${op.kind.wire}'.toLowerCase().contains(
+                  _filter.query.toLowerCase(),
+                )))
+          op,
     ];
 
     final tabs = [
@@ -65,11 +135,18 @@ class _ActivityPageState extends ConsumerState<ActivityPage> {
       (context.t('Cancelled'), cancelledCount),
       (context.t('All'), all.length),
     ];
+    final requiresActionCount = all.where((e) => e.requiresAction).length;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(context.t('Activity')),
         actions: [
+          if (_filter.isActive || _tab != _StatusTab.all)
+            IconButton(
+              tooltip: context.t('Clear filters'),
+              icon: const Icon(Icons.filter_alt_off),
+              onPressed: _clearFilters,
+            ),
           if (all.isNotEmpty)
             IconButton(
               tooltip: context.t('Clear history'),
@@ -82,9 +159,31 @@ class _ActivityPageState extends ConsumerState<ActivityPage> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          TextField(
+            controller: _searchCtrl,
+            decoration: InputDecoration(
+              isDense: true,
+              prefixIcon: const Icon(Icons.search),
+              hintText: context.t('Search by machine, message or error code'),
+              suffixIcon: _filter.query.isEmpty
+                  ? null
+                  : IconButton(
+                      tooltip: context.t('Clear search'),
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _searchCtrl.clear();
+                        _apply(_filter.copyWith(query: ''));
+                      },
+                    ),
+              border: const OutlineInputBorder(),
+            ),
+            onChanged: (v) => _apply(_filter.copyWith(query: v.trim())),
+          ),
+          const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               for (var i = 0; i < tabs.length; i++)
                 FilterChip(
@@ -94,14 +193,13 @@ class _ActivityPageState extends ConsumerState<ActivityPage> {
                         ? '${tabs[i].$1} (${tabs[i].$2})'
                         : tabs[i].$1,
                   ),
-                  onSelected: (_) =>
-                      setState(() => _tab = _StatusTab.values[i]),
+                  onSelected: (_) => _setTab(_StatusTab.values[i]),
                 ),
               const VerticalDivider(),
               if (kinds.length > 1)
                 PopupMenuButton<OperationKind?>(
                   tooltip: context.t('Filter by type'),
-                  onSelected: (k) => setState(() => _kindFilter = k),
+                  onSelected: (k) => _apply(_filter.copyWith(kind: () => k)),
                   itemBuilder: (context) => [
                     PopupMenuItem(child: Text(context.t('All types'))),
                     for (final k in kinds)
@@ -113,16 +211,63 @@ class _ActivityPageState extends ConsumerState<ActivityPage> {
                   child: Chip(
                     avatar: const Icon(Icons.filter_list, size: 18),
                     label: Text(
-                      _kindFilter == null
+                      _filter.kind == null
                           ? context.t('Type')
-                          : operationKindLabel(context, _kindFilter!),
+                          : operationKindLabel(context, _filter.kind!),
                     ),
                   ),
                 ),
+              if (targets.length > 1)
+                PopupMenuButton<String?>(
+                  tooltip: context.t('Filter by machine'),
+                  onSelected: (t) => _apply(_filter.copyWith(target: () => t)),
+                  itemBuilder: (context) => [
+                    PopupMenuItem(child: Text(context.t('All machines'))),
+                    for (final t in targets)
+                      PopupMenuItem(value: t, child: Text(t)),
+                  ],
+                  child: Chip(
+                    avatar: const Icon(Icons.computer, size: 18),
+                    label: Text(_filter.target ?? context.t('Machine')),
+                  ),
+                ),
+              PopupMenuButton<Duration?>(
+                tooltip: context.t('Filter by time'),
+                onSelected: (d) => _apply(_filter.copyWith(maxAge: () => d)),
+                itemBuilder: (context) => [
+                  for (final (duration, label) in _timeRanges)
+                    PopupMenuItem(
+                      value: duration,
+                      child: Text(context.t(label)),
+                    ),
+                ],
+                child: Chip(
+                  avatar: const Icon(Icons.schedule, size: 18),
+                  label: Text(
+                    context.t(
+                      _timeRanges
+                          .firstWhere(
+                            (e) => e.$1 == _filter.maxAge,
+                            orElse: () => _timeRanges.first,
+                          )
+                          .$2,
+                    ),
+                  ),
+                ),
+              ),
               FilterChip(
-                selected: _retryableOnly,
+                selected: _filter.retryableOnly,
                 label: Text(context.t('Retryable only')),
-                onSelected: (v) => setState(() => _retryableOnly = v),
+                onSelected: (v) => _apply(_filter.copyWith(retryableOnly: v)),
+              ),
+              FilterChip(
+                selected: _filter.requiresActionOnly,
+                avatar: requiresActionCount > 0
+                    ? Badge(label: Text('$requiresActionCount'))
+                    : null,
+                label: Text(context.t('Requires action')),
+                onSelected: (v) =>
+                    _apply(_filter.copyWith(requiresActionOnly: v)),
               ),
             ],
           ),
@@ -140,7 +285,7 @@ class _ActivityPageState extends ConsumerState<ActivityPage> {
               padding: const EdgeInsets.all(32),
               child: Center(
                 child: Text(
-                  _tab == _StatusTab.all && _kindFilter == null
+                  !_filter.isActive
                       ? context.t(
                           'No activity yet. Downloads and machine '
                           'operations will show up here.',
@@ -187,6 +332,7 @@ IconData operationKindIcon(OperationKind kind) => switch (kind) {
   OperationKind.convert => Icons.transform,
   OperationKind.restore => Icons.restore,
   OperationKind.command => Icons.terminal,
+  OperationKind.automation => Icons.auto_awesome,
 };
 
 /// Title per operation kind.
@@ -205,6 +351,7 @@ String operationKindLabel(BuildContext context, OperationKind kind) =>
       OperationKind.convert => context.t('Convert'),
       OperationKind.restore => context.t('Restore'),
       OperationKind.command => context.t('Command'),
+      OperationKind.automation => context.t('Automation run'),
     };
 
 class OperationTile extends ConsumerWidget {
@@ -323,14 +470,32 @@ class _HistoryTile extends ConsumerWidget {
         context.t('Interrupted'),
       ),
     };
+    final notifier = ref.read(activityProvider.notifier);
+    final attempt = notifier.attemptNumber(entry);
+    // Watch the provider so the retry button hides while a retry is
+    // actually in flight (QG-015: no duplicate concurrent retries).
+    ref.watch(activityProvider);
+    final inFlight = notifier.retryInFlight(entry);
+    final lifecycleLabel = switch (entry.lifecycle) {
+      OperationLifecycle.retrying => context.t('Retrying'),
+      OperationLifecycle.recovered => context.t('Recovered'),
+      OperationLifecycle.permanentlyFailed => context.t('Permanently failed'),
+      OperationLifecycle.acknowledged => context.t('Acknowledged'),
+      OperationLifecycle.ignored => context.t('Ignored'),
+      OperationLifecycle.requiresAction => context.t('Requires action'),
+      _ => null,
+    };
     return ListTile(
       dense: true,
       leading: Icon(operationKindIcon(entry.kind)),
       title: Text(
-        '${operationKindLabel(context, entry.kind)} — ${entry.target}',
+        '${operationKindLabel(context, entry.kind)} — ${entry.target}'
+        '${attempt > 1 ? context.t(' (attempt {0})', args: ['$attempt']) : ''}'
+        '${entry.occurrences > 1 ? ' ×${entry.occurrences}' : ''}',
       ),
       subtitle: Text(
         '${_formatTime(entry.completedAt)}'
+        '${lifecycleLabel != null ? ' — $lifecycleLabel' : ''}'
         '${entry.failureCode != null ? ' — ${entry.failureCode}' : ''}'
         '${entry.message.isNotEmpty ? ' — ${entry.message}' : ''}',
         maxLines: 1,
@@ -348,16 +513,39 @@ class _HistoryTile extends ConsumerWidget {
               ),
               child: Icon(Icons.refresh, color: scheme.onSurfaceVariant),
             ),
-          if (entry.canRetry)
+          if (entry.canRetry && !inFlight)
             IconButton(
               tooltip: context.t('Retry'),
               icon: const Icon(Icons.replay),
               onPressed: () => _retry(context, ref),
             ),
+          if (entry.requiresAction)
+            IconButton(
+              tooltip: context.t('Acknowledge'),
+              icon: const Icon(Icons.check),
+              onPressed: () =>
+                  ref.read(activityProvider.notifier).acknowledge(entry),
+            ),
+          if (entry.status == OperationStatus.failed ||
+              entry.status == OperationStatus.interrupted)
+            IconButton(
+              tooltip: context.t('Copy diagnostic'),
+              icon: const Icon(Icons.content_copy, size: 18),
+              onPressed: () => _copyDiagnostic(context),
+            ),
           Icon(icon, color: color, semanticLabel: statusLabel),
         ],
       ),
     );
+  }
+
+  Future<void> _copyDiagnostic(BuildContext context) async {
+    await Clipboard.setData(ClipboardData(text: entry.toDiagnosticLine()));
+    if (context.mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.t('Diagnostic copied'))));
+    }
   }
 
   Future<void> _retry(BuildContext context, WidgetRef ref) async {
