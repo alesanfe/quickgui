@@ -2010,3 +2010,6 @@ msgstr ""
 
 msgid "Records the attached device in the VM configuration (--persist)."
 msgstr ""
+
+msgid "Start with profile"
+msgstr ""

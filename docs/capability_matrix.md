@@ -66,7 +66,7 @@ Generated from `assets/capabilities/capability_manifest.json` by `tool/generate_
 | `backend.plugins.list` | plugins | `--plugins` | diagnostics.plugins | 1 | Sí |
 | `backend.plugins.dispatch` | plugins | `--plugin` | diagnostics.plugins.run | 1 | Sí |
 | `vm.stats` | monitor | `--stats` | vm_details.stats | 2 | Sí |
-| `vm.profile` | config | `--profile` | create_wizard.hardware_profiles, vm_menu.start_profile | 1 | Sí |
+| `vm.profile` | config | `--profile` | create_wizard.hardware_profiles, vm_menu.start_profile | 3 | Sí |
 | `vm.config.migrateToml` | config | `--migrate-conf` | vm_menu.migrate_toml | 1 | Sí |
 | `backend.hostInfo` | diagnostics | `--host-info` | diagnostics.host_section | 1 | Sí |
 | `backend.capabilities` | diagnostics | `--capabilities` | diagnostics.capabilities_section, app.feature_gating | 1 | Sí |

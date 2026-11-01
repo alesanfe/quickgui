@@ -1839,3 +1839,6 @@ msgstr "Persistir en la configuración"
 
 msgid "Records the attached device in the VM configuration (--persist)."
 msgstr "Registra el dispositivo conectado en la configuración de la MV (--persist)."
+
+msgid "Start with profile"
+msgstr "Iniciar con perfil"

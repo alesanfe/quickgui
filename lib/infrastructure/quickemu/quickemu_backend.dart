@@ -804,15 +804,26 @@ class QuickemuBackend implements VirtualizationBackend {
     ]);
   }
 
-  /// Boot with a reusable profile preset (`--profile`).
+  /// Boot with a reusable profile preset (`--profile`). A launch
+  /// emits no envelope on this backend, so a missing contract falls
+  /// back to the exit-code path — same as `start`.
   @override
   Future<void> startWithProfile(String target, String profile) async {
-    await _structured.run('profile', [
-      '--vm',
-      '$target.conf',
-      '--profile',
-      profile,
-    ]);
+    final args = ['--vm', '$target.conf', '--profile', profile];
+    try {
+      await _structured.run('profile', args);
+    } on AppFailure catch (e) {
+      if (!isBackendEnvelopeMissing(e)) rethrow;
+      final r = await _proc(_process.quickemu(args));
+      if (r.exitCode != 0) {
+        throw AppFailure(
+          AppFailureKind.internal,
+          'PROFILE_START_FAILED',
+          'The VM failed to start with the selected profile.',
+          technical: 'exit=${r.exitCode} stderr=${r.stderr}',
+        );
+      }
+    }
   }
 
   /// Plugins installed on PATH (`--plugins` -> space-separated names).

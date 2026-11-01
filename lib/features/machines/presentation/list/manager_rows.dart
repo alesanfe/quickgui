@@ -593,6 +593,40 @@ extension on _ManagerState {
                     ]);
                     if (!context.mounted) return;
                     _showProcessOutput([r]);
+                  case 'start-profile':
+                    final profileId = await showDialog<String>(
+                      context: context,
+                      builder: (context) => SimpleDialog(
+                        title: Text(context.t('Start with profile')),
+                        children: [
+                          for (final p in vmProfiles)
+                            SimpleDialogOption(
+                              onPressed: () => Navigator.pop(context, p.id),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 4,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(p.name),
+                                    if (p.description.isNotEmpty)
+                                      Text(
+                                        p.description,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall,
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    );
+                    if (profileId == null || !context.mounted) return;
+                    await _backend.startWithProfile(currentVm, profileId);
+                    _getVms();
                   case 'reset':
                     // QEMU monitor `system_reset` — equivalent to pressing
                     // the reset button: abrupt reboot, unsaved guest state
@@ -827,6 +861,16 @@ extension on _ManagerState {
                     child: ListTile(
                       leading: const Icon(Icons.restart_alt),
                       title: Text(context.t('Reset')),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                if (!active && _cap('profiles'))
+                  PopupMenuItem(
+                    value: 'start-profile',
+                    child: ListTile(
+                      leading: const Icon(Icons.playlist_play),
+                      title: Text(context.t('Start with profile')),
                       dense: true,
                       contentPadding: EdgeInsets.zero,
                     ),

@@ -1770,6 +1770,8 @@
       },
       "testing": {
         "surfaces": [
+          "test/widget/coverage_boost_test.dart",
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart",
           "test/e2e/e2e_interfaces_test.dart"
         ]
       }

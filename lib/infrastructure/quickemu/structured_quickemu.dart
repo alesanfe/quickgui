@@ -369,6 +369,7 @@ class StructuredQuickemu {
       'snapshot-apply': {'snapshot.applied', 'restored'},
       'snapshot-delete': {'snapshot.deleted'},
       'list-vms': {'list'},
+      'profile': {'started', 'profile'},
     };
     return aliases[e]?.contains(a) ?? false;
   }

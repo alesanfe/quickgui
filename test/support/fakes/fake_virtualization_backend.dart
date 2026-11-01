@@ -325,8 +325,12 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
   @override
   Future<void> linkedClone(String target, String destination) async {}
 
+  final List<(String, String)> profileStarts = [];
+
   @override
-  Future<void> startWithProfile(String target, String profile) async {}
+  Future<void> startWithProfile(String target, String profile) async {
+    profileStarts.add((target, profile));
+  }
 
   @override
   Future<List<String>> listPlugins() async => const [];

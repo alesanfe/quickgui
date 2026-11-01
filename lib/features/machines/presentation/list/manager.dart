@@ -38,6 +38,7 @@ import 'package:quickgui/features/machines/application/stop_vm.dart';
 import 'package:quickgui/core/result/result.dart';
 import 'package:quickgui/features/machines/domain/vminfo.dart';
 import 'package:quickgui/features/machines/domain/vm_grouping.dart';
+import 'package:quickgui/features/machines/domain/vm_profile.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_config_editor.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_details_pane.dart';
 import 'package:quickgui/features/machines/domain/vm_config_value.dart';

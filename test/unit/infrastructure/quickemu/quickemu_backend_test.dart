@@ -674,6 +674,57 @@ void main() {
       });
     }
 
+    group('startWithProfile legacy fallback', () {
+      // A real launch prints plan lines, not a v1 envelope — the
+      // structured attempt fails parsing and the exit-code path
+      // decides success (the CLI's already-running check keeps the
+      // retried launch idempotent).
+      test('non-envelope launch output falls back to exit code', () async {
+        final runner = FakeProcessRunner({
+          'quickemu --vm vm1.conf --profile dev --format json': ProcessResult(
+            0,
+            0,
+            ' - vm1: Booting...\n',
+            '',
+          ),
+          'quickemu --vm vm1.conf --profile dev': ProcessResult(
+            0,
+            0,
+            'vm1\n - Process: Already running\n',
+            '',
+          ),
+        });
+        await QuickemuBackend(runner).startWithProfile('vm1', 'dev');
+      });
+
+      test('legacy launch failure surfaces a typed failure', () async {
+        final runner = FakeProcessRunner({
+          'quickemu --vm vm1.conf --profile dev --format json': ProcessResult(
+            0,
+            0,
+            ' - vm1: Booting...\n',
+            '',
+          ),
+          'quickemu --vm vm1.conf --profile dev': ProcessResult(
+            0,
+            1,
+            '',
+            'ERROR! Requested profile is not recognised.',
+          ),
+        });
+        await expectLater(
+          QuickemuBackend(runner).startWithProfile('vm1', 'dev'),
+          throwsA(
+            isA<AppFailure>().having(
+              (f) => f.code,
+              'code',
+              'PROFILE_START_FAILED',
+            ),
+          ),
+        );
+      });
+    });
+
     test(
       'watchOperations spawns --op-watch and degrades on spawn failure',
       () async {

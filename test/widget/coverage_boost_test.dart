@@ -184,6 +184,16 @@ void main() {
       await tester.pumpAndSettle();
     });
 
+    testWidgets('start with profile picks a preset and launches', (
+      tester,
+    ) async {
+      await openManager(tester);
+      await chooseAction(tester, 'Start with profile');
+      await tester.tap(find.text('Development'));
+      await tester.pumpAndSettle();
+      expect(backend.profileStarts, [('vm1', 'dev')]);
+    });
+
     testWidgets('hotplug dialog attaches a usb device', (tester) async {
       await openManager(tester);
       await chooseAction(tester, 'Hotplug devices');
