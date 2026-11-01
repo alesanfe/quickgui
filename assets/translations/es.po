@@ -1947,3 +1947,114 @@ msgstr "Transferencia"
 
 msgid "ssh-config failed"
 msgstr "ssh-config falló"
+
+msgid "Advanced tuning"
+msgstr "Ajustes avanzados"
+
+msgid "Appended verbatim to the QEMU command line. Unsupported or invalid flags prevent the VM from starting."
+msgstr "Se añade literalmente a la línea de comandos de QEMU. Los flags inválidos impiden que la VM arranque."
+
+msgid "Braille support"
+msgstr "Soporte braille"
+
+msgid "CPU pinning (core list)"
+msgstr "Pinning de CPU (lista de núcleos)"
+
+msgid "Comma-separated host CPU ids to pin vCPUs to, for example 0,1. Must not exceed the available cores."
+msgstr "Ids de CPU del host separados por comas a los que fijar las vCPU, por ejemplo 0,1. No debe exceder los núcleos disponibles."
+
+msgid "Console & input"
+msgstr "Consola y entrada"
+
+msgid "Default (all)"
+msgstr "Por defecto (todas)"
+
+msgid "Disable unattended"
+msgstr "Desactivar unattended"
+
+msgid "Display height (px)"
+msgstr "Altura de pantalla (px)"
+
+msgid "Display width (px)"
+msgstr "Anchura de pantalla (px)"
+
+msgid "Enter a pixel count between 1 and 16384"
+msgstr "Introduce un número de píxeles entre 1 y 16384"
+
+msgid "Enter a port between 1 and 65535"
+msgstr "Introduce un puerto entre 1 y 65535"
+
+msgid "Extra QEMU arguments"
+msgstr "Argumentos extra de QEMU"
+
+msgid "Fullscreen"
+msgstr "Pantalla completa"
+
+msgid "Ignore TSC warning"
+msgstr "Ignorar aviso de TSC"
+
+msgid "Keyboard device"
+msgstr "Dispositivo de teclado"
+
+msgid "Keyboard layout (-k)"
+msgstr "Distribución de teclado (-k)"
+
+msgid "Minimum source trust"
+msgstr "Confianza mínima de la fuente"
+
+msgid "Mouse device"
+msgstr "Dispositivo de ratón"
+
+msgid "Passes --disable-unattended so quickget skips any unattended configuration the catalog preset adds."
+msgstr "Pasa --disable-unattended para que quickget omita la configuración unattended que añade el preset del catálogo."
+
+msgid "Passes --minimum-trust: sources below the chosen level (A-E) are rejected."
+msgstr "Pasa --minimum-trust: las fuentes por debajo del nivel elegido (A-E) se rechazan."
+
+msgid "Preview launch command"
+msgstr "Previsualizar comando de arranque"
+
+msgid "QEMU monitor channel"
+msgstr "Canal del monitor QEMU"
+
+msgid "Remove desktop shortcut"
+msgstr "Eliminar acceso directo del escritorio"
+
+msgid "SPICE/display access"
+msgstr "Acceso SPICE/pantalla"
+
+msgid "SSH access mode"
+msgstr "Modo de acceso SSH"
+
+msgid "SSH forwarded port"
+msgstr "Puerto SSH reenviado"
+
+msgid "Serial console channel"
+msgstr "Canal de consola serie"
+
+msgid "Show download URLs"
+msgstr "Mostrar URLs de descarga"
+
+msgid "USB input controller"
+msgstr "Controlador USB de entrada"
+
+msgid "Use a QEMU layout name, for example es or en-us"
+msgstr "Usa un nombre de layout QEMU, por ejemplo es o en-us"
+
+msgid "Use a comma-separated core list, for example 0,1"
+msgstr "Usa una lista de núcleos separada por comas, por ejemplo 0,1"
+
+msgid "Use local, remote or a host/IP address"
+msgstr "Usa local, remote o una dirección host/IP"
+
+msgid "VirGL acceleration"
+msgstr "Aceleración VirGL"
+
+msgid "Width and height must be set together"
+msgstr "Anchura y altura deben definirse juntas"
+
+msgid "local = host-only display access, remote = listen on all interfaces, or a specific host/IP to bind."
+msgstr "local = acceso de pantalla solo en el host, remote = escuchar en todas las interfaces, o un host/IP concreto al que vincularse."
+
+msgid "telnet enables the matching Attach action in the VM menu; socket keeps a unix socket channel."
+msgstr "telnet habilita la acción Attach correspondiente en el menú de la VM; socket mantiene un canal por socket unix."

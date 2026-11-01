@@ -56,6 +56,24 @@ class _VmSettingsPageState extends ConsumerState<VmSettingsPage> {
     'floppy',
     'iso',
     'img',
+    'width',
+    'height',
+    'fullscreen',
+    'gl',
+    'access',
+    'ssh_access',
+    'ssh_port',
+    'spice_port',
+    'monitor',
+    'serial',
+    'keyboard',
+    'keyboard_layout',
+    'mouse',
+    'usb_controller',
+    'braille',
+    'cpu_pinning',
+    'extra_args',
+    'ignore_tsc_warning',
   };
 
   final Map<String, TextEditingController> _controllers = {};
@@ -187,6 +205,18 @@ class _VmSettingsPageState extends ConsumerState<VmSettingsPage> {
 
   Future<void> _save() async {
     if (_saving || !(_form.currentState?.validate() ?? false)) return;
+    // width/height are a pair upstream (ParamCheckConf) — reject a
+    // half-set resolution here rather than letting launch fail.
+    final w = _controllers['width']?.text.trim() ?? '';
+    final h = _controllers['height']?.text.trim() ?? '';
+    if ((w.isEmpty) != (h.isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.t('Width and height must be set together')),
+        ),
+      );
+      return;
+    }
     setState(() => _saving = true);
     try {
       // Round-trip the whole file through saveRaw: the port has no
@@ -297,18 +327,40 @@ class _VmSettingsPageState extends ConsumerState<VmSettingsPage> {
       'viewer',
       'sound_card',
       'sound_duplex',
+      'width',
+      'height',
+      'fullscreen',
+      'gl',
     ]),
     _Section(context.t('Network'), [
       'network',
       'bridge',
       'macaddr',
       'port_forwards',
+      'access',
+      'ssh_access',
+      'ssh_port',
+      'spice_port',
     ]),
     _Section(context.t('Sharing & devices'), [
       'public_dir',
       'usb_devices',
       'fixed_iso',
       'floppy',
+    ]),
+    _Section(context.t('Console & input'), [
+      'monitor',
+      'serial',
+      'keyboard',
+      'keyboard_layout',
+      'mouse',
+      'usb_controller',
+      'braille',
+    ]),
+    _Section(context.t('Advanced tuning'), [
+      'cpu_pinning',
+      'extra_args',
+      'ignore_tsc_warning',
     ]),
   ];
 
@@ -474,6 +526,24 @@ class _SectionCard extends StatelessWidget {
       'floppy': context.t('Floppy image'),
       'tpm': context.t('TPM 2.0'),
       'secureboot': context.t('Secure Boot'),
+      'width': context.t('Display width (px)'),
+      'height': context.t('Display height (px)'),
+      'fullscreen': context.t('Fullscreen'),
+      'gl': context.t('VirGL acceleration'),
+      'access': context.t('SPICE/display access'),
+      'ssh_access': context.t('SSH access mode'),
+      'ssh_port': context.t('SSH forwarded port'),
+      'spice_port': context.t('SPICE port'),
+      'monitor': context.t('QEMU monitor channel'),
+      'serial': context.t('Serial console channel'),
+      'keyboard': context.t('Keyboard device'),
+      'keyboard_layout': context.t('Keyboard layout (-k)'),
+      'mouse': context.t('Mouse device'),
+      'usb_controller': context.t('USB input controller'),
+      'braille': context.t('Braille support'),
+      'cpu_pinning': context.t('CPU pinning (core list)'),
+      'extra_args': context.t('Extra QEMU arguments'),
+      'ignore_tsc_warning': context.t('Ignore TSC warning'),
     };
     final choices = switch (key) {
       'boot' => ['efi', 'legacy'],
@@ -481,6 +551,13 @@ class _SectionCard extends StatelessWidget {
       'network' => ['', 'none', 'restrict', 'passt'],
       'viewer' => ['spicy', 'remote-viewer', 'none'],
       'display' => ['spice', 'sdl', 'gtk', 'none', 'vnc'],
+      'fullscreen' || 'braille' || 'ignore_tsc_warning' => ['', 'on'],
+      'gl' => ['', 'on', 'off'],
+      'access' || 'ssh_access' => ['', 'local', 'remote'],
+      'monitor' || 'serial' => ['', 'socket', 'telnet', 'none'],
+      'keyboard' => ['', 'usb', 'virtio', 'ps2'],
+      'mouse' => ['', 'tablet', 'usb', 'virtio', 'ps2'],
+      'usb_controller' => ['', 'ehci', 'xhci', 'none'],
       'sound_card' => [
         '',
         'intel-hda',
@@ -507,6 +584,18 @@ class _SectionCard extends StatelessWidget {
       ),
       'usb_devices' => context.t(
         'Comma-separated USB vendor:product identifiers. Disconnecting host devices may interrupt other applications.',
+      ),
+      'access' => context.t(
+        'local = host-only display access, remote = listen on all interfaces, or a specific host/IP to bind.',
+      ),
+      'monitor' || 'serial' => context.t(
+        'telnet enables the matching Attach action in the VM menu; socket keeps a unix socket channel.',
+      ),
+      'cpu_pinning' => context.t(
+        'Comma-separated host CPU ids to pin vCPUs to, for example 0,1. Must not exceed the available cores.',
+      ),
+      'extra_args' => context.t(
+        'Appended verbatim to the QEMU command line. Unsupported or invalid flags prevent the VM from starting.',
       ),
       _ => null,
     };
@@ -562,6 +651,30 @@ class _SectionCard extends StatelessWidget {
         if (key == 'network' &&
             !RegExp(r'^[a-zA-Z0-9_.:-]*$').hasMatch(value)) {
           return context.t('Enter a network mode or a valid host bridge name');
+        }
+        if ((key == 'width' || key == 'height') &&
+            (int.tryParse(value) == null ||
+                int.parse(value) < 1 ||
+                int.parse(value) > 16384)) {
+          return context.t('Enter a pixel count between 1 and 16384');
+        }
+        if ((key == 'ssh_port' || key == 'spice_port') &&
+            (int.tryParse(value) == null ||
+                int.parse(value) < 1 ||
+                int.parse(value) > 65535)) {
+          return context.t('Enter a port between 1 and 65535');
+        }
+        if (key == 'cpu_pinning' &&
+            !RegExp(r'^\d+(?:,\d+)*$').hasMatch(value)) {
+          return context.t('Use a comma-separated core list, for example 0,1');
+        }
+        if ((key == 'access' || key == 'ssh_access') &&
+            !RegExp(r'^[a-zA-Z0-9._-]+$').hasMatch(value)) {
+          return context.t('Use local, remote or a host/IP address');
+        }
+        if (key == 'keyboard_layout' &&
+            !RegExp(r'^[a-zA-Z][a-zA-Z_-]*$').hasMatch(value)) {
+          return context.t('Use a QEMU layout name, for example es or en-us');
         }
         return null;
       },

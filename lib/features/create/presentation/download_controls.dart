@@ -294,6 +294,8 @@ class _DownloadControlsState extends ConsumerState<DownloadControls> {
     var profile = recommended;
     var unattended = false;
     var cloudInit = false;
+    var disableUnattended = false;
+    var minimumTrust = '';
     var arch = 'amd64';
     return showDialog<({Map<String, String> conf, List<String> flags})>(
       context: context,
@@ -442,6 +444,42 @@ class _DownloadControlsState extends ConsumerState<DownloadControls> {
                   value: cloudInit,
                   onChanged: (v) => setState(() => cloudInit = v ?? false),
                 ),
+                CheckboxListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(context.t('Disable unattended')),
+                  subtitle: Text(
+                    context.t(
+                      'Passes --disable-unattended so quickget skips any unattended configuration the catalog preset adds.',
+                    ),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  value: disableUnattended,
+                  onChanged: unattended
+                      ? null
+                      : (v) => setState(() => disableUnattended = v ?? false),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: DropdownButtonFormField<String>(
+                    initialValue: minimumTrust,
+                    decoration: InputDecoration(
+                      labelText: context.t('Minimum source trust'),
+                      helperText: context.t(
+                        'Passes --minimum-trust: sources below the chosen level (A-E) are rejected.',
+                      ),
+                    ),
+                    items: [
+                      DropdownMenuItem(
+                        value: '',
+                        child: Text(context.t('Default (all)')),
+                      ),
+                      for (final lvl in const ['A', 'B', 'C', 'D', 'E'])
+                        DropdownMenuItem(value: lvl, child: Text(lvl)),
+                    ],
+                    onChanged: (v) => setState(() => minimumTrust = v ?? ''),
+                  ),
+                ),
               ],
             ),
             actions: [
@@ -465,6 +503,11 @@ class _DownloadControlsState extends ConsumerState<DownloadControls> {
                           if (arch != 'amd64') ...['--arch', arch],
                           if (unattended) '--unattended',
                           if (cloudInit) '--cloud-init',
+                          if (disableUnattended) '--disable-unattended',
+                          if (minimumTrust.isNotEmpty) ...[
+                            '--minimum-trust',
+                            minimumTrust,
+                          ],
                         ],
                       ))
                     : null,

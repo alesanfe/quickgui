@@ -24,20 +24,16 @@ class ManagerScreen {
   Future<void> chooseAction(String label) async {
     await tester.tap(find.byTooltip('More actions').first);
     await tester.pumpAndSettle();
-    // Items live under Configure/Lifecycle/Maintenance submenus; direct
-    // items (Snapshots, Delete) are at the top level.
-    var item = find.text(label);
+    // The overflow menu is a MenuAnchor whose entries are MenuItemButtons.
+    // Match the button *containing* the label: a plain find.text also hits
+    // same-named controls in the details pane and row quick actions, which
+    // sit under the open menu and swallow the tap on its barrier.
+    var item = find.widgetWithText(MenuItemButton, label);
     if (item.evaluate().isEmpty) {
-      for (final group in ['Configure', 'Lifecycle', 'Maintenance']) {
-        final g = find.text(group);
-        if (g.evaluate().isEmpty) continue;
-        await tester.tap(g.last);
-        await tester.pumpAndSettle();
-        item = find.text(label);
-        if (item.evaluate().isNotEmpty) break;
-      }
+      item = find.text(label);
     }
     await tester.ensureVisible(item.last);
+    await tester.pumpAndSettle();
     await tester.tap(item.last);
     await tester.pumpAndSettle();
   }

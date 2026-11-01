@@ -2118,3 +2118,114 @@ msgstr ""
 
 msgid "ssh-config failed"
 msgstr ""
+
+msgid "Advanced tuning"
+msgstr ""
+
+msgid "Appended verbatim to the QEMU command line. Unsupported or invalid flags prevent the VM from starting."
+msgstr ""
+
+msgid "Braille support"
+msgstr ""
+
+msgid "CPU pinning (core list)"
+msgstr ""
+
+msgid "Comma-separated host CPU ids to pin vCPUs to, for example 0,1. Must not exceed the available cores."
+msgstr ""
+
+msgid "Console & input"
+msgstr ""
+
+msgid "Default (all)"
+msgstr ""
+
+msgid "Disable unattended"
+msgstr ""
+
+msgid "Display height (px)"
+msgstr ""
+
+msgid "Display width (px)"
+msgstr ""
+
+msgid "Enter a pixel count between 1 and 16384"
+msgstr ""
+
+msgid "Enter a port between 1 and 65535"
+msgstr ""
+
+msgid "Extra QEMU arguments"
+msgstr ""
+
+msgid "Fullscreen"
+msgstr ""
+
+msgid "Ignore TSC warning"
+msgstr ""
+
+msgid "Keyboard device"
+msgstr ""
+
+msgid "Keyboard layout (-k)"
+msgstr ""
+
+msgid "Minimum source trust"
+msgstr ""
+
+msgid "Mouse device"
+msgstr ""
+
+msgid "Passes --disable-unattended so quickget skips any unattended configuration the catalog preset adds."
+msgstr ""
+
+msgid "Passes --minimum-trust: sources below the chosen level (A-E) are rejected."
+msgstr ""
+
+msgid "Preview launch command"
+msgstr ""
+
+msgid "QEMU monitor channel"
+msgstr ""
+
+msgid "Remove desktop shortcut"
+msgstr ""
+
+msgid "SPICE/display access"
+msgstr ""
+
+msgid "SSH access mode"
+msgstr ""
+
+msgid "SSH forwarded port"
+msgstr ""
+
+msgid "Serial console channel"
+msgstr ""
+
+msgid "Show download URLs"
+msgstr ""
+
+msgid "USB input controller"
+msgstr ""
+
+msgid "Use a QEMU layout name, for example es or en-us"
+msgstr ""
+
+msgid "Use a comma-separated core list, for example 0,1"
+msgstr ""
+
+msgid "Use local, remote or a host/IP address"
+msgstr ""
+
+msgid "VirGL acceleration"
+msgstr ""
+
+msgid "Width and height must be set together"
+msgstr ""
+
+msgid "local = host-only display access, remote = listen on all interfaces, or a specific host/IP to bind."
+msgstr ""
+
+msgid "telnet enables the matching Attach action in the VM menu; socket keeps a unix socket channel."
+msgstr ""

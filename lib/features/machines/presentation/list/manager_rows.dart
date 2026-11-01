@@ -676,6 +676,28 @@ extension on _ManagerState {
                     ]);
                     if (!context.mounted) return;
                     _showProcessOutput([r]);
+                  case 'remove-shortcut':
+                    final r = await runVmActionOrLegacy(
+                      _backend,
+                      'shortcut-delete',
+                      [
+                        '--vm',
+                        _vmConfFiles[currentVm] ?? '$currentVm.conf',
+                        '--delete-shortcut',
+                      ],
+                    );
+                    if (!context.mounted) return;
+                    _showProcessOutput([r]);
+                  case 'launch-plan':
+                    // `--echo` resolves the conf and prints the assembled
+                    // QEMU invocation (vm.plan envelope) without booting.
+                    final r = await runVmActionOrLegacy(_backend, 'plan', [
+                      '--vm',
+                      _vmConfFiles[currentVm] ?? '$currentVm.conf',
+                      '--echo',
+                    ]);
+                    if (!context.mounted) return;
+                    _showProcessOutput([r]);
                   case 'reset':
                     // QEMU monitor `system_reset` — equivalent to pressing
                     // the reset button: abrupt reboot, unsaved guest state
@@ -983,6 +1005,25 @@ extension on _ManagerState {
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
+                PopupMenuItem(
+                  value: 'remove-shortcut',
+                  child: ListTile(
+                    leading: const Icon(Icons.shortcut_outlined),
+                    title: Text(context.t('Remove desktop shortcut')),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                if (!active)
+                  PopupMenuItem(
+                    value: 'launch-plan',
+                    child: ListTile(
+                      leading: const Icon(Icons.preview),
+                      title: Text(context.t('Preview launch command')),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
                 PopupMenuItem(
                   value: 'doctor',
                   child: ListTile(

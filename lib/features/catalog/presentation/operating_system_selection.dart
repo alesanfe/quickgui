@@ -45,6 +45,7 @@ class _OperatingSystemSelectionState
     final flag = switch (action) {
       'show' => '--show',
       'homepage' => '--open-homepage',
+      'url' => '--url',
       _ => '--update',
     };
     ProcResult result;
@@ -195,6 +196,10 @@ class _OperatingSystemSelectionState
                               PopupMenuItem(
                                 value: 'homepage',
                                 child: Text(context.t('Open homepage')),
+                              ),
+                              PopupMenuItem(
+                                value: 'url',
+                                child: Text(context.t('Show download URLs')),
                               ),
                               PopupMenuItem(
                                 value: 'update',
