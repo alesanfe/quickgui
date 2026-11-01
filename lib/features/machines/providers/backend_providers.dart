@@ -11,10 +11,16 @@ import 'package:quickgui/infrastructure/quickemu/api/quickemu_api_client.dart';
 import 'package:quickgui/infrastructure/quickemu/quickemu_backend.dart';
 import 'package:quickgui/infrastructure/storage/vm_config.dart';
 import 'package:quickgui/shared/providers/preferences_providers.dart';
+import 'package:quickgui/shared/providers/working_directory_provider.dart';
 
-/// The app's virtualization backend (quickemu/quickget).
+/// The app's virtualization backend (quickemu/quickget). Spawned
+/// processes run inside the selected VMs working directory — never
+/// the ambient process cwd (QGUI-M-005).
 final backendProvider = Provider<VirtualizationBackend>(
-  (ref) => QuickemuBackend(SystemProcessRunner()),
+  (ref) => QuickemuBackend(
+    SystemProcessRunner(),
+    workingDirectory: () => ref.read(workingDirectoryProvider),
+  ),
 );
 
 /// Backend availability (quickemu+quickget on PATH).

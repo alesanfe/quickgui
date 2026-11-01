@@ -22,7 +22,11 @@ class FakeProcessRunner extends ProcessRunner {
   String _key(String exe, List<String> args) => '$exe ${args.join(' ')}';
 
   @override
-  Future<ProcessResult> run(String executable, List<String> arguments) {
+  Future<ProcessResult> run(
+    String executable,
+    List<String> arguments, {
+    String? workingDirectory,
+  }) {
     calls.add(_key(executable, arguments));
     invocations.add((executable, List.of(arguments)));
     return Future.value(
@@ -32,7 +36,11 @@ class FakeProcessRunner extends ProcessRunner {
   }
 
   @override
-  Future<Process> start(String executable, List<String> arguments) {
+  Future<Process> start(
+    String executable,
+    List<String> arguments, {
+    String? workingDirectory,
+  }) {
     calls.add(_key(executable, arguments));
     invocations.add((executable, List.of(arguments)));
     if (processExceptionOnStart) {

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
 
 import 'package:quickgui/shared/providers/preferences_providers.dart';
+import 'package:quickgui/shared/providers/working_directory_provider.dart';
 import 'package:quickgui/app/app.dart';
 import 'package:quickgui/app/app_version.dart';
 import 'package:quickgui/app/localization/supported_locales.dart';
@@ -87,7 +88,12 @@ Future<void> bootstrap() async {
   runApp(
     ProviderScope(
       overrides: [
-        backendProvider.overrideWithValue(backend),
+        backendProvider.overrideWith(
+          (ref) => QuickemuBackend(
+            SystemProcessRunner(),
+            workingDirectory: () => ref.read(workingDirectoryProvider),
+          ),
+        ),
         osCatalogueProvider.overrideWithValue(osCatalogue),
         osIconsProvider.overrideWithValue(osIcons),
         preferencesRepositoryProvider.overrideWithValue(prefs),

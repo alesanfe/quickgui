@@ -13,15 +13,22 @@ class _FakeRunner implements ProcessRunner {
   List<String>? lastArgs;
 
   @override
-  Future<ProcessResult> run(String executable, List<String> arguments) {
+  Future<ProcessResult> run(
+    String executable,
+    List<String> arguments, {
+    String? workingDirectory,
+  }) {
     lastArgs = arguments;
     final d = delay;
     return d == null ? Future.value(result) : Future.delayed(d, () => result);
   }
 
   @override
-  Future<Process> start(String executable, List<String> arguments) =>
-      throw UnimplementedError();
+  Future<Process> start(
+    String executable,
+    List<String> arguments, {
+    String? workingDirectory,
+  }) => throw UnimplementedError();
 }
 
 String _envelope({

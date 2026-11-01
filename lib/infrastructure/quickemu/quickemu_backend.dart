@@ -19,11 +19,17 @@ import 'package:quickgui/infrastructure/process/running_proc.dart';
 /// Uses the structured CLI contract (--capabilities, --format json)
 /// when present and degrades gracefully on older versions.
 class QuickemuBackend implements VirtualizationBackend {
-  QuickemuBackend(ProcessRunner runner)
-    : _runner = runner,
-      _process = QuickemuProcess(runner),
-      _structured = StructuredQuickemu(QuickemuProcess(runner));
+  QuickemuBackend(ProcessRunner runner, {String Function()? workingDirectory})
+    : _wd = workingDirectory,
+      _runner = WorkingDirectoryRunner(runner, workingDirectory),
+      _process = QuickemuProcess(
+        WorkingDirectoryRunner(runner, workingDirectory),
+      ),
+      _structured = StructuredQuickemu(
+        QuickemuProcess(WorkingDirectoryRunner(runner, workingDirectory)),
+      );
 
+  final String Function()? _wd;
   final ProcessRunner _runner;
   final QuickemuProcess _process;
   final StructuredQuickemu _structured;
@@ -90,7 +96,13 @@ class QuickemuBackend implements VirtualizationBackend {
       final parsed = parseVmListPayload('${r.stdout}');
       if (parsed != null) return parsed;
     }
-    return Directory.current
+    // The conf scan falls back to the process cwd only when no
+    // working directory was injected (bootstrap-time probes).
+    final root = _wd?.call() ?? Directory.current.path;
+    if (root.isEmpty || !Directory(root).existsSync()) {
+      return const [];
+    }
+    return Directory(root)
         .listSync()
         .whereType<File>()
         .where((f) => f.path.endsWith('.conf'))

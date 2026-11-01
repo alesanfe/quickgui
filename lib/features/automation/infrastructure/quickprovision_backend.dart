@@ -11,7 +11,10 @@ import 'package:quickgui/infrastructure/quickemu/quickemu_contract.dart';
 /// spawns go through [ProcessRunner] so the Flatpak sandbox escape is
 /// honoured exactly like the quickemu/quickget paths.
 class QuickprovisionBackend implements AutomationBackend {
-  const QuickprovisionBackend(this._runner);
+  QuickprovisionBackend(
+    ProcessRunner runner, {
+    String Function()? workingDirectory,
+  }) : _runner = WorkingDirectoryRunner(runner, workingDirectory);
 
   final ProcessRunner _runner;
 

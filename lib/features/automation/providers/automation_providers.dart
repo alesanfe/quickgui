@@ -24,7 +24,10 @@ import 'package:quickgui/shared/providers/working_directory_provider.dart';
 
 /// The automation engine backend (`quickprovision` CLI adapter).
 final automationBackendProvider = Provider<AutomationBackend>(
-  (ref) => QuickprovisionBackend(SystemProcessRunner()),
+  (ref) => QuickprovisionBackend(
+    SystemProcessRunner(),
+    workingDirectory: () => ref.read(workingDirectoryProvider),
+  ),
 );
 
 /// `quickprovision` availability on PATH — null while probing.

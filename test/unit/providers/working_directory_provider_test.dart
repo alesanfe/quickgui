@@ -3,10 +3,12 @@ import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quickgui/core/constants/preference_keys.dart';
+import 'package:quickgui/infrastructure/process/process_runner.dart';
 import 'package:quickgui/shared/providers/preferences_providers.dart';
 import 'package:quickgui/shared/providers/working_directory_provider.dart';
 
 import '../../support/fakes/fake_preferences_repository.dart';
+import '../../support/fakes/fake_process_runner.dart';
 
 void main() {
   late Directory original;
@@ -63,4 +65,18 @@ void main() {
     c.read(workingDirectoryProvider.notifier).apply(sandbox.path);
     expect(Directory.current.path, sandbox.path);
   });
+
+  // Spawned processes carry the chosen directory explicitly: the
+  // runner decorates with the provider value, and a per-call override
+  // always wins (QGUI-M-005).
+  test(
+    'runner injects the working dir and honours per-call override',
+    () async {
+      final inner = FakeProcessRunner();
+      final runner = WorkingDirectoryRunner(inner, () => sandbox.path);
+      await runner.run('ls', []);
+      await runner.run('ls', [], workingDirectory: '/other');
+      expect(inner.workingDirs, [sandbox.path, '/other']);
+    },
+  );
 }
