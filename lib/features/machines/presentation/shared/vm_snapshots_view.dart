@@ -283,7 +283,10 @@ class _VmSnapshotsViewState extends ConsumerState<VmSnapshotsView> {
           ),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Row(
+          child: Wrap(
+            spacing: 4,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               TextButton(
                 onPressed: () => _run('info'),
@@ -319,7 +322,6 @@ class _VmSnapshotsViewState extends ConsumerState<VmSnapshotsView> {
                 onPressed: _busy ? null : () => _policy('run'),
                 child: Text(context.t('Apply policy')),
               ),
-              const Spacer(),
               IconButton(
                 tooltip: context.t('Refresh'),
                 icon: const Icon(Icons.refresh),
@@ -391,8 +393,8 @@ Future<void> showSnapshotsDialog(
     builder: (context) => AlertDialog(
       title: Text(context.t('Snapshots {0}', args: [vm])),
       content: SizedBox(
-        width: 560,
-        height: 420,
+        width: 720,
+        height: 480,
         child: VmSnapshotsView(vm: vm, confPath: confPath),
       ),
       actions: [

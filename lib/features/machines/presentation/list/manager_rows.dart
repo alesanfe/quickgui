@@ -515,7 +515,14 @@ extension on _ManagerState {
                       'open folder $currentVm',
                     );
                   case 'snapshot':
-                    _manageSnapshot(context, currentVm);
+                    // Same surface as the details pane: the full
+                    // snapshots view (tree, sizes, live-create options,
+                    // policy, verify) instead of the legacy mini-dialog.
+                    showSnapshotsDialog(
+                      context,
+                      vm: currentVm,
+                      confPath: _vmConfFiles[currentVm] ?? '$currentVm.conf',
+                    );
                   case 'shared':
                     _editVmConfValues(currentVm, {
                       'public_dir': context.t('Shared folder'),
@@ -786,7 +793,16 @@ extension on _ManagerState {
                     if (!context.mounted) return;
                     _showProcessOutput([r]);
                   case 'settings':
-                    _editVmSettings(currentVm);
+                    // Same surface as the details pane Configure button:
+                    // the sectioned settings page when a router exists,
+                    // the compact dialog only as a no-router fallback.
+                    if (GoRouter.maybeOf(context) != null) {
+                      context.push(
+                        '/machines/${Uri.encodeComponent(currentVm)}/settings',
+                      );
+                    } else {
+                      _editVmSettings(currentVm);
+                    }
                   case 'verify':
                     final iso = ref
                         .read(vmConfigStoreProvider)

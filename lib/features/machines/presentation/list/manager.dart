@@ -19,6 +19,7 @@ import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.da
 import 'package:quickgui/features/machines/presentation/details/vm_console_page.dart';
 import 'package:quickgui/features/machines/presentation/shared/new_vm_tag.dart';
 import 'package:quickgui/features/machines/presentation/shared/process_output_dialog.dart';
+import 'package:quickgui/features/machines/presentation/shared/vm_snapshots_view.dart';
 import 'package:version/version.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -494,7 +495,11 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                           _editVmSettings(vm);
                         }
                       },
-                      onSnapshots: () => _manageSnapshot(context, vm),
+                      onSnapshots: () => showSnapshotsDialog(
+                        context,
+                        vm: vm,
+                        confPath: _vmConfFiles[vm] ?? '$vm.conf',
+                      ),
                       onDelete: () => _confirmDeleteVm(context, vm),
                       onConsole: () => Navigator.of(context).push(
                         MaterialPageRoute<void>(
