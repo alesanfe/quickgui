@@ -1,11 +1,10 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:quickgui/features/catalog/providers/catalog_providers.dart';
 import 'package:quickgui/shared/providers/preferences_providers.dart';
+import 'package:quickgui/shared/providers/working_directory_provider.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/core/constants/preference_keys.dart';
@@ -235,7 +234,7 @@ class _DownloadControlsState extends ConsumerState<DownloadControls> {
     final workingDirectory = await ref
         .read(preferencesRepositoryProvider)
         .getAs<String>(prefWorkingDirectory);
-    final dir = workingDirectory ?? Directory.current.path;
+    final String dir = workingDirectory ?? ref.read(workingDirectoryProvider);
     final writable = await ref.read(hostProbeProvider).canWriteToDirectory(dir);
     if (!context.mounted) return;
     if (!writable) {

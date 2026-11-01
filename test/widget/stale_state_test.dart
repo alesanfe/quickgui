@@ -94,7 +94,7 @@ void main() {
   });
   tearDown(() {
     Directory.current = original;
-    directory.deleteSync(recursive: true);
+    if (directory.existsSync()) directory.deleteSync(recursive: true);
   });
 
   Future<void> open(WidgetTester tester) async {
@@ -226,5 +226,20 @@ void main() {
       isTrue,
       reason: 'the tracked op should land in activity history',
     );
+  });
+
+  // QGUI-M-005: the working directory can vanish mid-session (tmp
+  // purge, external cleanup). The periodic refresh must degrade to an
+  // empty list, not leave stale rows or die on PathNotFoundException —
+  // the provider caches the path, so reads no longer depend on a live
+  // process cwd.
+  testWidgets('deleted working directory clears the VM list', (tester) async {
+    await open(tester);
+    expect(find.text('linux-test'), findsWidgets);
+    Directory.current = original;
+    directory.deleteSync(recursive: true);
+    await tester.pump(const Duration(seconds: 6));
+    await tester.pumpAndSettle();
+    expect(find.text('linux-test'), findsNothing);
   });
 }

@@ -7,6 +7,7 @@ import 'package:quickgui/core/errors/app_failure.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
 import 'package:quickgui/features/machines/domain/guest_ip.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
+import 'package:quickgui/shared/providers/working_directory_provider.dart';
 import 'package:quickgui/features/machines/providers/tracked_backend_provider.dart';
 import 'package:quickgui/infrastructure/quickemu/vm_event_log.dart';
 
@@ -36,7 +37,7 @@ final vmLibraryProvider = FutureProvider<List<LibraryMachine>>((ref) async {
   final probe = ref.watch(hostProbeProvider);
   final directory = await probe.workingDirectory();
   final root = Directory(
-    directory.isEmpty ? Directory.current.path : directory,
+    directory.isEmpty ? ref.watch(workingDirectoryProvider) : directory,
   );
   if (!root.existsSync()) return [];
   final timer = Timer(const Duration(seconds: 10), ref.invalidateSelf);
@@ -133,7 +134,9 @@ final vmRecentIssuesProvider = FutureProvider.family<int, String>((
 ) async {
   final probe = ref.watch(hostProbeProvider);
   final directory = await probe.workingDirectory();
-  final root = directory.isEmpty ? Directory.current.path : directory;
+  final root = directory.isEmpty
+      ? ref.watch(workingDirectoryProvider)
+      : directory;
   return await VmEventLog(p.join(root, vm, '$vm.events.jsonl'))
       .recentIssueCount(const Duration(hours: 24));
 });
@@ -149,7 +152,9 @@ final vmEventJournalProvider = StreamProvider.family<VmEvent, String>((
 ) async* {
   final probe = ref.watch(hostProbeProvider);
   final directory = await probe.workingDirectory();
-  final root = directory.isEmpty ? Directory.current.path : directory;
+  final root = directory.isEmpty
+      ? ref.watch(workingDirectoryProvider)
+      : directory;
   final log = VmEventLog(p.join(root, vm, '$vm.events.jsonl'));
   await for (final event in log.watch()) {
     if (event is VmEventGap || event.changesState) {

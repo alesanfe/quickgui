@@ -11,7 +11,6 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:quickgui/app/app_version.dart';
 import 'package:quickgui/app/localization/supported_locales.dart';
-import 'package:quickgui/core/constants/preference_keys.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/features/machines/providers/vm_library_providers.dart';
@@ -23,7 +22,7 @@ import 'package:quickgui/features/settings/domain/ui_preferences.dart';
 import 'package:quickgui/features/settings/providers/settings_providers.dart';
 import 'package:quickgui/features/settings/providers/ui_preferences_providers.dart';
 import 'package:quickgui/features/settings/providers/update_check_providers.dart';
-import 'package:quickgui/shared/providers/preferences_providers.dart';
+import 'package:quickgui/shared/providers/working_directory_provider.dart';
 import 'package:quickgui/shared/widgets/scroll_dialog.dart';
 import 'package:quickgui/shared/widgets/shortcuts_dialog.dart';
 
@@ -56,7 +55,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final settingsCtl = ref.read(settingsProvider.notifier);
     final prefs = ref.watch(uiPreferencesProvider);
     final prefsCtl = ref.read(uiPreferencesProvider.notifier);
-    final workingDir = Directory.current.path;
+    final workingDir = ref.watch(workingDirectoryProvider);
     // Sections as (header, [(search keywords, tile)]) — a header stays
     // hidden when none of its tiles match the query.
     final sections = <(String, List<(String, Widget)>)>[
@@ -112,10 +111,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     dialogTitle: context.t('Pick a folder'),
                   );
                   if (folder != null && folder.isNotEmpty) {
-                    setState(() => Directory.current = folder);
-                    ref
-                        .read(preferencesRepositoryProvider)
-                        .set(prefWorkingDirectory, folder);
+                    await ref
+                        .read(workingDirectoryProvider.notifier)
+                        .set(folder);
                   }
                 },
                 child: Text(context.t('Change')),

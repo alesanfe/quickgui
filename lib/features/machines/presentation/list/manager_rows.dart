@@ -47,13 +47,11 @@ extension on _ManagerState {
                   dialogTitle: "Pick a folder",
                 );
                 if (folder != null) {
-                  setState(() {
-                    Directory.current = folder;
-                  });
-                  _prefs.set(prefWorkingDirectory, Directory.current.path);
+                  await ref.read(workingDirectoryProvider.notifier).set(folder);
+                  if (mounted) setState(() {});
                 }
               },
-              child: Text(Directory.current.path),
+              child: Text(ref.watch(workingDirectoryProvider)),
             ),
           ],
         ),

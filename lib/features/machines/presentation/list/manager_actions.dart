@@ -52,7 +52,9 @@ extension on _ManagerState {
   /// from the same process, and a live process is the ground truth
   /// for "is it running") (QGUI-X-004).
   Future<String> _freshVmState(String vm) async {
-    final pidFile = File('$vm/$vm.pid');
+    final pidFile = File(
+      path.join(ref.read(workingDirectoryProvider), vm, '$vm.pid'),
+    );
     final pid = pidFile.existsSync()
         ? int.tryParse(pidFile.readAsStringSync().trim())
         : null;
@@ -510,8 +512,11 @@ extension on _ManagerState {
       // about to be removed: the .conf plus every file in the VM folder.
       final paths = <String>[
         _vmConfFiles[currentVm] ?? '$currentVm.conf',
-        if (Directory(currentVm).existsSync())
-          ...Directory(currentVm).listSync(recursive: true).map((e) => e.path),
+        if (Directory(path.join(ref.read(workingDirectoryProvider), currentVm))
+            .existsSync())
+          ...Directory(path.join(ref.read(workingDirectoryProvider), currentVm))
+              .listSync(recursive: true)
+              .map((e) => e.path),
       ]..sort();
       planText = paths.join('\n');
     }
@@ -598,14 +603,15 @@ extension on _ManagerState {
           // plan preview — the backend refuses stale plans.
           if (planId != null) ...['--plan-id', planId],
         ];
-        final r = await runVmActionOrLegacy(
-          _backend,
+        final r = await _runVmOp(
+          OperationKind.delete,
+          currentVm,
           'delete-$result',
           command.sublist(1),
         );
         // Show the backend's own delete report so partial failures and
         // paths needing manual cleanup are visible (QGUI-DELETE-002).
-        if (mounted) _showProcessOutput([r]);
+        if (mounted && r != null) _showProcessOutput([r]);
         if (mounted) _getVms();
       }
     });
@@ -1064,13 +1070,13 @@ extension on _ManagerState {
     // See above — the exit transition still rebuilds the field, so
     // disposing [controller] here would crash. It is left to the GC.
     if (size == null || size.isEmpty || !mounted) return;
-    final r = await runVmActionOrLegacy(_backend, 'disk-resize', [
+    final r = await _runVmOp(OperationKind.resize, currentVm, 'disk-resize', [
       '--vm',
       _vmConfFiles[currentVm] ?? '$currentVm.conf',
       '--disk-resize',
       size,
     ]);
-    if (!mounted) return;
+    if (!mounted || r == null) return;
     _showProcessOutput([r]);
   }
 

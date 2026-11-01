@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:formz/formz.dart';
@@ -24,6 +22,7 @@ import 'package:quickgui/features/machines/domain/vm_profile.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/features/machines/presentation/shared/vm_input_messages.dart';
 import 'package:quickgui/shared/providers/preferences_providers.dart';
+import 'package:quickgui/shared/providers/working_directory_provider.dart';
 import 'package:quickgui/shared/widgets/bytes_formatter.dart';
 
 /// Warn (but do not block) when free space is below ~16 GB.
@@ -124,11 +123,11 @@ class _CreateWizardPageState extends ConsumerState<CreateWizardPage> {
       await importImageWithPicker(context, ref);
       return;
     }
-    final dir =
+    final String dir =
         await ref
             .read(preferencesRepositoryProvider)
             .getAs<String>(prefWorkingDirectory) ??
-        Directory.current.path;
+        ref.read(workingDirectoryProvider);
     if (!await ref.read(hostProbeProvider).canWriteToDirectory(dir)) {
       if (!mounted) return;
       await _error('Could not write to the working directory.');

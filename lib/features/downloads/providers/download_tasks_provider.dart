@@ -12,6 +12,7 @@ import 'package:quickgui/features/machines/application/ports/proc.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/shared/models/operation_state.dart';
 import 'package:quickgui/shared/providers/preferences_providers.dart';
+import 'package:quickgui/shared/providers/working_directory_provider.dart';
 
 final downloadTasksProvider = Provider<DownloadTasks>(DownloadTasks.new);
 
@@ -26,7 +27,7 @@ class DownloadTasks {
     Map<String, String> configuration = const {},
     List<String> flags = const [],
   }) {
-    final directory = Directory.current.path;
+    final directory = ref.read(workingDirectoryProvider);
     final target = '$os-$release';
     RunningProc? process;
     var cancelled = false;

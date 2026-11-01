@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 
 import 'package:quickgui/shared/providers/preferences_providers.dart';
+import 'package:quickgui/shared/providers/working_directory_provider.dart';
 import 'package:quickgui/core/constants/preference_keys.dart';
 import 'package:quickgui/core/extensions/preferences_repository_x.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
@@ -49,8 +50,6 @@ class CreatePage extends ConsumerStatefulWidget {
 }
 
 class _CreatePageState extends ConsumerState<CreatePage> {
-  String _currentPath = Directory.current.path;
-
   @override
   void initState() {
     super.initState();
@@ -58,21 +57,14 @@ class _CreatePageState extends ConsumerState<CreatePage> {
     prefs.getAs<String>(prefWorkingDirectory).then((pref) async {
       final writable = await ref
           .read(hostProbeProvider)
-          .canWriteToDirectory(Directory.current.path);
+          .canWriteToDirectory(ref.read(workingDirectoryProvider));
       if (!mounted) return;
       if (pref != null && pref.isNotEmpty && Directory(pref).existsSync()) {
-        setState(() {
-          Directory.current = pref;
-          _currentPath = pref;
-        });
+        ref.read(workingDirectoryProvider.notifier).apply(pref);
       } else if (!writable) {
         // e.g. when launched from a read-only AppImage mount point.
         final home = ref.read(hostProbeProvider).fallbackWorkingDirectory;
-        setState(() {
-          Directory.current = home;
-          _currentPath = home;
-        });
-        prefs.set(prefWorkingDirectory, home);
+        await ref.read(workingDirectoryProvider.notifier).set(home);
       }
     });
   }
@@ -89,8 +81,9 @@ class _CreatePageState extends ConsumerState<CreatePage> {
       case 'conf':
         final name = path.split(Platform.pathSeparator).last;
         try {
-          await File(path)
-              .copy('${Directory.current.path}${Platform.pathSeparator}$name');
+          await File(path).copy(
+            '${ref.read(workingDirectoryProvider)}${Platform.pathSeparator}$name',
+          );
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(context.t('Added {0}', args: [name]))),
@@ -173,27 +166,20 @@ class _CreatePageState extends ConsumerState<CreatePage> {
                       Flexible(
                         flex: 2,
                         child: Tooltip(
-                          message: _currentPath,
+                          message: ref.watch(workingDirectoryProvider),
                           child: ElevatedButton(
                             onPressed: () async {
                               final folder = await FilePicker.getDirectoryPath(
                                 dialogTitle: context.t('Pick a folder'),
                               );
                               if (folder != null && folder.isNotEmpty) {
-                                setState(() {
-                                  Directory.current = folder;
-                                  _currentPath = folder;
-                                });
-                                ref
-                                    .read(preferencesRepositoryProvider)
-                                    .set(
-                                      prefWorkingDirectory,
-                                      Directory.current.path,
-                                    );
+                                await ref
+                                    .read(workingDirectoryProvider.notifier)
+                                    .set(folder);
                               }
                             },
                             child: Text(
-                              _currentPath,
+                              ref.watch(workingDirectoryProvider),
                               overflow: TextOverflow.ellipsis,
                               maxLines: 1,
                             ),

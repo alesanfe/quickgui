@@ -20,6 +20,7 @@ import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/infrastructure/process/system_process_runner.dart';
 import 'package:quickgui/shared/models/operation_state.dart';
 import 'package:quickgui/shared/providers/preferences_providers.dart';
+import 'package:quickgui/shared/providers/working_directory_provider.dart';
 
 /// The automation engine backend (`quickprovision` CLI adapter).
 final automationBackendProvider = Provider<AutomationBackend>(
@@ -333,6 +334,6 @@ final automationControllerProvider =
 /// pref the rest of the app uses, defaulting to the process cwd.
 final automationWorkDirProvider = FutureProvider<String>((ref) async {
   final prefs = ref.read(preferencesRepositoryProvider);
-  return await prefs.getAs<String>(prefWorkingDirectory) ??
-      Directory.current.path;
+  final pref = await prefs.getAs<String>(prefWorkingDirectory);
+  return pref ?? await ref.watch(workingDirectoryProvider);
 });

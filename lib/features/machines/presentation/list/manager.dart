@@ -14,6 +14,7 @@ import 'package:quickgui/features/machines/providers/vm_tags_providers.dart';
 import 'package:quickgui/features/machines/providers/tracked_backend_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:quickgui/shared/providers/preferences_providers.dart';
+import 'package:quickgui/shared/providers/working_directory_provider.dart';
 import 'package:quickgui/features/diagnostics/application/ports/host_probe.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_console_page.dart';
@@ -148,13 +149,16 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
     });
     _prefs.getAs<String>(prefWorkingDirectory).then((pref) async {
       if (!mounted) return;
-      final writable = await _probe.canWriteToDirectory(Directory.current.path);
+      final workingDir = ref.read(workingDirectoryProvider);
+      final writable = await _probe.canWriteToDirectory(workingDir);
       if (!mounted) return;
       setState(() {
         if (pref != null && Directory(pref).existsSync()) {
-          Directory.current = pref;
+          ref.read(workingDirectoryProvider.notifier).apply(pref);
         } else if (!writable) {
-          Directory.current = _probe.fallbackWorkingDirectory;
+          ref
+              .read(workingDirectoryProvider.notifier)
+              .apply(_probe.fallbackWorkingDirectory);
         }
       });
       Future.delayed(
@@ -293,8 +297,14 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
     }
 
     // listSync instead of the async stream: the sync call also works inside
-    // testWidgets/FakeAsync, where real async IO never gets drained.
-    for (final entity in Directory.current.listSync()) {
+    // testWidgets/FakeAsync, where real async IO never gets drained. A
+    // deleted working directory degrades to an empty list instead of a
+    // PathNotFoundException (QGUI-M-005).
+    final workingRoot = Directory(ref.read(workingDirectoryProvider));
+    for (final entity
+        in workingRoot.existsSync()
+            ? workingRoot.listSync()
+            : const <FileSystemEntity>[]) {
       if ((entity.path.endsWith('.conf')) && (_isValidConf(entity.path))) {
         final String name = path.basenameWithoutExtension(entity.path);
         currentVms.add(name);
@@ -304,7 +314,9 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
         // Per-VM fallback: absent from the registry (or no registry at
         // all) → verify the pid file locally, zero process spawns.
         if (!backendStates.containsKey(name)) {
-          final File pidFile = File('$name/$name.pid');
+          final File pidFile = File(
+            path.join(workingRoot.path, name, '$name.pid'),
+          );
           if (pidFile.existsSync()) {
             final int? pid = int.tryParse(pidFile.readAsStringSync().trim());
             // Ask the host probe whether the recorded process is still
@@ -336,7 +348,7 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
     for (final name in backendStates.keys) {
       if (!currentVms.contains(name) &&
           backendStates[name] == 'running' &&
-          File('$name.conf').existsSync()) {
+          File(path.join(workingRoot.path, '$name.conf')).existsSync()) {
         currentVms.add(name);
         vmConfFiles[name] = '$name.conf';
         activeVms[name] = _parseVmInfo(name);
@@ -346,7 +358,9 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
     // both files exist, so every call must point at the newer format.
     for (final name in vmConfFiles.keys.toList()) {
       final toml = '$name.toml';
-      if (File(toml).existsSync()) vmConfFiles[name] = toml;
+      if (File(path.join(workingRoot.path, toml)).existsSync()) {
+        vmConfFiles[name] = toml;
+      }
     }
     currentVms.sort();
     if (!mounted) return;
@@ -547,7 +561,7 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                           builder: (_) => VmConsolePage(
                             vm: vm,
                             confPath: path.join(
-                              Directory.current.path,
+                              ref.read(workingDirectoryProvider),
                               '$vm.conf',
                             ),
                           ),

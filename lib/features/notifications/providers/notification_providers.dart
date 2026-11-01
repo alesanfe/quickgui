@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
@@ -11,6 +10,7 @@ import 'package:quickgui/features/machines/providers/vm_library_providers.dart';
 import 'package:quickgui/features/notifications/domain/vm_event_notification.dart';
 import 'package:quickgui/infrastructure/quickemu/vm_event_log.dart';
 import 'package:quickgui/shared/providers/preferences_providers.dart';
+import 'package:quickgui/shared/providers/working_directory_provider.dart';
 
 /// VM-event notification preferences (QG-081), persisted as a single
 /// JSON document under [prefVmNotifications].
@@ -88,7 +88,9 @@ final vmEventsProvider = StreamProvider<VmEvent>((ref) async* {
   if (machines.isEmpty) return;
   final probe = ref.watch(hostProbeProvider);
   final directory = await probe.workingDirectory();
-  final root = directory.isEmpty ? Directory.current.path : directory;
+  final root = directory.isEmpty
+      ? ref.watch(workingDirectoryProvider)
+      : directory;
 
   final controller = StreamController<VmEvent>();
   final subs = <StreamSubscription<VmEvent>>[

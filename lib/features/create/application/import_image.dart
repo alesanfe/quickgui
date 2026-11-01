@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +9,7 @@ import 'package:quickgui/features/activity/providers/activity_providers.dart';
 import 'package:quickgui/features/machines/domain/forms/vm_inputs.dart';
 import 'package:quickgui/features/machines/presentation/shared/vm_input_messages.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
+import 'package:quickgui/shared/providers/working_directory_provider.dart';
 import 'package:quickgui/shared/dialogs/validated_text_dialog.dart';
 import 'package:quickgui/shared/models/operation_state.dart';
 
@@ -73,7 +72,7 @@ Future<void> importImageFile(
   if (convertible) {
     // qemu-img conversion is tracked in the activity centre: it can
     // take minutes for large images.
-    final output = p.join(Directory.current.path, '$vmName.qcow2');
+    final output = p.join(ref.read(workingDirectoryProvider), '$vmName.qcow2');
     final op = ref
         .read(activityProvider.notifier)
         .start(OperationKind.convert, vmName);
