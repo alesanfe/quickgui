@@ -81,10 +81,7 @@ void main() {
       check(report(free: 10 * 1024 * 1024 * 1024), 'Host disk space').level,
       HealthLevel.warn,
     );
-    expect(
-      check(report(), 'Host disk space').level,
-      HealthLevel.ok,
-    );
+    expect(check(report(), 'Host disk space').level, HealthLevel.ok);
     expect(
       check(report(free: null), 'Host disk space').level,
       HealthLevel.info,

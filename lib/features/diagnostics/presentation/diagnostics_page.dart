@@ -6,8 +6,10 @@ import 'package:quickgui/app/app_version.dart';
 import 'package:quickgui/core/telemetry/legacy_telemetry.dart';
 import 'package:quickgui/features/diagnostics/domain/diagnostics_report.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
+import 'package:quickgui/features/machines/application/structured_or_legacy.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/features/machines/providers/tracked_backend_provider.dart';
+import 'package:quickgui/features/machines/presentation/shared/process_output_dialog.dart';
 import 'package:quickgui/shared/widgets/bytes_formatter.dart';
 
 /// Local diagnostics: backend, contract, tools, KVM, disk and capabilities.
@@ -290,9 +292,56 @@ class _InventorySection extends ConsumerWidget {
   }
 }
 
-/// quickemu-plugin-* found on PATH.
+/// quickemu-plugin-* found on PATH — each row can dispatch the plugin
+/// with optional arguments (`--plugin <name> [args]`).
 class _PluginsSection extends ConsumerWidget {
   const _PluginsSection();
+
+  Future<void> _runPlugin(
+    BuildContext context,
+    WidgetRef ref,
+    String name,
+  ) async {
+    final argsCtrl = TextEditingController();
+    final args = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.t('Run {0}', args: [name])),
+        content: TextField(
+          controller: argsCtrl,
+          autofocus: true,
+          decoration: InputDecoration(
+            labelText: context.t('Arguments (optional)'),
+            isDense: true,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(context.t('Cancel')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, argsCtrl.text.trim()),
+            child: Text(context.t('Run')),
+          ),
+        ],
+      ),
+    );
+    if (args == null || !context.mounted) return;
+    final result = await runVmActionOrLegacy(
+      ref.read(trackedBackendProvider),
+      'plugin',
+      [
+        '--plugin',
+        name,
+        // Split on whitespace; the backend resolves plugin names to
+        // quickemu-plugin-* on PATH and rejects path components itself.
+        ...args.split(RegExp(r'\s+')).where((a) => a.isNotEmpty),
+      ],
+    );
+    if (!context.mounted) return;
+    showProcessOutputDialog(context, [result]);
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -301,7 +350,17 @@ class _PluginsSection extends ConsumerWidget {
       data: (list) => list.isEmpty
           ? const SizedBox.shrink()
           : _Section(context.t('Plugins'), [
-              for (final p in list) _Info(p, ''),
+              for (final p in list)
+                ListTile(
+                  dense: true,
+                  leading: const Icon(Icons.extension),
+                  title: Text(p),
+                  trailing: TextButton.icon(
+                    onPressed: () => _runPlugin(context, ref, p),
+                    icon: const Icon(Icons.play_arrow),
+                    label: Text(context.t('Run')),
+                  ),
+                ),
             ]),
       loading: () => const SizedBox.shrink(),
       error: (_, _) => const SizedBox.shrink(),

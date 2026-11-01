@@ -1758,3 +1758,84 @@ msgstr "Pausar la máquina virtual"
 
 msgid "Resume the virtual machine"
 msgstr "Reanudar la máquina virtual"
+
+msgid "Empty trash?"
+msgstr "¿Vaciar la papelera?"
+
+msgid "All machines in the trash will be deleted permanently. This cannot be undone."
+msgstr "Todas las máquinas de la papelera se eliminarán permanentemente. No se puede deshacer."
+
+msgid "Empty trash"
+msgstr "Vaciar la papelera"
+
+msgid "Verify"
+msgstr "Verificar"
+
+msgid "Detach device id"
+msgstr "Id del dispositivo a desconectar"
+
+msgid "Detach"
+msgstr "Desconectar"
+
+msgid "Snapshots verified"
+msgstr "Instantáneas verificadas"
+
+msgid "Enable autostart"
+msgstr "Activar arranque automático"
+
+msgid "Repair config (doctor --fix)"
+msgstr "Reparar configuración (doctor --fix)"
+
+msgid "Unattended install"
+msgstr "Instalación desatendida"
+
+msgid "Passes --unattended so quickget prepares an unattended installation."
+msgstr "Pasa --unattended para que quickget prepare una instalación desatendida."
+
+msgid "Cloud-init seed"
+msgstr "Semilla cloud-init"
+
+msgid "Passes --cloud-init so quickget builds a cloud-init seed image."
+msgstr "Pasa --cloud-init para que quickget genere una imagen semilla cloud-init."
+
+msgid "Details"
+msgstr "Detalles"
+
+msgid "Show release info"
+msgstr "Mostrar información de versiones"
+
+msgid "Open homepage"
+msgstr "Abrir página web"
+
+msgid "Opened homepage for {0}"
+msgstr "Página web de {0} abierta"
+
+msgid "Could not open homepage ({0})"
+msgstr "No se pudo abrir la página web ({0})"
+
+msgid "Check all architectures"
+msgstr "Comprobar todas las arquitecturas"
+
+msgid "Run {0}"
+msgstr "Ejecutar {0}"
+
+msgid "Arguments (optional)"
+msgstr "Argumentos (opcional)"
+
+msgid "Run"
+msgstr "Ejecutar"
+
+msgid "Architecture"
+msgstr "Arquitectura"
+
+msgid "Sound card"
+msgstr "Tarjeta de sonido"
+
+msgid "Audio codec (duplex)"
+msgstr "Códec de audio (duplex)"
+
+msgid "Persist to config"
+msgstr "Persistir en la configuración"
+
+msgid "Records the attached device in the VM configuration (--persist)."
+msgstr "Registra el dispositivo conectado en la configuración de la MV (--persist)."

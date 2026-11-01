@@ -14,29 +14,29 @@ Generated from `assets/capabilities/capability_manifest.json` by `tool/generate_
 | `vm.lifecycle.fullscreen` | lifecycle | `--fullscreen, --full-screen` | vm_menu.display_viewer.fullscreen, settings.preferred_viewer | 1 | Sí |
 | `vm.lifecycle.statusQuo` | lifecycle | `--status-quo` | vm_menu.maintenance.check_vm | 1 | Sí |
 | `vm.lifecycle.offline` | lifecycle | `--offline` | vm_settings.network_key | 1 | Sí |
-| `vm.lifecycle.restart` | lifecycle | `--restart` | — | 0 | Pendiente |
+| `vm.lifecycle.restart` | lifecycle | `--restart` | vm_page.advanced.restart | 1 | Sí |
 | `vm.library.list` | library | `--list-vms` | machines.list, dashboard.vm_cards | 2 | Sí |
 | `vm.library.inspectConf` | library | `--inspect-conf` | vm_settings.all_dialog, vm_page.configuration | 1 | Sí |
 | `vm.library.doctor` | library | `--doctor` | diagnostics.host_checks, vm_page.doctor_action, vm_menu.maintenance.check_vm | 1 | Sí |
-| `vm.library.doctorFix` | library | `--fix` | — | 0 | Pendiente |
+| `vm.library.doctorFix` | library | `--fix` | vm_page.advanced.doctor_fix | 1 | Sí |
 | `vm.snapshot.create` | snapshots | `--snapshot` | vm_menu.snapshots.create | 2 | Sí |
 | `vm.snapshot.apply` | snapshots | `--snapshot apply` | vm_menu.snapshots.apply | 1 | Sí |
 | `vm.snapshot.delete` | snapshots | `--snapshot delete` | vm_menu.snapshots.delete | 1 | Sí |
 | `vm.snapshot.info` | snapshots | `--snapshot info` | vm_menu.snapshots.info | 1 | Sí |
 | `vm.snapshot.tree` | snapshots | `--snapshot-tree` | vm_menu.snapshots.tree | 1 | Sí |
-| `vm.snapshot.verify` | snapshots | `--snapshot-verify` | — | 0 | Pendiente |
+| `vm.snapshot.verify` | snapshots | `--snapshot-verify` | vm_page.snapshots.verify | 1 | Sí |
 | `vm.delete.plan` | deletion | `--delete-plan` | vm_menu.delete.plan_dialog | 2 | Sí |
 | `vm.delete.vm` | deletion | `--delete-vm, --plan-id, --trash` | vm_menu.delete.confirm | 1 | Sí |
 | `vm.delete.disk` | deletion | `--delete-disk` | vm_menu.delete.disk_option | 1 | Sí |
 | `vm.trash.list` | deletion | `--trash-list` | vm_menu.maintenance.trash | 2 | Sí |
 | `vm.trash.restore` | deletion | `--trash-restore` | vm_menu.maintenance.trash_restore | 1 | Sí |
-| `vm.trash.empty` | deletion | `--trash-empty` | — | 0 | Pendiente |
+| `vm.trash.empty` | deletion | `--trash-empty` | machines.trash_dialog.empty | 2 | Sí |
 | `desktop.shortcut` | desktop | `--shortcut, --delete-shortcut` | — | 0 | No |
 | `vm.backup.create` | backup | `--backup` | vm_menu.maintenance.backups.create | 1 | Sí |
 | `vm.backup.list` | backup | `--backup-list` | vm_menu.maintenance.backups.list | 2 | Sí |
 | `vm.backup.restore` | backup | `--backup-restore` | vm_menu.maintenance.backups.restore | 1 | Sí |
 | `vm.backup.prune` | backup | `--backup-prune` | vm_menu.maintenance.backups.prune | 1 | Sí |
-| `vm.backup.verify` | backup | `--backup-verify` | — | 0 | Pendiente |
+| `vm.backup.verify` | backup | `--backup-verify` | machines.backups_dialog.verify | 1 | Sí |
 | `vm.clone` | migration | `--clone, --full` | vm_menu.clone | 1 | Sí |
 | `vm.linkedClone` | migration | `--linked-clone` | vm_menu.clone.linked | 1 | Sí |
 | `vm.rename` | migration | `--rename` | vm_menu.rename | 1 | Sí |
@@ -45,8 +45,8 @@ Generated from `assets/capabilities/capability_manifest.json` by `tool/generate_
 | `vm.import` | migration | `--import` | create.import.drop, create.import.picker | 1 | Sí |
 | `vm.disk.resize` | disks | `--disk-resize` | vm_menu.resize | 1 | Sí |
 | `vm.disk.compact` | disks | `--disk-compact` | vm_menu.maintenance.disk_compact | 1 | Sí |
-| `vm.disk.create` | disks | `--create-disk` | — | 0 | Pendiente |
-| `vm.disk.resizeCommit` | disks | `--resize-commit` | — | 0 | Pendiente |
+| `vm.disk.create` | disks | `--create-disk` | vm_page.advanced.create_disk | 1 | Sí |
+| `vm.disk.resizeCommit` | disks | `--resize-commit` | vm_page.advanced.disk_resize_commit | 1 | Sí |
 | `vm.image.verify` | disks | `--chunkcheck` | vm_menu.maintenance.verify_image | 1 | Sí |
 | `vm.monitor.cmd` | monitor | `--monitor-cmd` | vm_menu.maintenance.monitor_cmd | 1 | Sí |
 | `vm.input.sendKeys` | monitor | `--send-keys` | vm_menu.maintenance.send_keys | 1 | Sí |
@@ -54,8 +54,8 @@ Generated from `assets/capabilities/capability_manifest.json` by `tool/generate_
 | `vm.monitor.screenshot` | monitor | `--screenshot` | vm_menu.maintenance.screenshot | 1 | Sí |
 | `vm.hotplug.usb` | hotplug | `--hotplug-usb` | vm_menu.devices.hotplug_usb | 1 | Sí |
 | `vm.hotplug.disk` | hotplug | `--hotplug-disk` | vm_menu.devices.hotplug_disk | 1 | Sí |
-| `vm.hotplug.unplug` | hotplug | `--hotunplug` | — | 0 | Pendiente |
-| `vm.hotplug.persist` | hotplug | `--persist` | vm_menu.devices.hotplug_* | 0 | Parcial |
+| `vm.hotplug.unplug` | hotplug | `--hotunplug` | machines.hotplug_dialog.detach | 1 | Sí |
+| `vm.hotplug.persist` | hotplug | `--persist` | machines.hotplug_dialog.persist | 1 | Sí |
 | `ops.events` | operations | `--events` | activity.events_feed | 1 | Sí |
 | `ops.status` | operations | `--op-status` | activity.operation_tile | 1 | Sí |
 | `ops.list` | operations | `--op-list` | activity.list | 2 | Sí |
@@ -64,7 +64,7 @@ Generated from `assets/capabilities/capability_manifest.json` by `tool/generate_
 | `ops.aliasLong` | operations | `--operation-status, --operation-list, --operation-cancel, --operation-watch` | — | 0 | Justificada |
 | `backend.inventory` | registry | `--inventory` | diagnostics.inventory, machines.library_sync | 1 | Sí |
 | `backend.plugins.list` | plugins | `--plugins` | diagnostics.plugins | 1 | Sí |
-| `backend.plugins.dispatch` | plugins | `--plugin` | — | 0 | Pendiente |
+| `backend.plugins.dispatch` | plugins | `--plugin` | diagnostics.plugins.run | 1 | Sí |
 | `vm.stats` | monitor | `--stats` | vm_details.stats | 2 | Sí |
 | `vm.profile` | config | `--profile` | create_wizard.hardware_profiles, vm_menu.start_profile | 1 | Sí |
 | `vm.config.migrateToml` | config | `--migrate-conf` | vm_menu.migrate_toml | 1 | Sí |
@@ -84,24 +84,24 @@ Generated from `assets/capabilities/capability_manifest.json` by `tool/generate_
 | `launch.viewer` | launch | `--viewer` | settings.preferred_viewer, vm_settings.viewer_key | 1 | Sí |
 | `launch.publicDir` | launch | `--public-dir` | vm_settings.public_dir_key | 1 | Sí |
 | `launch.usbPassthrough` | launch | `--usb-passthrough` | vm_settings.usb_devices_key | 1 | Sí |
-| `launch.soundCard` | launch | `--sound-card, --sound-duplex` | vm_settings.sound_key | 0 | Parcial |
+| `launch.soundCard` | launch | `--sound-card, --sound-duplex` | vm_settings.display_sound | 1 | Sí |
 | `launch.geometry` | launch | `--width, --height` | — | 0 | Justificada |
 | `launch.netTuning` | launch | `--ssh-port, --spice-port, --ssh-access, --access` | — | 0 | Justificada |
 | `launch.hwTuning` | launch | `--monitor, --monitor-telnet-host, --monitor-telnet-port, --serial, --serial-telnet-host, --serial-telnet-port, --keyboard, --keyboard_layout, --mouse, --usb-controller` | — | 0 | Justificada |
 | `launch.quirks` | launch | `--cpu-pinning, --braille, --ignore-msrs-always, --ignore-tsc-warning` | — | 0 | Justificada |
 | `launch.extraArgs` | launch | `--extra_args` | — | 0 | No |
-| `vm.autostart` | desktop | `--autostart` | — | 0 | Pendiente |
+| `vm.autostart` | desktop | `--autostart` | vm_page.advanced.autostart | 1 | Sí |
 | `catalog.list` | catalog | `--list-json, --list, --list-csv` | create.catalog, home.quick_create | 2 | Sí |
-| `catalog.show` | catalog | `--show` | — | 0 | Pendiente |
+| `catalog.show` | catalog | `--show` | catalog.os_details.show | 1 | Sí |
 | `download.image` | downloads | `--download` | create.download, download_tasks | 1 | Sí |
 | `download.check` | downloads | `--check` | create.download.preflight, download_controls.check | 1 | Sí |
-| `download.checkAllArch` | downloads | `--check-all-arch` | — | 0 | Pendiente |
+| `download.checkAllArch` | downloads | `--check-all-arch` | catalog.version.check_all_arch | 1 | Sí |
 | `download.createConfig` | downloads | `--create-config` | create.import.flow | 1 | Sí |
-| `download.arch` | downloads | `--arch` | create_wizard.system | 0 | Parcial |
-| `download.unattended` | downloads | `--unattended, --disable-unattended` | — | 0 | Pendiente |
-| `download.cloudInit` | downloads | `--cloud-init` | — | 0 | Pendiente |
-| `download.update` | downloads | `--update` | — | 0 | Pendiente |
-| `download.openHomepage` | downloads | `--open-homepage` | — | 0 | Pendiente |
+| `download.arch` | downloads | `--arch` | create.customize.architecture | 1 | Sí |
+| `download.unattended` | downloads | `--unattended, --disable-unattended` | create.customize.unattended | 2 | Sí |
+| `download.cloudInit` | downloads | `--cloud-init` | create.customize.cloud_init | 2 | Sí |
+| `download.update` | downloads | `--update` | catalog.os_details.update | 1 | Sí |
+| `download.openHomepage` | downloads | `--open-homepage` | catalog.os_details.homepage | 1 | Sí |
 | `download.urlOverride` | internal | `--url` | — | 0 | Justificada |
 | `download.insecure` | security | `--insecure, --minimum-trust` | — | 0 | No |
 | `quickget.version` | diagnostics | `--version` | diagnostics.version_line | 1 | Sí |
@@ -115,10 +115,8 @@ Generated from `assets/capabilities/capability_manifest.json` by `tool/generate_
 | Metric | Value |
 |---|---|
 | Capabilities | 105 |
-| implemented | 70 |
-| partiallyImplemented | 3 |
-| planned | 16 |
+| implemented | 89 |
 | unsupported | 3 |
 | notApplicable | 13 |
-| Weighted coverage score | 89.8% |
+| Weighted coverage score | 99.1% |
 

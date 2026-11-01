@@ -51,6 +51,37 @@ class _TrashDialogState extends State<_TrashDialog> {
     }
   }
 
+  Future<void> _emptyTrash() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.t('Empty trash?')),
+        content: Text(
+          context.t(
+            'All machines in the trash will be deleted permanently. This cannot be undone.',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(context.t('Cancel')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(context.t('Empty trash')),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    try {
+      await widget.backend.emptyTrash();
+      await _load();
+    } catch (e) {
+      if (mounted) setState(() => _error = '$e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) => AlertDialog(
     title: Text(context.t('Trash')),
@@ -83,6 +114,12 @@ class _TrashDialogState extends State<_TrashDialog> {
             ),
     ),
     actions: [
+      if (_items.isNotEmpty)
+        TextButton.icon(
+          onPressed: _emptyTrash,
+          icon: const Icon(Icons.delete_forever),
+          label: Text(context.t('Empty trash')),
+        ),
       TextButton(
         onPressed: () => Navigator.pop(context),
         child: Text(context.t('Close')),
@@ -182,16 +219,32 @@ class _BackupsDialogState extends State<_BackupsDialog> {
                           subtitle: b['size'] != null
                               ? Text('${b['size']}')
                               : null,
-                          trailing: TextButton(
-                            onPressed: _busy
-                                ? null
-                                : () => _run(
-                                    () => widget.backend.restoreBackup(
-                                      widget.vm,
-                                      '${b['file'] ?? b['name']}',
-                                    ),
-                                  ),
-                            child: Text(context.t('Restore')),
+                          trailing: Wrap(
+                            spacing: 4,
+                            children: [
+                              TextButton(
+                                onPressed: _busy
+                                    ? null
+                                    : () => _run(
+                                        () => widget.backend.verifyBackup(
+                                          widget.vm,
+                                          '${b['file'] ?? b['name']}',
+                                        ),
+                                      ),
+                                child: Text(context.t('Verify')),
+                              ),
+                              TextButton(
+                                onPressed: _busy
+                                    ? null
+                                    : () => _run(
+                                        () => widget.backend.restoreBackup(
+                                          widget.vm,
+                                          '${b['file'] ?? b['name']}',
+                                        ),
+                                      ),
+                                child: Text(context.t('Restore')),
+                              ),
+                            ],
                           ),
                         ),
                     ],
@@ -241,7 +294,9 @@ class _HotplugDialog extends StatefulWidget {
 class _HotplugDialogState extends State<_HotplugDialog> {
   final _usbCtrl = TextEditingController();
   final _diskCtrl = TextEditingController();
+  final _unplugCtrl = TextEditingController();
   bool _busy = false;
+  bool _persist = false;
   String? _error;
 
   @override
@@ -251,12 +306,14 @@ class _HotplugDialogState extends State<_HotplugDialog> {
     // without a listener they stay disabled forever.
     _usbCtrl.addListener(() => setState(() {}));
     _diskCtrl.addListener(() => setState(() {}));
+    _unplugCtrl.addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
     _usbCtrl.dispose();
     _diskCtrl.dispose();
+    _unplugCtrl.dispose();
     super.dispose();
   }
 
@@ -303,10 +360,42 @@ class _HotplugDialogState extends State<_HotplugDialog> {
               isDense: true,
             ),
           ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _unplugCtrl,
+            decoration: InputDecoration(
+              labelText: context.t('Detach device id'),
+              isDense: true,
+            ),
+          ),
+          CheckboxListTile(
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+            title: Text(context.t('Persist to config')),
+            subtitle: Text(
+              context.t(
+                'Records the attached device in the VM configuration (--persist).',
+              ),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            value: _persist,
+            onChanged: (v) => setState(() => _persist = v ?? false),
+          ),
         ],
       ),
     ),
     actions: [
+      TextButton(
+        onPressed: _busy || _unplugCtrl.text.trim().isEmpty
+            ? null
+            : () => _run(
+                () => widget.backend.hotunplug(
+                  widget.confPath,
+                  _unplugCtrl.text.trim(),
+                ),
+              ),
+        child: Text(context.t('Detach')),
+      ),
       TextButton(
         onPressed: _busy || _usbCtrl.text.trim().isEmpty
             ? null
@@ -314,6 +403,7 @@ class _HotplugDialogState extends State<_HotplugDialog> {
                 () => widget.backend.hotplugUsb(
                   widget.confPath,
                   _usbCtrl.text.trim(),
+                  persist: _persist,
                 ),
               ),
         child: Text(context.t('Attach USB')),
@@ -325,6 +415,7 @@ class _HotplugDialogState extends State<_HotplugDialog> {
                 () => widget.backend.hotplugDisk(
                   widget.confPath,
                   _diskCtrl.text.trim(),
+                  persist: _persist,
                 ),
               ),
         child: Text(context.t('Attach disk')),

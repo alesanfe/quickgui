@@ -226,6 +226,8 @@ class _VmPageState extends ConsumerState<VmPage> {
               _menuItem('ignore-msrs-always', 'Ignore MSRs (always)', true),
               _menuItem('backup', 'Create backup', !active),
               _menuItem('snapshot-info', 'Snapshot info…', true),
+              _menuItem('autostart', 'Enable autostart', !active),
+              _menuItem('doctor-fix', 'Repair config (doctor --fix)', !active),
               _menuItem('trash', 'Move to trash', !active),
             ],
           ),
@@ -278,6 +280,8 @@ class _VmPageState extends ConsumerState<VmPage> {
         await _run(['--fullscreen'], confirm: true);
       case 'ignore-msrs-always':
         await _run(['--ignore-msrs-always'], confirm: true);
+      case 'doctor-fix':
+        await _run(['--doctor', '--fix'], confirm: true);
       case 'ignore-msrs':
       case 'restart':
       case 'viewer':
@@ -287,6 +291,7 @@ class _VmPageState extends ConsumerState<VmPage> {
       case 'create-disk':
       case 'disk-resize-commit':
       case 'backup':
+      case 'autostart':
       case 'trash':
         await _run(['--$cmd'], confirm: true);
     }
@@ -305,7 +310,8 @@ class _VmPageState extends ConsumerState<VmPage> {
     'tpm',
     'display',
     'viewer',
-    'sound',
+    'sound_card',
+    'sound_duplex',
     'public_dir',
     'usb_devices',
     'port_forwards',

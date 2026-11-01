@@ -309,8 +309,18 @@
       },
       "gui": {
         "requirement": "optional",
-        "status": "planned",
-        "justification": "Composite op (stop+start); dedicated UI action not yet exposed"
+        "status": "implemented",
+        "entry_points": [
+          "vm_page.advanced.restart"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runVmJson"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart"
+        ]
       }
     },
     {
@@ -414,8 +424,18 @@
       },
       "gui": {
         "requirement": "optional",
-        "status": "planned",
-        "justification": "Auto-rewrite of conf not yet offered; read-only doctor only"
+        "status": "implemented",
+        "entry_points": [
+          "vm_page.advanced.doctor_fix"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runVmJson"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart"
+        ]
       }
     },
     {
@@ -564,8 +584,18 @@
       },
       "gui": {
         "requirement": "optional",
-        "status": "planned",
-        "justification": "Integrity check exposed by backend but no UI surface yet"
+        "status": "implemented",
+        "entry_points": [
+          "vm_page.snapshots.verify"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "verifySnapshots"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart"
+        ]
       }
     },
     {
@@ -727,8 +757,19 @@
       },
       "gui": {
         "requirement": "optional",
-        "status": "planned",
-        "justification": "Bulk trash purge not yet exposed; restore/list are"
+        "status": "implemented",
+        "entry_points": [
+          "machines.trash_dialog.empty"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "emptyTrash"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart",
+          "test/widget/manager_workflows_test.dart"
+        ]
       }
     },
     {
@@ -877,8 +918,18 @@
       },
       "gui": {
         "requirement": "optional",
-        "status": "planned",
-        "justification": "List surfaces checksum state; explicit verify action pending"
+        "status": "implemented",
+        "entry_points": [
+          "machines.backups_dialog.verify"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "verifyBackup"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart"
+        ]
       }
     },
     {
@@ -1123,8 +1174,18 @@
       },
       "gui": {
         "requirement": "optional",
-        "status": "planned",
-        "justification": "Extra disks not yet creatable from the UI"
+        "status": "implemented",
+        "entry_points": [
+          "vm_page.advanced.create_disk"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runVmJson"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart"
+        ]
       }
     },
     {
@@ -1141,8 +1202,18 @@
       },
       "gui": {
         "requirement": "optional",
-        "status": "planned",
-        "justification": "Two-phase resize commit not surfaced"
+        "status": "implemented",
+        "entry_points": [
+          "vm_page.advanced.disk_resize_commit"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runVmJson"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart"
+        ]
       }
     },
     {
@@ -1355,8 +1426,18 @@
       },
       "gui": {
         "requirement": "optional",
-        "status": "planned",
-        "justification": "Unplugging hot devices not yet exposed"
+        "status": "implemented",
+        "entry_points": [
+          "machines.hotplug_dialog.detach"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "hotunplug"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart"
+        ]
       }
     },
     {
@@ -1373,11 +1454,19 @@
       },
       "gui": {
         "requirement": "optional",
-        "status": "partiallyImplemented",
+        "status": "implemented",
         "entry_points": [
-          "vm_menu.devices.hotplug_*"
+          "machines.hotplug_dialog.persist"
         ],
-        "justification": "Hotplug works but the persist-to-config modifier is not offered"
+        "justification": "--persist offered as a checkbox in the hotplug dialog for both USB and disk attach"
+      },
+      "architecture": {
+        "adapter_method": "hotplugUsb"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart"
+        ]
       }
     },
     {
@@ -1613,8 +1702,18 @@
       },
       "gui": {
         "requirement": "optional",
-        "status": "planned",
-        "justification": "Plugin listing shown; invoking a plugin not yet wired"
+        "status": "implemented",
+        "entry_points": [
+          "diagnostics.plugins.run"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runVmJson"
+      },
+      "testing": {
+        "surfaces": [
+          "test/widget/diagnostics_page_test.dart"
+        ]
       }
     },
     {
@@ -2124,11 +2223,16 @@
       },
       "gui": {
         "requirement": "optional",
-        "status": "partiallyImplemented",
+        "status": "implemented",
         "entry_points": [
-          "vm_settings.sound_key"
+          "vm_settings.display_sound"
         ],
-        "justification": "The 'sound' conf key is editable; duplex variants are not broken out"
+        "justification": "sound_card + sound_duplex editable with dropdowns; 'sound' was a dead key the backend ignores"
+      },
+      "testing": {
+        "surfaces": [
+          "test/widget/vm_settings_page_test.dart"
+        ]
       }
     },
     {
@@ -2251,8 +2355,18 @@
       },
       "gui": {
         "requirement": "optional",
-        "status": "planned",
-        "justification": "Boot-time autostart could live in VM settings; not built"
+        "status": "implemented",
+        "entry_points": [
+          "vm_page.advanced.autostart"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runVmJson"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart"
+        ]
       }
     },
     {
@@ -2302,8 +2416,18 @@
       },
       "gui": {
         "requirement": "optional",
-        "status": "planned",
-        "justification": "Catalogue rows already carry release/edition metadata"
+        "status": "implemented",
+        "entry_points": [
+          "catalog.os_details.show"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runQuickget"
+      },
+      "testing": {
+        "surfaces": [
+          "test/widget/catalog_workflows_test.dart"
+        ]
       }
     },
     {
@@ -2378,8 +2502,18 @@
       },
       "gui": {
         "requirement": "optional",
-        "status": "planned",
-        "justification": "Single-arch check is wired; all-arch sweep is not"
+        "status": "implemented",
+        "entry_points": [
+          "catalog.version.check_all_arch"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runQuickget"
+      },
+      "testing": {
+        "surfaces": [
+          "test/widget/catalog_workflows_test.dart"
+        ]
       }
     },
     {
@@ -2424,11 +2558,19 @@
       },
       "gui": {
         "requirement": "optional",
-        "status": "partiallyImplemented",
+        "status": "implemented",
         "entry_points": [
-          "create_wizard.system"
+          "create.customize.architecture"
         ],
-        "justification": "Downloads default to amd64; arm64 selection not yet exposed"
+        "justification": "amd64/arm64 selectable in the customise dialog; passed as --arch"
+      },
+      "architecture": {
+        "adapter_method": "startDownloadImage"
+      },
+      "testing": {
+        "surfaces": [
+          "test/widget/home_workflows_test.dart"
+        ]
       }
     },
     {
@@ -2446,8 +2588,19 @@
       },
       "gui": {
         "requirement": "optional",
-        "status": "planned",
-        "justification": "Unattended provisioning is a roadmap feature"
+        "status": "implemented",
+        "entry_points": [
+          "create.customize.unattended"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "startDownloadImage"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart",
+          "test/widget/catalog_workflows_test.dart"
+        ]
       }
     },
     {
@@ -2464,8 +2617,19 @@
       },
       "gui": {
         "requirement": "optional",
-        "status": "planned",
-        "justification": "Cloud-init customisation planned with unattended installs"
+        "status": "implemented",
+        "entry_points": [
+          "create.customize.cloud_init"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "startDownloadImage"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart",
+          "test/widget/catalog_workflows_test.dart"
+        ]
       }
     },
     {
@@ -2482,8 +2646,18 @@
       },
       "gui": {
         "requirement": "optional",
-        "status": "planned",
-        "justification": "Catalogue data refresh not yet exposed"
+        "status": "implemented",
+        "entry_points": [
+          "catalog.os_details.update"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runQuickget"
+      },
+      "testing": {
+        "surfaces": [
+          "test/widget/catalog_workflows_test.dart"
+        ]
       }
     },
     {
@@ -2500,8 +2674,18 @@
       },
       "gui": {
         "requirement": "optional",
-        "status": "planned",
-        "justification": "Could be an external-link action on catalogue rows"
+        "status": "implemented",
+        "entry_points": [
+          "catalog.os_details.homepage"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runQuickget"
+      },
+      "testing": {
+        "surfaces": [
+          "test/widget/catalog_workflows_test.dart"
+        ]
       }
     },
     {

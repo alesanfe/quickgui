@@ -235,7 +235,8 @@ class _DownloadControlsState extends ConsumerState<DownloadControls> {
           os: _selectedOperatingSystem!.code,
           release: _selectedVersion!.version,
           edition: _selectedOption?.option ?? '',
-          configuration: custom,
+          configuration: custom.conf,
+          flags: custom.flags,
         );
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -270,8 +271,10 @@ class _DownloadControlsState extends ConsumerState<DownloadControls> {
   }
 
   /// Optional pre-download customisation: a profile preset plus RAM /
-  /// CPU / disk overrides written to the generated .conf afterwards.
-  Future<Map<String, String>?> _customizeDialog(
+  /// CPU / disk overrides written to the generated .conf afterwards,
+  /// and quickget flags (`--unattended`, `--cloud-init`) for the
+  /// download itself.
+  Future<({Map<String, String> conf, List<String> flags})?> _customizeDialog(
     BuildContext context,
     String workingDirectory,
   ) {
@@ -289,7 +292,10 @@ class _DownloadControlsState extends ConsumerState<DownloadControls> {
       true,
     );
     var profile = recommended;
-    return showDialog<Map<String, String>>(
+    var unattended = false;
+    var cloudInit = false;
+    var arch = 'amd64';
+    return showDialog<({Map<String, String> conf, List<String> flags})>(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) {
@@ -390,6 +396,52 @@ class _DownloadControlsState extends ConsumerState<DownloadControls> {
                     errorText: context.sizeError(disk.displayError),
                   ),
                 ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: DropdownButtonFormField<String>(
+                    initialValue: arch,
+                    decoration: InputDecoration(
+                      labelText: context.t('Architecture'),
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'amd64',
+                        child: Text('amd64 (x86_64)'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'arm64',
+                        child: Text('arm64 (aarch64)'),
+                      ),
+                    ],
+                    onChanged: (v) => setState(() => arch = v ?? 'amd64'),
+                  ),
+                ),
+                CheckboxListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(context.t('Unattended install')),
+                  subtitle: Text(
+                    context.t(
+                      'Passes --unattended so quickget prepares an unattended installation.',
+                    ),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  value: unattended,
+                  onChanged: (v) => setState(() => unattended = v ?? false),
+                ),
+                CheckboxListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(context.t('Cloud-init seed')),
+                  subtitle: Text(
+                    context.t(
+                      'Passes --cloud-init so quickget builds a cloud-init seed image.',
+                    ),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  value: cloudInit,
+                  onChanged: (v) => setState(() => cloudInit = v ?? false),
+                ),
               ],
             ),
             actions: [
@@ -399,15 +451,22 @@ class _DownloadControlsState extends ConsumerState<DownloadControls> {
               ),
               TextButton(
                 onPressed: valid
-                    ? () => Navigator.of(context).pop({
-                        if (ram.value.trim().isNotEmpty)
-                          'ram': ram.value.trim().toUpperCase(),
-                        if (cores.value.trim().isNotEmpty)
-                          'cpu_cores': cores.value.trim(),
-                        if (disk.value.trim().isNotEmpty)
-                          'disk_size': disk.value.trim().toUpperCase(),
-                        ...profile.extraConf,
-                      })
+                    ? () => Navigator.of(context).pop((
+                        conf: {
+                          if (ram.value.trim().isNotEmpty)
+                            'ram': ram.value.trim().toUpperCase(),
+                          if (cores.value.trim().isNotEmpty)
+                            'cpu_cores': cores.value.trim(),
+                          if (disk.value.trim().isNotEmpty)
+                            'disk_size': disk.value.trim().toUpperCase(),
+                          ...profile.extraConf,
+                        },
+                        flags: [
+                          if (arch != 'amd64') ...['--arch', arch],
+                          if (unattended) '--unattended',
+                          if (cloudInit) '--cloud-init',
+                        ],
+                      ))
                     : null,
                 child: Text(context.t('Download')),
               ),

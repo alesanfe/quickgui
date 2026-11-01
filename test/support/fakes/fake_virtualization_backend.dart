@@ -52,9 +52,10 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
   Future<RunningProc> startDownloadImage(
     String os,
     String release,
-    String option,
-  ) async {
-    downloadCalls.add([os, release, option]);
+    String option, {
+    List<String> flags = const [],
+  }) async {
+    downloadCalls.add([os, release, option, ...flags]);
     if (downloadError != null) throw downloadError!;
     final process = downloadProcess;
     if (process == null) throw UnimplementedError('no downloadProcess set');
@@ -121,6 +122,9 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
   Future<void> restoreFromTrash(String vm) async =>
       trashItems.removeWhere((i) => i['vm'] == vm || i['name'] == vm);
 
+  @override
+  Future<void> emptyTrash() async => trashItems.clear();
+
   List<Map<String, dynamic>> backupItems = [];
 
   @override
@@ -140,15 +144,35 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
   Future<void> pruneBackups(String target, {int keep = 5}) async =>
       backupItems.removeRange(0, (backupItems.length - keep).clamp(0, 1 << 30));
 
+  final List<String> verifyCalls = [];
+
+  @override
+  Future<void> verifyBackup(String target, String backupFile) async =>
+      verifyCalls.add('backup:$backupFile');
+
+  @override
+  Future<void> verifySnapshots(String confPath) async =>
+      verifyCalls.add('snapshots:$confPath');
+
   final List<String> hotplugCalls = [];
 
   @override
-  Future<void> hotplugUsb(String confPath, String device) async =>
-      hotplugCalls.add('usb:$device');
+  Future<void> hotplugUsb(
+    String confPath,
+    String device, {
+    bool persist = false,
+  }) async => hotplugCalls.add('usb:$device${persist ? ':persist' : ''}');
 
   @override
-  Future<void> hotplugDisk(String confPath, String diskPath) async =>
-      hotplugCalls.add('disk:$diskPath');
+  Future<void> hotplugDisk(
+    String confPath,
+    String diskPath, {
+    bool persist = false,
+  }) async => hotplugCalls.add('disk:$diskPath${persist ? ':persist' : ''}');
+
+  @override
+  Future<void> hotunplug(String confPath, String device) async =>
+      hotplugCalls.add('unplug:$device');
 
   @override
   Future<void> diskCompact(String confPath) async =>

@@ -714,7 +714,7 @@ extension on _ManagerState {
         'public_dir': context.t('Shared folder'),
         'viewer': context.t('Display viewer'),
         'display': context.t('Display'),
-        'sound': context.t('Sound'),
+        'sound_card': context.t('Sound card'),
       },
       options: {
         'boot': ['efi', 'legacy'],
@@ -722,6 +722,17 @@ extension on _ManagerState {
         'secureboot': ['on', 'off'],
         'tpm': ['on', 'off'],
         'viewer': ['spicy', 'remote-viewer', 'none'],
+        'sound_card': [
+          '',
+          'intel-hda',
+          'ich9-intel-hda',
+          'ac97',
+          'es1370',
+          'sb16',
+          'usb-audio',
+          'virtio-sound-pci',
+          'none',
+        ],
       },
     );
   }

@@ -1929,3 +1929,84 @@ msgstr ""
 
 msgid "Resume the virtual machine"
 msgstr ""
+
+msgid "Empty trash?"
+msgstr ""
+
+msgid "All machines in the trash will be deleted permanently. This cannot be undone."
+msgstr ""
+
+msgid "Empty trash"
+msgstr ""
+
+msgid "Verify"
+msgstr ""
+
+msgid "Detach device id"
+msgstr ""
+
+msgid "Detach"
+msgstr ""
+
+msgid "Snapshots verified"
+msgstr ""
+
+msgid "Enable autostart"
+msgstr ""
+
+msgid "Repair config (doctor --fix)"
+msgstr ""
+
+msgid "Unattended install"
+msgstr ""
+
+msgid "Passes --unattended so quickget prepares an unattended installation."
+msgstr ""
+
+msgid "Cloud-init seed"
+msgstr ""
+
+msgid "Passes --cloud-init so quickget builds a cloud-init seed image."
+msgstr ""
+
+msgid "Details"
+msgstr ""
+
+msgid "Show release info"
+msgstr ""
+
+msgid "Open homepage"
+msgstr ""
+
+msgid "Opened homepage for {0}"
+msgstr ""
+
+msgid "Could not open homepage ({0})"
+msgstr ""
+
+msgid "Check all architectures"
+msgstr ""
+
+msgid "Run {0}"
+msgstr ""
+
+msgid "Arguments (optional)"
+msgstr ""
+
+msgid "Run"
+msgstr ""
+
+msgid "Architecture"
+msgstr ""
+
+msgid "Sound card"
+msgstr ""
+
+msgid "Audio codec (duplex)"
+msgstr ""
+
+msgid "Persist to config"
+msgstr ""
+
+msgid "Records the attached device in the VM configuration (--persist)."
+msgstr ""

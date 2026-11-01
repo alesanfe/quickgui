@@ -33,13 +33,16 @@ abstract class VirtualizationBackend {
   Future<List<Map<String, dynamic>>> listSnapshots(String confPath);
 
   /// Starts a `quickget` download process for [os] [release] ([option]
-  /// may be empty). The caller owns the process: its streams drive
-  /// progress, exitCode reports completion, and kill() cancels it.
+  /// may be empty). [flags] appends quickget download modifiers such as
+  /// `--unattended` or `--cloud-init`. The caller owns the process: its
+  /// streams drive progress, exitCode reports completion, and kill()
+  /// cancels it.
   Future<RunningProc> startDownloadImage(
     String os,
     String release,
-    String option,
-  );
+    String option, {
+    List<String> flags = const [],
+  });
 
   /// Runs an arbitrary action: start/stop/pause/resume/snapshot/etc.
   /// Arguments are the full quickemu CLI tail (e.g. ['--vm','x.conf',
@@ -79,6 +82,10 @@ abstract class VirtualizationBackend {
   /// Restores a VM from the backend trash (`--trash-restore <vm>`).
   Future<void> restoreFromTrash(String vm);
 
+  /// Permanently deletes everything in the backend trash
+  /// (`--trash-empty`) — destructive; callers must confirm first.
+  Future<void> emptyTrash();
+
   /// Verified backups for [target] (`--backup-list`): path, size and
   /// checksum state per archive.
   Future<List<Map<String, dynamic>>> listBackups(String target);
@@ -92,15 +99,34 @@ abstract class VirtualizationBackend {
   /// Keeps the newest [keep] archives for the VM (`--backup-prune`).
   Future<void> pruneBackups(String target, {int keep = 5});
 
+  /// Re-checks the archive checksum (`--backup-verify <file>`).
+  Future<void> verifyBackup(String target, String backupFile);
+
   /// Snapshot dependency tree (`--snapshot-tree`): parents/branches so
   /// the UI can show lineage instead of a flat list.
   Future<List<Map<String, dynamic>>> snapshotTree(String confPath);
 
+  /// Integrity check over the VM's snapshots (`--snapshot-verify`).
+  Future<void> verifySnapshots(String confPath);
+
   /// Hot-plug a USB device into a running VM (`--hotplug-usb <dev>`).
-  Future<void> hotplugUsb(String confPath, String device);
+  /// [persist] adds `--persist` so the device is recorded in the conf.
+  Future<void> hotplugUsb(
+    String confPath,
+    String device, {
+    bool persist = false,
+  });
 
   /// Hot-plug a disk image into a running VM (`--hotplug-disk <path>`).
-  Future<void> hotplugDisk(String confPath, String diskPath);
+  /// [persist] adds `--persist` so the device is recorded in the conf.
+  Future<void> hotplugDisk(
+    String confPath,
+    String diskPath, {
+    bool persist = false,
+  });
+
+  /// Detaches a hot-plugged device by its QMP id (`--hotunplug <id>`).
+  Future<void> hotunplug(String confPath, String device);
 
   /// Compacts the VM disk in place (`--disk-compact`).
   Future<void> diskCompact(String confPath);

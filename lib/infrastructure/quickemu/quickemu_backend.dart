@@ -164,9 +164,15 @@ class QuickemuBackend implements VirtualizationBackend {
   Future<RunningProc> startDownloadImage(
     String os,
     String release,
-    String option,
-  ) async => SystemRunningProc(
-    await _process.startQuickget([os, release, if (option.isNotEmpty) option]),
+    String option, {
+    List<String> flags = const [],
+  }) async => SystemRunningProc(
+    await _process.startQuickget([
+      os,
+      release,
+      if (option.isNotEmpty) option,
+      ...flags,
+    ]),
   );
 
   @override
@@ -240,6 +246,11 @@ class QuickemuBackend implements VirtualizationBackend {
   }
 
   @override
+  Future<void> emptyTrash() async {
+    await _structured.run('trash-empty', ['--trash-empty']);
+  }
+
+  @override
   Future<List<Map<String, dynamic>>> readEvents(
     String target, {
     int cursor = 0,
@@ -306,6 +317,16 @@ class QuickemuBackend implements VirtualizationBackend {
   }
 
   @override
+  Future<void> verifyBackup(String target, String backupFile) async {
+    await _structured.run('backup-verify', [
+      '--vm',
+      '$target.conf',
+      '--backup-verify',
+      backupFile,
+    ]);
+  }
+
+  @override
   Future<List<Map<String, dynamic>>> snapshotTree(String confPath) async {
     try {
       final response = await _structured.run('snapshot-tree', [
@@ -324,22 +345,51 @@ class QuickemuBackend implements VirtualizationBackend {
   }
 
   @override
-  Future<void> hotplugUsb(String confPath, String device) async {
+  Future<void> verifySnapshots(String confPath) async {
+    await _structured.run('snapshot-verify', [
+      '--vm',
+      confPath,
+      '--snapshot-verify',
+    ]);
+  }
+
+  @override
+  Future<void> hotplugUsb(
+    String confPath,
+    String device, {
+    bool persist = false,
+  }) async {
     await _structured.run('hotplug', [
       '--vm',
       confPath,
       '--hotplug-usb',
       device,
+      if (persist) '--persist',
     ]);
   }
 
   @override
-  Future<void> hotplugDisk(String confPath, String diskPath) async {
+  Future<void> hotplugDisk(
+    String confPath,
+    String diskPath, {
+    bool persist = false,
+  }) async {
     await _structured.run('hotplug', [
       '--vm',
       confPath,
       '--hotplug-disk',
       diskPath,
+      if (persist) '--persist',
+    ]);
+  }
+
+  @override
+  Future<void> hotunplug(String confPath, String device) async {
+    await _structured.run('hotunplug', [
+      '--vm',
+      confPath,
+      '--hotunplug',
+      device,
     ]);
   }
 

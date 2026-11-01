@@ -141,8 +141,9 @@ class ApiRoutingBackend implements VirtualizationBackend {
   Future<RunningProc> startDownloadImage(
     String os,
     String release,
-    String option,
-  ) => _cli.startDownloadImage(os, release, option);
+    String option, {
+    List<String> flags = const [],
+  }) => _cli.startDownloadImage(os, release, option, flags: flags);
   @override
   Future<ProcResult> runAction(List<String> arguments) =>
       _cli.runAction(arguments);
@@ -188,6 +189,8 @@ class ApiRoutingBackend implements VirtualizationBackend {
   @override
   Future<void> restoreFromTrash(String vm) => _cli.restoreFromTrash(vm);
   @override
+  Future<void> emptyTrash() => _cli.emptyTrash();
+  @override
   Future<List<Map<String, dynamic>>> listBackups(String target) =>
       _cli.listBackups(target);
   @override
@@ -199,14 +202,29 @@ class ApiRoutingBackend implements VirtualizationBackend {
   Future<void> pruneBackups(String target, {int keep = 5}) =>
       _cli.pruneBackups(target, keep: keep);
   @override
+  Future<void> verifyBackup(String target, String backupFile) =>
+      _cli.verifyBackup(target, backupFile);
+  @override
   Future<List<Map<String, dynamic>>> snapshotTree(String confPath) =>
       _cli.snapshotTree(confPath);
   @override
-  Future<void> hotplugUsb(String confPath, String device) =>
-      _cli.hotplugUsb(confPath, device);
+  Future<void> verifySnapshots(String confPath) =>
+      _cli.verifySnapshots(confPath);
   @override
-  Future<void> hotplugDisk(String confPath, String diskPath) =>
-      _cli.hotplugDisk(confPath, diskPath);
+  Future<void> hotplugUsb(
+    String confPath,
+    String device, {
+    bool persist = false,
+  }) => _cli.hotplugUsb(confPath, device, persist: persist);
+  @override
+  Future<void> hotplugDisk(
+    String confPath,
+    String diskPath, {
+    bool persist = false,
+  }) => _cli.hotplugDisk(confPath, diskPath, persist: persist);
+  @override
+  Future<void> hotunplug(String confPath, String device) =>
+      _cli.hotunplug(confPath, device);
   @override
   Future<void> diskCompact(String confPath) => _cli.diskCompact(confPath);
   @override

@@ -24,6 +24,7 @@ class DownloadTasks {
     required String release,
     String edition = '',
     Map<String, String> configuration = const {},
+    List<String> flags = const [],
   }) {
     final directory = Directory.current.path;
     final target = '$os-$release';
@@ -64,7 +65,12 @@ class DownloadTasks {
       }
 
       try {
-        process = await backend.startDownloadImage(os, release, edition);
+        process = await backend.startDownloadImage(
+          os,
+          release,
+          edition,
+          flags: flags,
+        );
         if (cancelled) process!.kill();
         final stdout = process!.stdout.transform(utf8.decoder).forEach(capture);
         final stderr = process!.stderr.transform(utf8.decoder).forEach(capture);

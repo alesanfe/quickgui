@@ -59,8 +59,9 @@ class _TrackedBackend implements VirtualizationBackend {
   Future<RunningProc> startDownloadImage(
     String os,
     String release,
-    String option,
-  ) => backend.startDownloadImage(os, release, option);
+    String option, {
+    List<String> flags = const [],
+  }) => backend.startDownloadImage(os, release, option, flags: flags);
   @override
   Future<ProcResult> runAction(List<String> arguments) {
     final index = arguments.indexOf('--vm');
@@ -200,6 +201,10 @@ class _TrackedBackend implements VirtualizationBackend {
   );
 
   @override
+  Future<void> emptyTrash() =>
+      track<void>(OperationKind.delete, 'trash', (op) => backend.emptyTrash());
+
+  @override
   Future<List<Map<String, dynamic>>> listBackups(String target) =>
       backend.listBackups(target);
 
@@ -222,21 +227,50 @@ class _TrackedBackend implements VirtualizationBackend {
       backend.pruneBackups(target, keep: keep);
 
   @override
+  Future<void> verifyBackup(String target, String backupFile) => track<void>(
+    OperationKind.command,
+    'backup-verify ${p.basename(backupFile)}',
+    (op) => backend.verifyBackup(target, backupFile),
+  );
+
+  @override
   Future<List<Map<String, dynamic>>> snapshotTree(String confPath) =>
       backend.snapshotTree(confPath);
 
   @override
-  Future<void> hotplugUsb(String confPath, String device) => track<void>(
+  Future<void> verifySnapshots(String confPath) => track<void>(
     OperationKind.command,
-    'hotplug-usb ${p.basename(confPath)}',
-    (op) => backend.hotplugUsb(confPath, device),
+    'snapshot-verify ${p.basename(confPath)}',
+    (op) => backend.verifySnapshots(confPath),
   );
 
   @override
-  Future<void> hotplugDisk(String confPath, String diskPath) => track<void>(
+  Future<void> hotplugUsb(
+    String confPath,
+    String device, {
+    bool persist = false,
+  }) => track<void>(
+    OperationKind.command,
+    'hotplug-usb ${p.basename(confPath)}',
+    (op) => backend.hotplugUsb(confPath, device, persist: persist),
+  );
+
+  @override
+  Future<void> hotplugDisk(
+    String confPath,
+    String diskPath, {
+    bool persist = false,
+  }) => track<void>(
     OperationKind.command,
     'hotplug-disk ${p.basename(confPath)}',
-    (op) => backend.hotplugDisk(confPath, diskPath),
+    (op) => backend.hotplugDisk(confPath, diskPath, persist: persist),
+  );
+
+  @override
+  Future<void> hotunplug(String confPath, String device) => track<void>(
+    OperationKind.command,
+    'hotunplug ${p.basename(confPath)}',
+    (op) => backend.hotunplug(confPath, device),
   );
 
   @override

@@ -168,6 +168,28 @@ void main() {
     );
   }
 
+  test('download startup appends quickget flags after the edition', () async {
+    final runner = FakeProcessRunner({});
+    await expectLater(
+      Future<RunningProc>.sync(
+        () => QuickemuBackend(runner).startDownloadImage(
+          'ubuntu',
+          '24.04',
+          'desktop',
+          flags: ['--unattended', '--cloud-init'],
+        ),
+      ),
+      throwsUnimplementedError,
+    );
+    expectInvocation(runner, 'quickget', [
+      'ubuntu',
+      '24.04',
+      'desktop',
+      '--unattended',
+      '--cloud-init',
+    ]);
+  });
+
   for (final (terminal, prefix) in <(String, List<String>)>[
     ('gnome-terminal', ['--']),
     ('mate-terminal', ['--']),
@@ -488,6 +510,12 @@ void main() {
             (b) => b.listTrash(),
           ),
           (
+            'trash-empty',
+            ['--trash-empty'],
+            'vm.trash-empty',
+            (b) => b.emptyTrash(),
+          ),
+          (
             'events',
             ['--vm', 'vm1.conf', '--events', '3'],
             'vm.events',
@@ -518,6 +546,12 @@ void main() {
             (b) => b.pruneBackups('vm1', keep: 3),
           ),
           (
+            'backup-verify',
+            ['--vm', 'vm1.conf', '--backup-verify', 'b.tar.gz'],
+            'vm.backup-verify',
+            (b) => b.verifyBackup('vm1', 'b.tar.gz'),
+          ),
+          (
             'hotplug',
             ['--vm', 'vm1.conf', '--hotplug-usb', '1:2'],
             'vm.hotplug',
@@ -528,6 +562,24 @@ void main() {
             ['--vm', 'vm1.conf', '--hotplug-disk', 'd.qcow2'],
             'vm.hotplug',
             (b) => b.hotplugDisk('vm1.conf', 'd.qcow2'),
+          ),
+          (
+            'hotplug',
+            ['--vm', 'vm1.conf', '--hotplug-usb', '1:2', '--persist'],
+            'vm.hotplug',
+            (b) => b.hotplugUsb('vm1.conf', '1:2', persist: true),
+          ),
+          (
+            'hotunplug',
+            ['--vm', 'vm1.conf', '--hotunplug', 'usb1'],
+            'vm.hotunplug',
+            (b) => b.hotunplug('vm1.conf', 'usb1'),
+          ),
+          (
+            'snapshot-verify',
+            ['--vm', 'vm1.conf', '--snapshot-verify'],
+            'vm.snapshot-verify',
+            (b) => b.verifySnapshots('vm1.conf'),
           ),
           (
             'disk-compact',

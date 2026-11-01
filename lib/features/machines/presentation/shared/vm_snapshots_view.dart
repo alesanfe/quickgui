@@ -97,6 +97,22 @@ class _VmSnapshotsViewState extends ConsumerState<VmSnapshotsView> {
     }
   }
 
+  Future<void> _verify() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      await _backend.verifySnapshots(widget.confPath);
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.t('Snapshots verified'))));
+    } catch (error) {
+      if (mounted) setState(() => _error = error);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   Future<void> _confirmAndRun(String action, String tag) async {
     // Applying a snapshot replaces the current disk state and deleting
     // removes it permanently — both need an explicit confirmation.
@@ -215,6 +231,10 @@ class _VmSnapshotsViewState extends ConsumerState<VmSnapshotsView> {
                     ? null
                     : () => _confirmAndRun('delete', tag),
                 child: Text(context.t('Delete')),
+              ),
+              TextButton(
+                onPressed: _busy ? null : _verify,
+                child: Text(context.t('Verify')),
               ),
               const Spacer(),
               IconButton(

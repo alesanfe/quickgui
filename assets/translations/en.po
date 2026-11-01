@@ -1643,3 +1643,375 @@ msgstr "Pause the virtual machine"
 
 msgid "Resume the virtual machine"
 msgstr "Resume the virtual machine"
+
+msgid "Release keyboard (Ctrl+Alt+G)"
+msgstr "Release keyboard (Ctrl+Alt+G)"
+
+msgid "Capture keyboard input"
+msgstr "Capture keyboard input"
+
+msgid "Console scaling"
+msgstr "Console scaling"
+
+msgid "Fit to window"
+msgstr "Fit to window"
+
+msgid "Stretch"
+msgstr "Stretch"
+
+msgid "Native size"
+msgstr "Native size"
+
+msgid "Integer scale"
+msgstr "Integer scale"
+
+msgid "Manual zoom"
+msgstr "Manual zoom"
+
+msgid "Paste clipboard into guest"
+msgstr "Paste clipboard into guest"
+
+msgid "Clipboard sync: on"
+msgstr "Clipboard sync: on"
+
+msgid "Clipboard sync: off"
+msgstr "Clipboard sync: off"
+
+msgid "Fullscreen (F11)"
+msgstr "Fullscreen (F11)"
+
+msgid "Keyboard captured"
+msgstr "Keyboard captured"
+
+msgid "Keyboard captured — Ctrl+Alt+G to release"
+msgstr "Keyboard captured — Ctrl+Alt+G to release"
+
+msgid "Waiting for the display to come up…"
+msgstr "Waiting for the display to come up…"
+
+msgid "Connection lost — reconnecting ({0})…"
+msgstr "Connection lost — reconnecting ({0})…"
+
+msgid "Ctrl+Alt+G releases the keyboard"
+msgstr "Ctrl+Alt+G releases the keyboard"
+
+msgid "F11 or Esc exits fullscreen"
+msgstr "F11 or Esc exits fullscreen"
+
+msgid "Exit fullscreen"
+msgstr "Exit fullscreen"
+
+msgid "Paste into console"
+msgstr "Paste into console"
+
+msgid "The clipboard contains {0} lines. Sending them will type each line into the guest — continue?"
+msgstr "The clipboard contains {0} lines. Sending them will type each line into the guest — continue?"
+
+msgid "Paste"
+msgstr "Paste"
+
+msgid "Send {0}"
+msgstr "Send {0}"
+
+msgid "This sends a system-level key combination to the guest. Continue?"
+msgstr "This sends a system-level key combination to the guest. Continue?"
+
+msgid "Zoom out"
+msgstr "Zoom out"
+
+msgid "Zoom in"
+msgstr "Zoom in"
+
+msgid "Clear filters"
+msgstr "Clear filters"
+
+msgid "Search by machine, message or error code"
+msgstr "Search by machine, message or error code"
+
+msgid "Clear search"
+msgstr "Clear search"
+
+msgid "Filter by machine"
+msgstr "Filter by machine"
+
+msgid "All machines"
+msgstr "All machines"
+
+msgid "Machine"
+msgstr "Machine"
+
+msgid "Filter by time"
+msgstr "Filter by time"
+
+msgid "All time"
+msgstr "All time"
+
+msgid "Last hour"
+msgstr "Last hour"
+
+msgid "Last 24 hours"
+msgstr "Last 24 hours"
+
+msgid "Last 7 days"
+msgstr "Last 7 days"
+
+msgid "Last 30 days"
+msgstr "Last 30 days"
+
+msgid "Requires action"
+msgstr "Requires action"
+
+msgid "Retrying"
+msgstr "Retrying"
+
+msgid "Recovered"
+msgstr "Recovered"
+
+msgid "Permanently failed"
+msgstr "Permanently failed"
+
+msgid "Acknowledged"
+msgstr "Acknowledged"
+
+msgid "Ignored"
+msgstr "Ignored"
+
+msgid " (attempt {0})"
+msgstr " (attempt {0})"
+
+msgid "Acknowledge"
+msgstr "Acknowledge"
+
+msgid "Copy diagnostic"
+msgstr "Copy diagnostic"
+
+msgid "Diagnostic copied"
+msgstr "Diagnostic copied"
+
+msgid "Automation"
+msgstr "Automation"
+
+msgid "Automation run"
+msgstr "Automation run"
+
+msgid "Describe the machine you want; quickprovision obtains the image, installs it, provisions it, verifies the result and seals a snapshot — a ready-to-use VM appears in Machines."
+msgstr "Describe the machine you want; quickprovision obtains the image, installs it, provisions it, verifies the result and seals a snapshot — a ready-to-use VM appears in Machines."
+
+msgid "Name"
+msgstr "Name"
+
+msgid "Hostname"
+msgstr "Hostname"
+
+msgid "Username"
+msgstr "Username"
+
+msgid "SSH timeout (min)"
+msgstr "SSH timeout (min)"
+
+msgid "Packages (comma separated)"
+msgstr "Packages (comma separated)"
+
+msgid "Services to enable (comma separated)"
+msgstr "Services to enable (comma separated)"
+
+msgid "Post-install checks"
+msgstr "Post-install checks"
+
+msgid "Shut down when done"
+msgstr "Shut down when done"
+
+msgid "Snapshot name"
+msgstr "Snapshot name"
+
+msgid "Preview plan"
+msgstr "Preview plan"
+
+msgid "Start automation run"
+msgstr "Start automation run"
+
+msgid "quickprovision could not resolve this profile."
+msgstr "quickprovision could not resolve this profile."
+
+msgid "The quickprovision binary was not found on PATH."
+msgstr "The quickprovision binary was not found on PATH."
+
+msgid "Automation runs need the quickprovision engine that ships with quickemu. Install or update quickemu and try again."
+msgstr "Automation runs need the quickprovision engine that ships with quickemu. Install or update quickemu and try again."
+
+msgid "Plan — {0}"
+msgstr "Plan — {0}"
+
+msgid "Checks"
+msgstr "Checks"
+
+msgid "Event log"
+msgstr "Event log"
+
+msgid "Copy"
+msgstr "Copy"
+
+msgid "Cancel run"
+msgstr "Cancel run"
+
+msgid "Resume run"
+msgstr "Resume run"
+
+msgid "New run"
+msgstr "New run"
+
+msgid "Open in Machines"
+msgstr "Open in Machines"
+
+msgid "Idle"
+msgstr "Idle"
+
+msgid "Ctrl+1…7"
+msgstr "Ctrl+1…7"
+
+msgid "Switch between the seven sections"
+msgstr "Switch between the seven sections"
+
+msgid "Notify about machine events"
+msgstr "Notify about machine events"
+
+msgid "Starts, stops, crashes and operation results"
+msgstr "Starts, stops, crashes and operation results"
+
+msgid "Event types"
+msgstr "Event types"
+
+msgid "Muted machines"
+msgstr "Muted machines"
+
+msgid "Notifications silenced"
+msgstr "Notifications silenced"
+
+msgid "Silence notifications for an hour"
+msgstr "Silence notifications for an hour"
+
+msgid "Unmute"
+msgstr "Unmute"
+
+msgid "Machine started"
+msgstr "Machine started"
+
+msgid "Machine stopped"
+msgstr "Machine stopped"
+
+msgid "Machine crashed"
+msgstr "Machine crashed"
+
+msgid "Machine paused"
+msgstr "Machine paused"
+
+msgid "Machine resumed"
+msgstr "Machine resumed"
+
+msgid "Machine deleted"
+msgstr "Machine deleted"
+
+msgid "Machine paused or resumed"
+msgstr "Machine paused or resumed"
+
+msgid "Operation finished"
+msgstr "Operation finished"
+
+msgid "Operation failed"
+msgstr "Operation failed"
+
+msgid "Snapshot finished"
+msgstr "Snapshot finished"
+
+msgid "Backup problem"
+msgstr "Backup problem"
+
+msgid "Guest agent lost"
+msgstr "Guest agent lost"
+
+msgid "{0} stopped unexpectedly. Open Activity for details."
+msgstr "{0} stopped unexpectedly. Open Activity for details."
+
+msgid "The host is running low on disk space."
+msgstr "The host is running low on disk space."
+
+msgid "Empty trash?"
+msgstr "Empty trash?"
+
+msgid "All machines in the trash will be deleted permanently. This cannot be undone."
+msgstr "All machines in the trash will be deleted permanently. This cannot be undone."
+
+msgid "Empty trash"
+msgstr "Empty trash"
+
+msgid "Verify"
+msgstr "Verify"
+
+msgid "Detach device id"
+msgstr "Detach device id"
+
+msgid "Detach"
+msgstr "Detach"
+
+msgid "Snapshots verified"
+msgstr "Snapshots verified"
+
+msgid "Enable autostart"
+msgstr "Enable autostart"
+
+msgid "Repair config (doctor --fix)"
+msgstr "Repair config (doctor --fix)"
+
+msgid "Unattended install"
+msgstr "Unattended install"
+
+msgid "Passes --unattended so quickget prepares an unattended installation."
+msgstr "Passes --unattended so quickget prepares an unattended installation."
+
+msgid "Cloud-init seed"
+msgstr "Cloud-init seed"
+
+msgid "Passes --cloud-init so quickget builds a cloud-init seed image."
+msgstr "Passes --cloud-init so quickget builds a cloud-init seed image."
+
+msgid "Details"
+msgstr "Details"
+
+msgid "Show release info"
+msgstr "Show release info"
+
+msgid "Open homepage"
+msgstr "Open homepage"
+
+msgid "Opened homepage for {0}"
+msgstr "Opened homepage for {0}"
+
+msgid "Could not open homepage ({0})"
+msgstr "Could not open homepage ({0})"
+
+msgid "Check all architectures"
+msgstr "Check all architectures"
+
+msgid "Run {0}"
+msgstr "Run {0}"
+
+msgid "Arguments (optional)"
+msgstr "Arguments (optional)"
+
+msgid "Run"
+msgstr "Run"
+
+msgid "Architecture"
+msgstr "Architecture"
+
+msgid "Sound card"
+msgstr "Sound card"
+
+msgid "Audio codec (duplex)"
+msgstr "Audio codec (duplex)"
+
+msgid "Persist to config"
+msgstr "Persist to config"
+
+msgid "Records the attached device in the VM configuration (--persist)."
+msgstr "Records the attached device in the VM configuration (--persist)."

@@ -299,6 +299,42 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
+    testWidgets('unattended and cloud-init checkboxes forward quickget '
+        'flags to the download task', (tester) async {
+      backend.downloadProcess = FakeProcess();
+      await open(
+        tester,
+        const CreatePage(),
+        catalogue: catalogue,
+        fullPage: true,
+      );
+      await pick(tester);
+      await tester.tap(find.widgetWithText(ElevatedButton, 'Download'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Unattended install'));
+      await tester.tap(find.text('Cloud-init seed'));
+      await tester.tap(find.text('amd64 (x86_64)'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('arm64 (aarch64)').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(TextButton, 'Download'));
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      expect(backend.downloadCalls, [
+        [
+          'ubuntu',
+          '24.04',
+          '',
+          '--arch',
+          'arm64',
+          '--unattended',
+          '--cloud-init',
+        ],
+      ]);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('cancelling customisation does not start a download', (
       tester,
     ) async {

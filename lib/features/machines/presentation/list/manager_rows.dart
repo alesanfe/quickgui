@@ -557,7 +557,7 @@ extension on _ManagerState {
                       'usb_devices': context.t('USB devices'),
                       'gpu_passthrough': context.t('GPU passthrough'),
                       'port_forwards': context.t('Port forwards'),
-                      'sound': context.t('Sound'),
+                      'sound_card': context.t('Sound card'),
                       'display': context.t('Display'),
                     }, title: context.t('Devices'));
                   case 'pause':

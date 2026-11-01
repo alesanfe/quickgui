@@ -6,7 +6,9 @@ import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:quickgui/features/catalog/application/load_catalog.dart';
 import 'package:quickgui/features/catalog/providers/catalog_providers.dart';
 import 'package:quickgui/features/catalog/domain/operating_system.dart';
+import 'package:quickgui/features/machines/application/ports/proc.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
+import 'package:quickgui/features/machines/presentation/shared/process_output_dialog.dart';
 
 class OperatingSystemSelection extends ConsumerStatefulWidget {
   const OperatingSystemSelection({super.key});
@@ -34,6 +36,42 @@ class _OperatingSystemSelectionState
     _scrollController.dispose();
     focusNode.dispose();
     super.dispose();
+  }
+
+  /// Per-OS catalogue actions: `--show` prints the release matrix,
+  /// `--open-homepage` opens the project page, `--update` refreshes the
+  /// cached release data for that OS.
+  Future<void> _osAction(OperatingSystem os, String action) async {
+    final flag = switch (action) {
+      'show' => '--show',
+      'homepage' => '--open-homepage',
+      _ => '--update',
+    };
+    ProcResult result;
+    try {
+      result = await ref.read(backendProvider).runQuickget([flag, os.code]);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      return;
+    }
+    if (!mounted) return;
+    if (flag == '--open-homepage') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result.exitCode == 0
+                ? context.t('Opened homepage for {0}', args: [os.name])
+                : context.t(
+                    'Could not open homepage ({0})',
+                    args: ['${result.exitCode}'],
+                  ),
+          ),
+        ),
+      );
+    } else {
+      showProcessOutputDialog(context, [result]);
+    }
   }
 
   @override
@@ -145,6 +183,25 @@ class _OperatingSystemSelectionState
                         child: ListTile(
                           title: Text(item.name),
                           leading: icon,
+                          trailing: PopupMenuButton<String>(
+                            tooltip: context.t('Details'),
+                            icon: const Icon(Icons.more_vert),
+                            onSelected: (action) => _osAction(item, action),
+                            itemBuilder: (context) => [
+                              PopupMenuItem(
+                                value: 'show',
+                                child: Text(context.t('Show release info')),
+                              ),
+                              PopupMenuItem(
+                                value: 'homepage',
+                                child: Text(context.t('Open homepage')),
+                              ),
+                              PopupMenuItem(
+                                value: 'update',
+                                child: Text(context.t('Check for updates')),
+                              ),
+                            ],
+                          ),
                           onTap: () {
                             Navigator.of(context).pop(item);
                           },
