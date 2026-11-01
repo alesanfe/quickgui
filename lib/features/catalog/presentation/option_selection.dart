@@ -56,6 +56,7 @@ class _OptionSelectionState extends State<OptionSelection> {
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
                             const Icon(Icons.search),
+                            const SizedBox(width: 8),
                             Expanded(
                               child: TextField(
                                 focusNode: focusNode,
