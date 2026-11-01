@@ -54,59 +54,113 @@ class _DownloadControlsState extends ConsumerState<DownloadControls> {
     if (_selectedOption?.option.isNotEmpty ?? false) {
       versionButtonLabel = "$versionButtonLabel (${_selectedOption!.option})";
     }
+    // QGUI-CREATE-002: the flow's progress is visible before picking —
+    // completed steps are marked, the current step is highlighted and
+    // every step stays tappable to go back without losing selections.
+    final steps = <(String, bool, VoidCallback?)>[
+      (
+        context.t('Operating system'),
+        _selectedOperatingSystem != null,
+        () {
+          Navigator.of(context)
+              .push<OperatingSystem>(
+                MaterialPageRoute(
+                  fullscreenDialog: true,
+                  builder: (context) => const OperatingSystemSelection(),
+                ),
+              )
+              .then((selection) {
+                if (selection != null) _selectOs(selection);
+              });
+        },
+      ),
+      (
+        context.t('Version'),
+        _selectedVersion != null,
+        _selectedOperatingSystem == null
+            ? null
+            : () {
+                Navigator.of(context)
+                    .push<Tuple2<Version, Option?>>(
+                      MaterialPageRoute(
+                        fullscreenDialog: true,
+                        builder: (context) => VersionSelection(
+                          operatingSystem: _selectedOperatingSystem!,
+                        ),
+                      ),
+                    )
+                    .then((selection) {
+                      if (selection != null) {
+                        setState(() {
+                          _selectedVersion = selection.item1;
+                          _selectedOption = selection.item2;
+                        });
+                      }
+                    });
+              },
+      ),
+      (
+        context.t('Download'),
+        false,
+        _selectedVersion == null ? null : () => _startDownload(context),
+      ),
+    ];
     return Column(
       children: [
         _popularPicks(context),
+        // Step indicator — 1 OS → 2 Version → 3 Download.
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Wrap(
+            spacing: 4,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              for (var i = 0; i < steps.length; i++) ...[
+                if (i > 0)
+                  Icon(
+                    Icons.chevron_right,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                RawChip(
+                  avatar: CircleAvatar(
+                    radius: 10,
+                    child: steps[i].$2
+                        ? const Icon(Icons.check, size: 12)
+                        : Text(
+                            '${i + 1}',
+                            style: const TextStyle(fontSize: 10),
+                          ),
+                  ),
+                  label: Text(steps[i].$1),
+                  onPressed: steps[i].$3,
+                ),
+              ],
+            ],
+          ),
+        ),
         Row(
           children: [
             DownloaderPageButton(
               label: context.t("Operating system"),
               text: _selectedOperatingSystem?.name ?? context.t('Select...'),
-              onPressed: () {
-                Navigator.of(context)
-                    .push<OperatingSystem>(
-                      MaterialPageRoute(
-                        fullscreenDialog: true,
-                        builder: (context) => const OperatingSystemSelection(),
-                      ),
-                    )
-                    .then((selection) {
-                      if (selection != null) _selectOs(selection);
-                    });
-              },
+              onPressed: steps[0].$3,
             ),
+            // Disabled steps explain what is missing instead of just
+            // greying out (QGUI-CREATE-004 / QGUI-UX-002).
             DownloaderPageButton(
               label: context.t('Version'),
               text: versionButtonLabel,
-              onPressed: (_selectedOperatingSystem != null)
-                  ? () {
-                      Navigator.of(context)
-                          .push<Tuple2<Version, Option?>>(
-                            MaterialPageRoute(
-                              fullscreenDialog: true,
-                              builder: (context) => VersionSelection(
-                                operatingSystem: _selectedOperatingSystem!,
-                              ),
-                            ),
-                          )
-                          .then((selection) {
-                            if (selection != null) {
-                              setState(() {
-                                _selectedVersion = selection.item1;
-                                _selectedOption = selection.item2;
-                              });
-                            }
-                          });
-                    }
-                  : null,
+              onPressed: steps[1].$3,
+              disabledReason: context.t('Select an operating system first'),
             ),
             DownloaderPageButton(
               label: context.t('Download'),
               text: context.t('Download'),
               busy: _checking,
-              onPressed: (_selectedVersion == null)
-                  ? null
-                  : () => _startDownload(context),
+              onPressed: steps[2].$3,
+              disabledReason: context.t('Select a version first'),
             ),
           ],
         ),

@@ -44,10 +44,16 @@ import 'package:quickgui/features/machines/domain/vm_grouping.dart';
 import 'package:quickgui/features/machines/domain/vm_profile.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_config_editor.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_details_pane.dart';
+import 'package:quickgui/features/machines/presentation/details/vm_settings_page.dart';
+import 'package:quickgui/shared/forms/path_picker_field.dart';
+import 'package:quickgui/shared/forms/size_field.dart';
+import 'package:quickgui/shared/forms/viewer_selector.dart';
+import 'package:quickgui/shared/widgets/disabled_reason.dart';
+import 'package:quickgui/shared/widgets/field_help.dart';
+import 'package:quickgui/shared/widgets/scroll_dialog.dart';
 import 'package:quickgui/features/machines/domain/vm_config_value.dart';
 import 'package:quickgui/infrastructure/storage/vm_config.dart';
 import 'package:quickgui/features/machines/domain/forms/vm_inputs.dart';
-import 'package:quickgui/shared/dialogs/validated_text_dialog.dart';
 import 'package:quickgui/features/machines/presentation/shared/vm_input_messages.dart';
 
 /// VM manager page.
@@ -441,21 +447,52 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
                       label: Text(context.t('New machine')),
                     ),
                   ),
-              PopupMenuButton<String>(
-                icon: const Icon(Icons.sort),
-                tooltip: context.t('Sort'),
-                onSelected: (v) => setState(() => _vmSort = v),
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'name',
-                    child: Text(context.t('Sort by name')),
+              // M-12: sort keeps a visible label whenever the width
+              // allows it; compact mode keeps the tooltip + semantics
+              // and the active sort is shown, not just the affordance.
+              if (MediaQuery.sizeOf(context).width < 700 ||
+                  MediaQuery.textScalerOf(context).scale(1) > 1.5)
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.sort),
+                  tooltip: _vmSort == 'name'
+                      ? context.t('Sort: by name')
+                      : context.t('Sort: running first'),
+                  onSelected: (v) => setState(() => _vmSort = v),
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'name',
+                      child: Text(context.t('Sort by name')),
+                    ),
+                    PopupMenuItem(
+                      value: 'running',
+                      child: Text(context.t('Running first')),
+                    ),
+                  ],
+                )
+              else
+                PopupMenuButton<String>(
+                  tooltip: context.t('Sort machines'),
+                  onSelected: (v) => setState(() => _vmSort = v),
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'name',
+                      child: Text(context.t('Sort by name')),
+                    ),
+                    PopupMenuItem(
+                      value: 'running',
+                      child: Text(context.t('Running first')),
+                    ),
+                  ],
+                  child: TextButton.icon(
+                    onPressed: null,
+                    icon: const Icon(Icons.sort, size: 18),
+                    label: Text(
+                      _vmSort == 'name'
+                          ? context.t('Sort: name')
+                          : context.t('Sort: running first'),
+                    ),
                   ),
-                  PopupMenuItem(
-                    value: 'running',
-                    child: Text(context.t('Running first')),
-                  ),
-                ],
-              ),
+                ),
             ],
           ),
           body: LayoutBuilder(

@@ -40,7 +40,8 @@ extension on _ManagerState {
         ],
       ),
     );
-    controller.dispose();
+    // Left undisposed on purpose: the pop animation still rebuilds
+    // the field and a disposed controller would throw.
     if (tags == null || !mounted) return;
     final notifier = ref.read(vmTagsProvider.notifier);
     for (final name in targets) {
@@ -168,11 +169,17 @@ extension on _ManagerState {
 
   /// [title] names the purpose of the dialog (e.g. 'Resources') so the
   /// user sees a semantic heading instead of the raw .conf filename.
+  /// [fieldBuilders] lets a key render a structured editor (path picker,
+  /// viewer selector) instead of the generic text/dropdown field, and
+  /// [helpers] attaches always-visible helper text (QGUI-UX-001).
   Future<void> _editVmConfValues(
     String currentVm,
     Map<String, String> keys, {
     required String title,
     Map<String, List<String>>? options,
+    Map<String, Widget Function(BuildContext, TextEditingController)>?
+    fieldBuilders,
+    Map<String, String>? helpers,
   }) async {
     // The editor speaks key="value" .conf syntax - a migrated VM may
     // expose its .toml as the backend path, so always edit the .conf
@@ -194,58 +201,57 @@ extension on _ManagerState {
       controllers[key] = TextEditingController(text: current);
     }
     if (!mounted) return;
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('$title — $currentVm'),
-        content: SizedBox(
-          // Bounded width: a handful of fields stretched across the
-          // full screen reads badly. The scroll view still protects
-          // the 16-field "Settings (all)" at small window heights.
-          width: 560,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: keys.entries.map((e) {
-                final opts = options?[e.key];
-                final current = controllers[e.key]!.text;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: opts == null
-                      ? TextField(
-                          controller: controllers[e.key],
-                          decoration: InputDecoration(labelText: e.value),
-                        )
-                      : DropdownButtonFormField<String>(
-                          // Keep the current value as an extra item when it
-                          // is not one of the known options — picking
-                          // opts.first would silently rewrite the .conf on OK.
-                          initialValue: current.isEmpty ? null : current,
-                          decoration: InputDecoration(labelText: e.value),
-                          items: {...opts, if (current.isNotEmpty) current}
-                              .map(
-                                (o) =>
-                                    DropdownMenuItem(value: o, child: Text(o)),
-                              )
-                              .toList(),
-                          onChanged: (v) => controllers[e.key]!.text = v ?? '',
-                        ),
-                );
-              }).toList(),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(context.t('Cancel')),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(context.t('OK')),
-          ),
-        ],
+    final result = await QDialog.show<bool>(
+      context,
+      title: '$title — $currentVm',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: keys.entries.map((e) {
+          final builder = fieldBuilders?[e.key];
+          final opts = options?[e.key];
+          final current = controllers[e.key]!.text;
+          final helper = helpers?[e.key];
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: builder != null
+                ? builder(context, controllers[e.key]!)
+                : opts == null
+                ? TextField(
+                    controller: controllers[e.key],
+                    decoration: InputDecoration(
+                      labelText: e.value,
+                      helperText: helper,
+                      helperMaxLines: 4,
+                    ),
+                  )
+                : DropdownButtonFormField<String>(
+                    // Keep the current value as an extra item when it
+                    // is not one of the known options — picking
+                    // opts.first would silently rewrite the .conf on OK.
+                    initialValue: current.isEmpty ? null : current,
+                    decoration: InputDecoration(
+                      labelText: e.value,
+                      helperText: helper,
+                      helperMaxLines: 4,
+                    ),
+                    items: {...opts, if (current.isNotEmpty) current}
+                        .map((o) => DropdownMenuItem(value: o, child: Text(o)))
+                        .toList(),
+                    onChanged: (v) => controllers[e.key]!.text = v ?? '',
+                  ),
+          );
+        }).toList(),
       ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(context.t('Cancel')),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: Text(context.t('Save')),
+        ),
+      ],
     );
     if (result != true) return;
     for (final key in keys.keys) {
@@ -314,6 +320,18 @@ extension on _ManagerState {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (_activeVms.containsKey(currentVm))
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: FieldHelp(
+                    description: context.t(
+                      'This machine is currently running.',
+                    ),
+                    constraint: context.t(
+                      'Stop it first — deleting a running VM can corrupt its disk image.',
+                    ),
+                  ),
+                ),
               Text(
                 context.t(
                   'You are about to delete {0}. This cannot be undone. Would you like to delete the disk image but keep the configuration, or delete the whole VM?',
@@ -368,11 +386,15 @@ extension on _ManagerState {
           // plan preview — the backend refuses stale plans.
           if (planId != null) ...['--plan-id', planId],
         ];
-        await runVmActionOrLegacy(
+        final r = await runVmActionOrLegacy(
           _backend,
           'delete-$result',
           command.sublist(1),
         );
+        // Show the backend's own delete report so partial failures and
+        // paths needing manual cleanup are visible (QGUI-DELETE-002).
+        if (mounted) _showProcessOutput([r]);
+        if (mounted) _getVms();
       }
     });
   }
@@ -408,16 +430,138 @@ extension on _ManagerState {
   }
 
   void _cloneVm(BuildContext context, String currentVm) async {
-    final name = await showValidatedTextDialog<VmNameError>(
+    // QGUI-CLONE-001/002: the two clone modes have different titles and
+    // consequences — a full copy is independent but duplicates the disk;
+    // a linked clone is instant and space-efficient but its disk reads
+    // from the source image, which must not be moved or deleted.
+    var linked = false;
+    final running = _activeVms.containsKey(currentVm);
+    // The controller lives outside the StatefulBuilder — recreating it
+    // on every setState would reset the typed name to the default.
+    final controller = TextEditingController(text: '$currentVm-copy');
+    final name = await showDialog<String>(
       context: context,
-      title: context.t('Clone {0}', args: [currentVm]),
-      label: context.t('New VM name'),
-      confirmLabel: context.t('Clone'),
-      initialValue: '$currentVm-copy',
-      dirty: VmNameInput.dirty,
-      message: (context, e) => context.vmNameError(e),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return QDialog(
+            title: linked
+                ? context.t('Create linked clone of {0}', args: [currentVm])
+                : context.t('Clone {0}', args: [currentVm]),
+            width: 480,
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(context.t('Cancel')),
+              ),
+              // The confirm action disables itself while the name is
+              // invalid — the reason stays keyboard-accessible next
+              // to the button (QGUI-UX-002/004).
+              Builder(
+                builder: (context) {
+                  final v = controller.text.trim();
+                  final inputError = VmNameInput.dirty(v).error;
+                  final error = v.isEmpty
+                      ? context.t('Enter a name')
+                      : inputError == null
+                      ? null
+                      : context.vmNameError(inputError) ??
+                            context.t('Enter a name');
+                  final label = linked
+                      ? context.t('Create linked clone')
+                      : context.t('Clone');
+                  if (error != null) {
+                    return DisabledReason(
+                      reason: error,
+                      child: FilledButton(onPressed: null, child: Text(label)),
+                    );
+                  }
+                  return FilledButton(
+                    onPressed: () => Navigator.of(context).pop(v),
+                    child: Text(label),
+                  );
+                },
+              ),
+            ],
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                RadioGroup<String>(
+                  groupValue: linked ? 'linked' : 'full',
+                  onChanged: (v) => setState(() => linked = v == 'linked'),
+                  child: Column(
+                    children: [
+                      RadioListTile<String>(
+                        value: 'full',
+                        title: Text(context.t('Full clone')),
+                        subtitle: Text(
+                          context.t(
+                            'Copies the whole disk — independent, uses as much space as the original.',
+                          ),
+                        ),
+                      ),
+                      RadioListTile<String>(
+                        value: 'linked',
+                        title: Text(context.t('Linked clone')),
+                        subtitle: Text(
+                          context.t(
+                            'Shares the source disk — instant and small, but moving or deleting {0} breaks the clone.',
+                            args: [currentVm],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (running)
+                  FieldHelp(
+                    description: context.t(
+                      'The machine is running — cloning an active disk may produce an inconsistent copy.',
+                    ),
+                    constraint: context.t(
+                      'Stop the machine first for a reliable clone.',
+                    ),
+                  ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: controller,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    labelText: context.t('New VM name'),
+                    helperText: context.t(
+                      'Ports and other identifiers are regenerated for the clone.',
+                    ),
+                    helperMaxLines: 3,
+                    errorText: context.vmNameError(
+                      VmNameInput.dirty(controller.text.trim()).error,
+                    ),
+                  ),
+                  onChanged: (_) => setState(() {}),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
+    // Not disposing [controller] here: showDialog's future resolves
+    // before the exit transition finishes, and the field rebuilds
+    // during it — disposing now would throw "controller used after
+    // dispose". The controller has no native resources, so leaving
+    // it to the GC is safe.
     if (name == null || name.isEmpty || !mounted) return;
+    if (linked) {
+      try {
+        await _backend.linkedClone(currentVm, name);
+      } catch (e) {
+        if (!mounted) return;
+        _showProcessOutput([ProcResult(1, '', '$e')]);
+        return;
+      }
+      if (!mounted) return;
+      _getVms();
+      return;
+    }
     final r = await runVmActionOrLegacy(_backend, 'clone', [
       '--vm',
       _vmConfFiles[currentVm] ?? '$currentVm.conf',
@@ -520,7 +664,35 @@ extension on _ManagerState {
       ]);
       if (!mounted) return;
       _showProcessOutput([r]);
+      // QGUI-STOP-002: a graceful powerdown request does not mean the
+      // machine is off — offer a visible force-stop path for guests
+      // that ignore ACPI instead of leaving the user guessing.
+      if (r.exitCode == 0 && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.t(
+                'Shutdown requested — {0} will stop when the guest finishes.',
+                args: [currentVm],
+              ),
+            ),
+            duration: const Duration(seconds: 8),
+            action: SnackBarAction(
+              label: context.t('Force stop'),
+              onPressed: () => _forceStopVm(currentVm),
+            ),
+          ),
+        );
+      }
     } else if (choice == 'kill') {
+      await _forceStopVm(currentVm);
+    }
+  }
+
+  /// Immediate termination path shared by the confirmation dialog and
+  /// the post-shutdown snackbar action (QGUI-STOP-002).
+  Future<void> _forceStopVm(String currentVm) async {
+    {
       // If Quickemu is newer than 4.9.6, use the new --kill option
       // which is macOS compatible.
       final quickemuVersion = Version.parse(await _backend.version());
@@ -540,48 +712,25 @@ extension on _ManagerState {
     }
   }
 
-  void _editVmSettings(String currentVm) {
-    _editVmConfValues(
-      currentVm,
-      title: context.t('Settings (all)'),
-      {
-        'guest_os': context.t('Guest OS'),
-        'ram': context.t('RAM'),
-        'cpu_cores': context.t('CPU cores'),
-        'disk_size': context.t('Disk size'),
-        'boot': context.t('Boot mode'),
-        'network': context.t('Network'),
-        'macaddr': context.t('MAC address'),
-        'secureboot': context.t('Secure boot'),
-        'tpm': context.t('TPM'),
-        'usb_devices': context.t('USB devices'),
-        'gpu_passthrough': context.t('GPU passthrough'),
-        'port_forwards': context.t('Port forwards'),
-        'public_dir': context.t('Shared folder'),
-        'viewer': context.t('Display viewer'),
-        'display': context.t('Display'),
-        'sound_card': context.t('Sound card'),
-      },
-      options: {
-        'boot': ['efi', 'legacy'],
-        'network': ['nat', 'restrict', 'bridged', 'none'],
-        'secureboot': ['on', 'off'],
-        'tpm': ['on', 'off'],
-        'viewer': ['spicy', 'remote-viewer', 'none'],
-        'sound_card': [
-          '',
-          'intel-hda',
-          'ich9-intel-hda',
-          'ac97',
-          'es1370',
-          'sb16',
-          'usb-audio',
-          'virtio-sound-pci',
-          'none',
-        ],
-      },
-    );
+  /// Single structured editor for every conf surface (QGUI-ALLSET-006):
+  /// the sectioned VmSettingsPage is pushed as a full route, with
+  /// [section] filtering it to the domain group the menu named.
+  void _openVmSettings(String currentVm, [String? section]) {
+    final page = VmSettingsPage(vmName: currentVm, section: section);
+    if (GoRouter.maybeOf(context) != null) {
+      final query = section == null
+          ? ''
+          : '?section=${Uri.encodeComponent(section)}';
+      context.push(
+        '/machines/${Uri.encodeComponent(currentVm)}/settings$query',
+      );
+    } else {
+      Navigator.of(context)
+          .push(MaterialPageRoute<void>(builder: (context) => page));
+    }
   }
+
+  void _editVmSettings(String currentVm) => _openVmSettings(currentVm);
 
   void _resizeVmDisk(BuildContext context, String currentVm) async {
     // Prefill with the current size so the user knows what they grow from.
@@ -591,18 +740,90 @@ extension on _ManagerState {
             .read(_vmConfFiles[currentVm] ?? '$currentVm.conf', 'disk_size') ??
         '64G';
     if (!context.mounted) return;
-    final size = await showValidatedTextDialog<SizeError>(
+    // Structured number+unit field (QGUI-RESIZE-001): the current size
+    // and the grow-only constraint are persistent text, not stuffed
+    // into the label where long translations truncate.
+    final controller = TextEditingController(text: currentSize);
+    final size = await showDialog<String>(
       context: context,
-      title: context.t('Resize disk of {0}', args: [currentVm]),
-      label: context.t(
-        'New size (current: {0}, grow only)',
-        args: [currentSize],
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => QDialog(
+          title: context.t('Resize disk of {0}', args: [currentVm]),
+          width: 480,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(context.t('Cancel')),
+            ),
+            // Disabled while the value is not a larger size than the
+            // current one — the comparison runs on bytes so 512M <
+            // 32G is handled correctly (QGUI-RESIZE-003).
+            Builder(
+              builder: (context) {
+                final v = controller.text.trim();
+                final isSize = RegExp(
+                  r'^\d+(?:\.\d+)?[KMGT]$',
+                  caseSensitive: false,
+                ).hasMatch(v);
+                final parse = _sizeToBytes(v);
+                final current = _sizeToBytes(currentSize);
+                final tooSmall =
+                    parse != null && current != null && parse <= current;
+                final error = !isSize
+                    ? context.t('Enter a size')
+                    : (tooSmall
+                          ? context.t(
+                              'The new size must be larger than {0}',
+                              args: [currentSize],
+                            )
+                          : null);
+                if (error != null) {
+                  return DisabledReason(
+                    reason: error,
+                    child: FilledButton(
+                      onPressed: null,
+                      child: Text(context.t('Resize')),
+                    ),
+                  );
+                }
+                return FilledButton(
+                  onPressed: () => Navigator.of(context).pop(v.toUpperCase()),
+                  child: Text(context.t('Resize')),
+                );
+              },
+            ),
+          ],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                context.t('Current size: {0}', args: [currentSize]),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 8),
+              SizeField(
+                controller: controller,
+                label: context.t('New size'),
+                units: const ['G', 'M', 'T'],
+                allowEmpty: false,
+                onChanged: () => setState(() {}),
+              ),
+              FieldHelp(
+                description: context.t(
+                  'Disks can only grow — shrinking is not supported.',
+                ),
+                constraint: context.t(
+                  'The new size must be larger than the current one and the machine should be stopped.',
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
-      confirmLabel: context.t('Resize'),
-      initialValue: currentSize,
-      dirty: SizeInput.dirty,
-      message: (context, e) => context.sizeError(e),
     );
+    // See above — the exit transition still rebuilds the field, so
+    // disposing [controller] here would crash. It is left to the GC.
     if (size == null || size.isEmpty || !mounted) return;
     final r = await runVmActionOrLegacy(_backend, 'disk-resize', [
       '--vm',
@@ -614,35 +835,98 @@ extension on _ManagerState {
     _showProcessOutput([r]);
   }
 
+  /// `4G` → bytes for the grow-only comparison (QGUI-RESIZE-003).
+  static int? _sizeToBytes(String v) {
+    final m = RegExp(
+      r'^(\d+(?:\.\d+)?)([KMGT])$',
+      caseSensitive: false,
+    ).firstMatch(v.trim());
+    if (m == null) return null;
+    final n = double.parse(m.group(1)!);
+    const mult = {'K': 1 << 10, 'M': 1 << 20, 'G': 1 << 30, 'T': 1 << 40};
+    return (n * mult[m.group(2)!.toUpperCase()]!).round();
+  }
+
   void _showProcessOutput(List<ProcResult> results) {
     final output = results
         .map((r) => '${r.stdout}${r.stderr}')
         .where((s) => s.trim().isNotEmpty)
         .join('\n')
         .trim();
-    if (output.isEmpty) {
+    final anyFailed = results.any((r) => r.exitCode != 0);
+    if (output.isEmpty && !anyFailed) {
       return;
     }
     showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.t('Command output')),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: SingleChildScrollView(
-            child: SelectableText(
-              output,
-              style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+      builder: (context) {
+        // stdout and stderr are labelled channels — not colour-coded
+        // hints — and the exit code is explicit (QGUI-OUTPUT-001/002).
+        const mono = TextStyle(fontFamily: 'monospace', fontSize: 12);
+        return QDialog(
+          title: context.t('Command output'),
+          width: 640,
+          actions: [
+            if (output.isNotEmpty)
+              TextButton.icon(
+                icon: const Icon(Icons.copy, size: 18),
+                label: Text(context.t('Copy')),
+                onPressed: () async {
+                  await Clipboard.setData(ClipboardData(text: output));
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(context.t('Copied'))),
+                    );
+                  }
+                },
+              ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(context.t('Dismiss')),
             ),
+          ],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final r in results) ...[
+                Text(
+                  r.exitCode == 0
+                      ? context.t('Exit code: 0 (success)')
+                      : context.t(
+                          'Exit code: {0} (failed)',
+                          args: ['${r.exitCode}'],
+                        ),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: r.exitCode == 0
+                        ? Theme.of(context).colorScheme.onSurfaceVariant
+                        : Theme.of(context).colorScheme.error,
+                  ),
+                ),
+                if ('${r.stdout}'.trim().isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    context.t('Standard output'),
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
+                  SelectableText('${r.stdout}'.trim(), style: mono),
+                ],
+                if ('${r.stderr}'.trim().isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    context.t('Standard error'),
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
+                  SelectableText('${r.stderr}'.trim(), style: mono),
+                ],
+              ],
+              if (output.isEmpty)
+                Text(context.t('The command produced no output.')),
+            ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(context.t('Dismiss')),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

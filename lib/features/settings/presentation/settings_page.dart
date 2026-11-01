@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:go_router/go_router.dart';
@@ -20,6 +21,7 @@ import 'package:quickgui/features/settings/providers/settings_providers.dart';
 import 'package:quickgui/features/settings/providers/ui_preferences_providers.dart';
 import 'package:quickgui/features/settings/providers/update_check_providers.dart';
 import 'package:quickgui/shared/providers/preferences_providers.dart';
+import 'package:quickgui/shared/widgets/scroll_dialog.dart';
 import 'package:quickgui/shared/widgets/shortcuts_dialog.dart';
 
 /// Full settings section: appearance, language and application
@@ -33,6 +35,11 @@ class SettingsPage extends ConsumerStatefulWidget {
 }
 
 class _SettingsPageState extends ConsumerState<SettingsPage> {
+  /// QGUI-SET-002: settings are searchable by name and synonym — the
+  /// page structure is data-driven so a query can hide non-matching
+  /// tiles without touching their behaviour.
+  String _search = '';
+
   @override
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
@@ -40,173 +47,276 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final prefs = ref.watch(uiPreferencesProvider);
     final prefsCtl = ref.read(uiPreferencesProvider.notifier);
     final workingDir = Directory.current.path;
+    // Sections as (header, [(search keywords, tile)]) — a header stays
+    // hidden when none of its tiles match the query.
+    final sections = <(String, List<(String, Widget)>)>[
+      (
+        context.t('Appearance'),
+        [
+          (
+            'dark mode theme appearance',
+            SwitchListTile(
+              title: Text(context.t('Use dark mode')),
+              subtitle: Text(context.t('Applies immediately')),
+              value: settings.darkMode,
+              onChanged: (v) => settingsCtl.setDarkMode(enabled: v),
+            ),
+          ),
+          (
+            'language locale idioma',
+            ListTile(
+              title: Text(context.t('Language')),
+              subtitle: Text(context.t('Applies immediately')),
+              trailing: DropdownButton<String>(
+                value: settings.locale,
+                items: supportedLocales
+                    .map(
+                      (e) => DropdownMenuItem(
+                        value: e,
+                        child: _boundedText(localeNames[e] ?? e),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (v) {
+                  if (v != null) settingsCtl.setLocale(v);
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+      (
+        context.t('Virtual machines'),
+        [
+          (
+            'working directory folder path machines',
+            ListTile(
+              title: Text(context.t('Working directory')),
+              subtitle: Text(
+                '$workingDir — ${context.t('Applies to new machines and scans')}',
+                style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+              ),
+              trailing: TextButton(
+                onPressed: () async {
+                  final folder = await FilePicker.getDirectoryPath(
+                    dialogTitle: context.t('Pick a folder'),
+                  );
+                  if (folder != null && folder.isNotEmpty) {
+                    setState(() => Directory.current = folder);
+                    ref
+                        .read(preferencesRepositoryProvider)
+                        .set(prefWorkingDirectory, folder);
+                  }
+                },
+                child: Text(context.t('Change')),
+              ),
+            ),
+          ),
+          (
+            'refresh interval update frequency poll',
+            ListTile(
+              title: Text(context.t('Refresh interval')),
+              subtitle: Text(
+                context.t(
+                  'How often the machine list is updated — applies immediately',
+                ),
+              ),
+              trailing: DropdownButton<int>(
+                value: prefs.refreshIntervalSeconds,
+                items: [
+                  for (final s in const [2, 5, 10, 30])
+                    DropdownMenuItem(value: s, child: Text('$s s')),
+                ],
+                onChanged: (v) {
+                  if (v != null) prefsCtl.setRefreshIntervalSeconds(v);
+                },
+              ),
+            ),
+          ),
+          (
+            'preferred display viewer spicy remote-viewer console',
+            ListTile(
+              title: Text(context.t('Preferred display viewer')),
+              subtitle: Text(
+                context.t(
+                  'Used to open the console of running machines — applies on next connect',
+                ),
+              ),
+              trailing: DropdownButton<String>(
+                value: prefs.preferredViewer,
+                items: [
+                  for (final (v, label) in [
+                    ('', context.t('Automatic')),
+                    ('spicy', 'spicy'),
+                    ('remote-viewer', 'remote-viewer'),
+                    ('none', 'none'),
+                  ])
+                    DropdownMenuItem(value: v, child: _boundedText(label)),
+                ],
+                onChanged: (v) {
+                  if (v != null) prefsCtl.setPreferredViewer(v);
+                },
+              ),
+            ),
+          ),
+          (
+            'advanced configuration keys expert',
+            SwitchListTile(
+              title: Text(context.t('Advanced configuration mode')),
+              subtitle: Text(
+                context.t(
+                  'Show every configuration key in the VM settings page — applies on next open',
+                ),
+              ),
+              value: prefs.advancedConfig,
+              onChanged: prefsCtl.setAdvancedConfig,
+            ),
+          ),
+        ],
+      ),
+      (
+        context.t('Quickemu'),
+        [
+          (
+            'backend version quickemu installation',
+            ListTile(
+              leading: const Icon(Icons.terminal),
+              title: Text(context.t('Backend version')),
+              subtitle: Text(context.t('Detected Quickemu installation')),
+              trailing: ref
+                  .watch(backendVersionProvider)
+                  .when(
+                    data: (v) => Text(v.isEmpty ? context.t('Not found') : v),
+                    loading: () => const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    error: (_, _) => Text(context.t('Unknown')),
+                  ),
+            ),
+          ),
+          (
+            'diagnostics integration tools compatibility',
+            ListTile(
+              leading: const Icon(Icons.handyman_outlined),
+              title: Text(context.t('Diagnostics')),
+              // User-facing wording, not internal jargon (QGUI-SET-001).
+              subtitle: Text(
+                context.t(
+                  'Quickemu integration, required tools and compatibility status',
+                ),
+              ),
+              onTap: () => context.go('/diagnostics'),
+            ),
+          ),
+        ],
+      ),
+      (
+        context.t('Behaviour'),
+        [
+          (
+            'notify downloads finish notification',
+            SwitchListTile(
+              title: Text(context.t('Notify when downloads finish')),
+              subtitle: Text(context.t('Applies immediately')),
+              value: prefs.notifyOnComplete,
+              onChanged: prefsCtl.setNotifyOnComplete,
+            ),
+          ),
+          (
+            'confirm risky actions delete stop reset',
+            SwitchListTile(
+              title: Text(context.t('Confirm risky actions')),
+              subtitle: Text(
+                context.t(
+                  'Ask before resetting machines, forcing stops or applying snapshots. Deleting always asks.',
+                ),
+              ),
+              value: prefs.confirmRiskyActions,
+              onChanged: prefsCtl.setConfirmRiskyActions,
+            ),
+          ),
+        ],
+      ),
+      (
+        context.t('About'),
+        [
+          (
+            'quickgui version about',
+            ListTile(
+              title: const Text('Quickgui'),
+              subtitle: Text(
+                context.t(
+                  'Version {0} — Powered by Quickemu',
+                  args: [
+                    AppVersion.packageInfo?.version ??
+                        ref.read(hostProbeProvider).appVersion,
+                  ],
+                ),
+              ),
+            ),
+          ),
+          (
+            'check updates release upgrade',
+            ListTile(
+              leading: const Icon(Icons.system_update),
+              title: Text(context.t('Check for updates')),
+              onTap: _checkUpdates,
+            ),
+          ),
+          (
+            'quickemu report system diagnostics',
+            ListTile(
+              leading: const Icon(Icons.monitor_heart),
+              title: Text(context.t('Quickemu report')),
+              onTap: _showReport,
+            ),
+          ),
+          (
+            'keyboard shortcuts hotkeys',
+            ListTile(
+              leading: const Icon(Icons.keyboard),
+              title: Text(context.t('Keyboard shortcuts')),
+              onTap: () => ShortcutsDialog.show(context),
+            ),
+          ),
+        ],
+      ),
+    ];
+    final query = _search.trim().toLowerCase();
     return Scaffold(
       appBar: AppBar(title: Text(context.t('Settings'))),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _header(context.t('Appearance')),
-          SwitchListTile(
-            title: Text(context.t('Use dark mode')),
-            value: settings.darkMode,
-            onChanged: (v) => settingsCtl.setDarkMode(enabled: v),
-          ),
-          ListTile(
-            title: Text(context.t('Language')),
-            trailing: DropdownButton<String>(
-              value: settings.locale,
-              items: supportedLocales
-                  .map(
-                    (e) => DropdownMenuItem(
-                      value: e,
-                      child: _boundedText(localeNames[e] ?? e),
+          TextField(
+            decoration: InputDecoration(
+              isDense: true,
+              prefixIcon: const Icon(Icons.search),
+              hintText: context.t('Search settings'),
+              border: const OutlineInputBorder(),
+              suffixIcon: _search.isEmpty
+                  ? null
+                  : IconButton(
+                      tooltip: context.t('Clear search'),
+                      icon: const Icon(Icons.clear),
+                      onPressed: () => setState(() => _search = ''),
                     ),
-                  )
-                  .toList(),
-              onChanged: (v) {
-                if (v != null) settingsCtl.setLocale(v);
-              },
             ),
+            onChanged: (v) => setState(() => _search = v),
           ),
-          const Divider(),
-          _header(context.t('Virtual machines')),
-          ListTile(
-            title: Text(context.t('Working directory')),
-            subtitle: Text(
-              workingDir,
-              style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
-            ),
-            trailing: TextButton(
-              onPressed: () async {
-                final folder = await FilePicker.getDirectoryPath(
-                  dialogTitle: context.t('Pick a folder'),
-                );
-                if (folder != null && folder.isNotEmpty) {
-                  setState(() => Directory.current = folder);
-                  ref
-                      .read(preferencesRepositoryProvider)
-                      .set(prefWorkingDirectory, folder);
-                }
-              },
-              child: Text(context.t('Change')),
-            ),
-          ),
-          ListTile(
-            title: Text(context.t('Refresh interval')),
-            subtitle: Text(context.t('How often the machine list is updated')),
-            trailing: DropdownButton<int>(
-              value: prefs.refreshIntervalSeconds,
-              items: [
-                for (final s in const [2, 5, 10, 30])
-                  DropdownMenuItem(value: s, child: Text('$s s')),
-              ],
-              onChanged: (v) {
-                if (v != null) prefsCtl.setRefreshIntervalSeconds(v);
-              },
-            ),
-          ),
-          ListTile(
-            title: Text(context.t('Preferred display viewer')),
-            subtitle: Text(
-              context.t('Used to open the console of running machines'),
-            ),
-            trailing: DropdownButton<String>(
-              value: prefs.preferredViewer,
-              items: [
-                for (final (v, label) in [
-                  ('', context.t('Automatic')),
-                  ('spicy', 'spicy'),
-                  ('remote-viewer', 'remote-viewer'),
-                  ('none', 'none'),
-                ])
-                  DropdownMenuItem(value: v, child: _boundedText(label)),
-              ],
-              onChanged: (v) {
-                if (v != null) prefsCtl.setPreferredViewer(v);
-              },
-            ),
-          ),
-          SwitchListTile(
-            title: Text(context.t('Advanced configuration mode')),
-            subtitle: Text(
-              context.t('Show every configuration key in the VM settings page'),
-            ),
-            value: prefs.advancedConfig,
-            onChanged: prefsCtl.setAdvancedConfig,
-          ),
-          const Divider(),
-          _header(context.t('Quickemu')),
-          ListTile(
-            leading: const Icon(Icons.terminal),
-            title: Text(context.t('Backend version')),
-            subtitle: Text(context.t('Detected Quickemu installation')),
-            trailing: ref
-                .watch(backendVersionProvider)
-                .when(
-                  data: (v) => Text(v.isEmpty ? context.t('Not found') : v),
-                  loading: () => const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                  error: (_, _) => Text(context.t('Unknown')),
-                ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.handyman_outlined),
-            title: Text(context.t('Diagnostics')),
-            subtitle: Text(
-              context.t('Contract, dependencies and legacy fallback status'),
-            ),
-            onTap: () => context.go('/diagnostics'),
-          ),
-          const Divider(),
-          _header(context.t('Behaviour')),
-          SwitchListTile(
-            title: Text(context.t('Notify when downloads finish')),
-            value: prefs.notifyOnComplete,
-            onChanged: prefsCtl.setNotifyOnComplete,
-          ),
+          const SizedBox(height: 8),
+          for (final (header, items) in sections)
+            if (query.isEmpty ||
+                items.any((e) => e.$1.toLowerCase().contains(query))) ...[
+              _header(header),
+              for (final (keywords, item) in items)
+                if (query.isEmpty || keywords.toLowerCase().contains(query))
+                  item,
+              const Divider(),
+            ],
           _vmNotificationSection(context),
-          SwitchListTile(
-            title: Text(context.t('Confirm risky actions')),
-            subtitle: Text(
-              context.t(
-                'Ask before resetting machines, forcing stops or applying snapshots. Deleting always asks.',
-              ),
-            ),
-            value: prefs.confirmRiskyActions,
-            onChanged: prefsCtl.setConfirmRiskyActions,
-          ),
-          const Divider(),
-          _header(context.t('About')),
-          ListTile(
-            title: const Text('Quickgui'),
-            subtitle: Text(
-              context.t(
-                'Version {0} — Powered by Quickemu',
-                args: [
-                  AppVersion.packageInfo?.version ??
-                      ref.read(hostProbeProvider).appVersion,
-                ],
-              ),
-            ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.system_update),
-            title: Text(context.t('Check for updates')),
-            onTap: _checkUpdates,
-          ),
-          ListTile(
-            leading: const Icon(Icons.monitor_heart),
-            title: Text(context.t('Quickemu report')),
-            onTap: _showReport,
-          ),
-          ListTile(
-            leading: const Icon(Icons.keyboard),
-            title: Text(context.t('Keyboard shortcuts')),
-            onTap: () => ShortcutsDialog.show(context),
-          ),
           Padding(
             padding: const EdgeInsets.all(16),
             child: RichText(
@@ -344,39 +454,73 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     recognizer: TapGestureRecognizer()..onTap = () => launchUrl(Uri.parse(url)),
   );
 
+  /// QGUI-UPD-001/002: the result dialog keeps its own state — a failed
+  /// check offers Retry without leaving the dialog, the request shows
+  /// progress and the message does not blindly blame the network.
   Future<void> _checkUpdates() async {
-    final latest = await ref.read(latestReleaseProvider)();
-    if (!mounted) return;
+    var checking = true;
+    var latest = '';
     final current = ref.read(hostProbeProvider).appVersion;
-    showDialog<void>(
+    await showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.t('Check for updates')),
-        content: Text(
-          latest.isEmpty
-              ? context.t(
-                  'Could not check for updates. Check your network connection and try again later.',
-                )
-              : context.t(
-                  'Installed: {0}\nLatest: {1}',
-                  args: [current, latest],
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          Future<void> check() async {
+            setState(() => checking = true);
+            final v = await ref.read(latestReleaseProvider)();
+            if (context.mounted) {
+              setState(() {
+                latest = v;
+                checking = false;
+              });
+            }
+          }
+
+          if (checking && latest.isEmpty) {
+            // First frame — kick the initial request.
+            Future.microtask(check);
+          }
+          return QDialog(
+            title: context.t('Check for updates'),
+            width: 420,
+            actions: [
+              if (!checking && latest.isEmpty)
+                TextButton.icon(
+                  icon: const Icon(Icons.refresh, size: 18),
+                  label: Text(context.t('Retry')),
+                  onPressed: check,
                 ),
-        ),
-        actions: [
-          if (latest.isNotEmpty && latest != current)
-            TextButton(
-              onPressed: () => launchUrl(
-                Uri.parse(
-                  'https://github.com/quickemu-project/quickgui/releases/latest',
+              if (!checking && latest.isNotEmpty && latest != current)
+                TextButton(
+                  onPressed: () => launchUrl(
+                    Uri.parse(
+                      'https://github.com/quickemu-project/quickgui/releases/latest',
+                    ),
+                  ),
+                  child: Text(context.t('Open release page')),
                 ),
+              FilledButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(context.t('Dismiss')),
               ),
-              child: Text(context.t('Open release page')),
-            ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(context.t('Dismiss')),
-          ),
-        ],
+            ],
+            child: checking
+                ? const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                : Text(
+                    latest.isEmpty
+                        ? context.t(
+                            'Could not check for updates — the update service was unreachable or returned an invalid response.',
+                          )
+                        : context.t(
+                            'Installed: {0}\nLatest: {1}',
+                            args: [current, latest],
+                          ),
+                  ),
+          );
+        },
       ),
     );
   }
@@ -384,25 +528,35 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Future<void> _showReport() async {
     final proc = await ref.read(backendProvider).diagnosticsReport();
     if (!mounted) return;
+    final report = '${proc.stdout}${proc.stderr}'.trim();
     showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.t('Quickemu report')),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: SingleChildScrollView(
-            child: SelectableText(
-              '${proc.stdout}${proc.stderr}'.trim(),
-              style: const TextStyle(fontFamily: 'monospace', fontSize: 11),
-            ),
-          ),
-        ),
+      // QGUI-SYSDIAG-001/002: monospace at the 12px repo floor, explicit
+      // copy action, fixed action bar via the shared dialog shell.
+      builder: (context) => QDialog(
+        title: context.t('Quickemu report'),
+        width: 720,
         actions: [
-          TextButton(
+          TextButton.icon(
+            icon: const Icon(Icons.copy, size: 18),
+            label: Text(context.t('Copy')),
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: report));
+              if (context.mounted) {
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(SnackBar(content: Text(context.t('Copied'))));
+              }
+            },
+          ),
+          FilledButton(
             onPressed: () => Navigator.of(context).pop(),
             child: Text(context.t('Dismiss')),
           ),
         ],
+        child: SelectableText(
+          report,
+          style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+        ),
       ),
     );
   }

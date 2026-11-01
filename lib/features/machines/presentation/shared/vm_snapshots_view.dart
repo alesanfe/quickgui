@@ -7,6 +7,8 @@ import 'package:quickgui/features/machines/application/ports/virtualization_back
 import 'package:quickgui/features/machines/application/structured_or_legacy.dart';
 import 'package:quickgui/features/machines/providers/tracked_backend_provider.dart';
 import 'package:quickgui/shared/widgets/bytes_formatter.dart';
+import 'package:quickgui/shared/widgets/disabled_reason.dart';
+import 'package:quickgui/shared/widgets/scroll_dialog.dart';
 import 'package:quickgui/features/machines/presentation/shared/process_output_dialog.dart';
 
 /// 'YYYY-MM-DD HH:MM' from the contract's unix timestamp; '' when
@@ -242,13 +244,20 @@ class _VmSnapshotsViewState extends ConsumerState<VmSnapshotsView> {
               ],
             ),
           ),
+        // Global create section (QGUI-SNAP-001): the tag field and
+        // its options belong to "create a new snapshot" — per-snapshot
+        // actions live on each list card instead.
+        Text(
+          context.t('New snapshot'),
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: TextField(
             controller: _tagController,
             decoration: InputDecoration(
               labelText: context.t('Snapshot tag'),
-              hintText: context.t('Tag for the new or existing snapshot'),
+              hintText: context.t('Name for the new snapshot'),
             ),
             onChanged: (_) => setState(() {}),
           ),
@@ -260,17 +269,28 @@ class _VmSnapshotsViewState extends ConsumerState<VmSnapshotsView> {
                 dense: true,
                 contentPadding: EdgeInsets.zero,
                 controlAffinity: ListTileControlAffinity.leading,
-                title: Text(context.t('Include memory (--memory)')),
+                title: Text(context.t('Include memory')),
+                subtitle: Text(context.t('Captures the running state')),
                 value: _withMemory,
                 onChanged: (v) => setState(() => _withMemory = v ?? false),
               ),
             ),
             Expanded(
+              // Quiesce explained inline rather than left ambiguous
+              // (QGUI-SNAP-004): the dependency on Include memory and
+              // the guest-agent requirement are visible text.
               child: CheckboxListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
                 controlAffinity: ListTileControlAffinity.leading,
                 title: Text(context.t('Quiesce filesystem')),
+                subtitle: Text(
+                  _withMemory
+                      ? context.t(
+                          'Pauses guest writes for a consistent snapshot (needs qemu-guest-agent)',
+                        )
+                      : context.t('Enable Include memory first'),
+                ),
                 value: _quiesce,
                 onChanged: _withMemory
                     ? (v) => setState(() => _quiesce = v ?? false)
@@ -283,62 +303,100 @@ class _VmSnapshotsViewState extends ConsumerState<VmSnapshotsView> {
           TextField(
             controller: _descController,
             decoration: InputDecoration(
-              labelText: context.t('Description (--snapshot-desc)'),
+              labelText: context.t('Description'),
               isDense: true,
             ),
           ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Wrap(
-            spacing: 4,
-            runSpacing: 4,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              TextButton(
-                onPressed: () => _run('info'),
-                child: Text(context.t('Info')),
-              ),
-              TextButton(
-                onPressed: tag.isEmpty
-                    ? null
-                    : () => _run('create', tag, _createExtra),
-                child: Text(context.t('Create')),
-              ),
-              TextButton(
-                onPressed: tag.isEmpty
-                    ? null
-                    : () => _confirmAndRun('apply', tag),
-                child: Text(context.t('Apply')),
-              ),
-              TextButton(
-                onPressed: tag.isEmpty
-                    ? null
-                    : () => _confirmAndRun('delete', tag),
-                child: Text(context.t('Delete')),
-              ),
-              TextButton(
-                onPressed: _busy ? null : _verify,
-                child: Text(context.t('Verify')),
-              ),
-              TextButton(
-                onPressed: _busy ? null : () => _policy('status'),
-                child: Text(context.t('Policy')),
-              ),
-              TextButton(
-                onPressed: _busy ? null : () => _policy('run'),
-                child: Text(context.t('Apply policy')),
-              ),
-              IconButton(
-                tooltip: context.t('Refresh'),
-                icon: const Icon(Icons.refresh),
-                onPressed: _load,
-              ),
-            ],
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: tag.isEmpty
+                // Disabled with a reason, not a bare disabled button
+                // (QGUI-UX-002).
+                ? DisabledReason(
+                    reason: context.t('Enter a snapshot tag first'),
+                    child: FilledButton.icon(
+                      icon: const Icon(Icons.add_a_photo_outlined, size: 18),
+                      onPressed: null,
+                      label: Text(context.t('Create snapshot')),
+                    ),
+                  )
+                : FilledButton.icon(
+                    icon: const Icon(Icons.add_a_photo_outlined, size: 18),
+                    onPressed: _busy
+                        ? null
+                        : () => _run('create', tag, _createExtra),
+                    label: Text(context.t('Create snapshot')),
+                  ),
           ),
         ),
-        Text(
-          context.t('Existing snapshots'),
-          style: Theme.of(context).textTheme.titleSmall,
+        // Global actions on the list header; uncommon ones live under
+        // More so a single primary action stays obvious (SNAP-002/003).
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                context.t('Existing snapshots'),
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
+            ),
+            IconButton(
+              tooltip: context.t('Refresh'),
+              icon: const Icon(Icons.refresh),
+              onPressed: _busy ? null : _load,
+            ),
+            PopupMenuButton<String>(
+              tooltip: context.t('More snapshot actions'),
+              icon: const Icon(Icons.more_vert),
+              enabled: !_busy,
+              onSelected: (v) => switch (v) {
+                'info' => _run('info'),
+                'verify' => _verify(),
+                'policy-status' => _policy('status'),
+                'policy-run' => _policy('run'),
+                _ => null,
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 'info',
+                  child: ListTile(
+                    dense: true,
+                    leading: const Icon(Icons.info_outline),
+                    title: Text(context.t('Snapshot backend info')),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'verify',
+                  child: ListTile(
+                    dense: true,
+                    leading: const Icon(Icons.verified_outlined),
+                    title: Text(context.t('Verify all snapshots')),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'policy-status',
+                  child: ListTile(
+                    dense: true,
+                    leading: const Icon(Icons.policy_outlined),
+                    title: Text(context.t('Snapshot policy status')),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'policy-run',
+                  child: ListTile(
+                    dense: true,
+                    leading: const Icon(Icons.playlist_play),
+                    title: Text(context.t('Run retention policy now')),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
         if (snapshots == null)
           const Padding(
@@ -374,10 +432,29 @@ class _VmSnapshotsViewState extends ConsumerState<VmSnapshotsView> {
                             formatBytes((s['vm-state-size'] as num).toInt()),
                         ].where((e) => e.isNotEmpty).join(' · '),
                       ),
-                      // Tapping a snapshot fills the tag field so the
-                      // action row applies to it.
-                      onTap: () =>
-                          setState(() => _tagController.text = '${s['name']}'),
+                      // Per-snapshot actions live on the row — no more
+                      // "type the tag, then press Apply" (QGUI-SNAP-001).
+                      trailing: _busy
+                          ? null
+                          : Wrap(
+                              spacing: 4,
+                              children: [
+                                TextButton(
+                                  onPressed: () =>
+                                      _confirmAndRun('apply', '${s['name']}'),
+                                  child: Text(context.t('Apply')),
+                                ),
+                                IconButton(
+                                  tooltip: context.t('Delete snapshot'),
+                                  icon: Icon(
+                                    Icons.delete_outline,
+                                    color: Theme.of(context).colorScheme.error,
+                                  ),
+                                  onPressed: () =>
+                                      _confirmAndRun('delete', '${s['name']}'),
+                                ),
+                              ],
+                            ),
                     ),
                   ),
               ],
@@ -388,26 +465,28 @@ class _VmSnapshotsViewState extends ConsumerState<VmSnapshotsView> {
   }
 }
 
-/// Legacy dialog wrapper used from the machine row menu.
+/// Legacy dialog wrapper used from the machine row menu — the shared
+/// [QDialog] shell keeps header and Close always visible (QGUI-UX-003).
 Future<void> showSnapshotsDialog(
   BuildContext context, {
   required String vm,
   required String confPath,
 }) {
-  return showDialog<void>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Text(context.t('Snapshots {0}', args: [vm])),
-      content: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 720, maxHeight: 480),
-        child: VmSnapshotsView(vm: vm, confPath: confPath),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(context.t('Cancel')),
-        ),
-      ],
+  return QDialog.show<void>(
+    context,
+    title: context.t('Snapshots {0}', args: [vm]),
+    width: 720,
+    // The view scrolls internally via its own Expanded ListView; bound
+    // its height so the dialog shell stays stable.
+    child: SizedBox(
+      height: (MediaQuery.sizeOf(context).height * 0.6).clamp(260.0, 560.0),
+      child: VmSnapshotsView(vm: vm, confPath: confPath),
     ),
+    actions: [
+      FilledButton(
+        onPressed: () => Navigator.of(context).pop(),
+        child: Text(context.t('Close')),
+      ),
+    ],
   );
 }

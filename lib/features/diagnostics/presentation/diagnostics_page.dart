@@ -27,7 +27,11 @@ class DiagnosticsPage extends ConsumerWidget {
           IconButton(
             tooltip: context.t('Refresh'),
             icon: const Icon(Icons.refresh),
-            onPressed: () => ref.invalidate(diagnosticsProvider),
+            // DIAG-001: no point queueing a second run while one is
+            // already collecting.
+            onPressed: report.isLoading
+                ? null
+                : () => ref.invalidate(diagnosticsProvider),
           ),
           IconButton(
             tooltip: context.t('Copy sanitised report'),
@@ -90,8 +94,20 @@ class _ReportView extends StatelessWidget {
           ),
         ]),
         _Section(context.t('Host'), [
-          _Status(context.t('Backend found'), ok: r.backendAvailable),
-          _Status('KVM', ok: r.kvmAvailable),
+          _Status(
+            context.t('Backend found'),
+            ok: r.backendAvailable,
+            explanation: context.t(
+              'Quickgui drives the quickemu/quickget commands on PATH. Install quickemu and restart Quickgui.',
+            ),
+          ),
+          _Status(
+            'KVM',
+            ok: r.kvmAvailable,
+            explanation: context.t(
+              'Hardware virtualisation makes guests fast. Enable VT-x/AMD-V in firmware and check /dev/kvm permissions.',
+            ),
+          ),
           _Info(context.t('Working directory'), r.workingDirectory),
           _Info(
             context.t('Free space'),
@@ -186,25 +202,52 @@ class _Info extends StatelessWidget {
 }
 
 class _Status extends StatelessWidget {
-  const _Status(this.label, {required this.ok, this.detail});
+  const _Status(this.label, {required this.ok, this.detail, this.explanation});
   final String label;
   final bool ok;
   final String? detail;
+
+  /// DIAG-002: what the check means plus the recommended fix — shown
+  /// on demand so failures read as next steps, not just red icons.
+  final String? explanation;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final state = ok ? context.t('OK') : context.t('Missing');
-    return MergeSemantics(
-      child: ListTile(
-        dense: true,
-        leading: Icon(
-          ok ? Icons.check_circle : Icons.cancel,
-          color: ok ? scheme.primary : scheme.error,
+    final icon = Icon(
+      ok ? Icons.check_circle : Icons.cancel,
+      color: ok ? scheme.primary : scheme.error,
+    );
+    final stateText = Text(detail == null ? state : '$detail · $state');
+    if (explanation == null) {
+      return MergeSemantics(
+        child: ListTile(
+          dense: true,
+          leading: icon,
+          title: Text(label),
+          trailing: stateText,
         ),
-        title: Text(label),
-        trailing: Text(detail == null ? state : '$detail · $state'),
-      ),
+      );
+    }
+    // No MergeSemantics here: merging the focusable ExpansionTile
+    // header with its children produces an illegal "focusable and
+    // unfocusable" semantics node.
+    return ExpansionTile(
+      dense: true,
+      leading: icon,
+      title: Text(label),
+      trailing: stateText,
+      childrenPadding: const EdgeInsets.fromLTRB(56, 0, 16, 12),
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            explanation!,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ),
+      ],
     );
   }
 }

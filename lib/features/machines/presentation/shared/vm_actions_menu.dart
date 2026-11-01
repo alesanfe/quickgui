@@ -74,6 +74,8 @@ class VmActionsMenu extends StatelessWidget {
     );
     // A group is (header label, members); a member is either a flat
     // value or a _Submenu that cascades the listed values one level.
+    // Snapshots/backups/exports share a Data & recovery group so the
+    // snapshot entry is no longer an orphan at the bottom (QGUI-MENU-001).
     const groups = <(String, List<Object>)>[
       (
         'Configure',
@@ -110,6 +112,7 @@ class VmActionsMenu extends StatelessWidget {
           }, Icons.tune),
         ],
       ),
+      ('Data & recovery', ['snapshot', 'backup', 'export']),
       (
         'Maintenance',
         [
@@ -117,11 +120,9 @@ class VmActionsMenu extends StatelessWidget {
           'clone',
           _Submenu('Advanced', {
             'folder',
-            'export',
             'config',
             'doctor',
             'verify',
-            'backup',
             'migrate-toml',
             'move',
             'hotplug',
@@ -157,7 +158,13 @@ class VmActionsMenu extends StatelessWidget {
             ),
         ] else ...[
           for (final entry in entries.where((e) => e.value == member))
-            item(entry),
+            // Slight indent under the group header makes the visual
+            // hierarchy readable without relying on order alone
+            // (QGUI-MENU-002).
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: item(entry),
+            ),
         ],
     ];
     return MenuAnchor(
@@ -190,15 +197,9 @@ class VmActionsMenu extends StatelessWidget {
         // Safety net: values not claimed by any group still render —
         // silently dropping them makes menu entries unreachable.
         for (final entry in entries.where(
-          (e) =>
-              e.value != 'snapshot' && e.value != 'delete' && !claimed(e.value),
+          (e) => e.value != 'delete' && !claimed(e.value),
         ))
           item(entry),
-        if (entries.any((e) => e.value == 'snapshot')) ...[
-          const Divider(height: 8),
-          for (final entry in entries.where((e) => e.value == 'snapshot'))
-            item(entry),
-        ],
         if (entries.any((e) => e.value == 'delete')) ...[
           const Divider(height: 8),
           for (final entry in entries.where((e) => e.value == 'delete'))

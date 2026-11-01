@@ -362,9 +362,12 @@ void main() {
       // and '4.9.7' in the Backend version tile. The About section sits
       // below the fold of the settings ListView — scroll it into view.
       await tester.scrollUntilVisible(
-        find.textContaining('2.0.0'),
+        find.textContaining('Powered by Quickemu'),
         400,
-        scrollable: find.byType(Scrollable),
+        // The page has two Scrollables: the settings ListView and the
+        // (single-line) search TextField inside it — the list's is the
+        // ancestor, so it comes first in the widget tree.
+        scrollable: find.byType(Scrollable).first,
       );
       expect(find.textContaining('2.0.0'), findsWidgets);
       expect(find.textContaining('4.9.7'), findsWidgets);
@@ -556,7 +559,10 @@ void main() {
       await flush(tester);
       // Save is blocked: the dialog stays open, shows the error and the
       // file on disk is untouched.
-      expect(find.text('Line 2: expected key="value".'), findsOneWidget);
+      expect(
+        find.textContaining('Line 2: expected key="value"'),
+        findsOneWidget,
+      );
       expect(File(confPath).readAsStringSync(), contains('ram="4G"'));
       // Editing the text dismisses the error.
       await tester.enterText(

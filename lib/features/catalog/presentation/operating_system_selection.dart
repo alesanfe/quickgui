@@ -165,6 +165,38 @@ class _OperatingSystemSelectionState
                             os.name.toLowerCase().contains(term.toLowerCase()),
                       )
                       .toList();
+                  // OS-003: "no matches for X" is a different state
+                  // from "catalogue unavailable" — name the term and
+                  // offer a one-tap clear instead of a dead list.
+                  if (list.isEmpty && snapshot.data!.isNotEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.search_off, size: 48),
+                          const SizedBox(height: 12),
+                          Text(
+                            context.t(
+                              'No operating systems match "{0}"',
+                              args: [term],
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          OutlinedButton(
+                            onPressed: () {
+                              setState(() => term = '');
+                            },
+                            child: Text(context.t('Clear search')),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  if (list.isEmpty) {
+                    return Center(
+                      child: Text(context.t('The catalogue is empty')),
+                    );
+                  }
                   return ListView.builder(
                     controller: _scrollController,
                     itemCount: list.length,

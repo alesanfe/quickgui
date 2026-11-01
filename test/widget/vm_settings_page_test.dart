@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
 import 'package:quickgui/features/machines/application/ports/vm_config_store.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_settings_page.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/shared/providers/preferences_providers.dart';
 
+import '../support/fakes/fake_host_probe.dart';
 import '../support/fakes/fake_preferences_repository.dart';
 import '../support/harness/test_app.dart';
 
@@ -52,6 +54,10 @@ void main() {
           preferencesRepositoryProvider.overrideWithValue(
             FakePreferencesRepository(),
           ),
+          // The page probes the host for installed display viewers;
+          // without a fake it would spawn real `which` processes with
+          // timeout timers that outlive the test.
+          hostProbeProvider.overrideWithValue(FakeHostProbe()),
         ],
         child: testApp(home: const VmSettingsPage(vmName: 'example')),
       ),
@@ -66,7 +72,13 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     store.loads.single.complete('ram="8G"\ncpu_cores="4"\n');
     await tester.pumpAndSettle();
-    expect(find.text('8G'), findsOneWidget);
+    // Sections build lazily inside the ListView — jump to Resources
+    // so the RAM field exists, then check the structured size field
+    // (value 8 split from unit G).
+    await tester.tap(find.text('Resources'));
+    await tester.pumpAndSettle();
+    expect(find.text('8'), findsOneWidget);
+    expect(find.text('4'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -87,7 +99,19 @@ void main() {
     await open(tester, store);
     store.loads.single.complete('ram="4G"\n');
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).first, '8G');
+    await tester.tap(find.text('Resources'));
+    await tester.pumpAndSettle();
+    // The first field is the Memory SizeField (the search box is a
+    // TextField, so address the RAM field by its label).
+    await tester.enterText(
+      find.descendant(
+        of: find.widgetWithText(TextFormField, 'Memory'),
+        matching: find.byType(EditableText),
+      ),
+      '8G',
+    );
+    // Rebuild so the dirty state flips the Save button to enabled.
+    await tester.pump();
     await tester.ensureVisible(find.text('Save'));
     await tester.tap(find.text('Save'));
     await tester.pump();
@@ -97,7 +121,7 @@ void main() {
     expect(find.text('Configuration changed outside Quickgui'), findsOneWidget);
     await tester.tap(find.text('Keep editing'));
     await tester.pumpAndSettle();
-    expect(find.text('8G'), findsOneWidget);
+    expect(find.text('8'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -108,7 +132,16 @@ void main() {
     await open(tester, store);
     store.loads.single.complete('ram="4G"\n');
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).first, '8G');
+    await tester.tap(find.text('Resources'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.descendant(
+        of: find.widgetWithText(TextFormField, 'Memory'),
+        matching: find.byType(EditableText),
+      ),
+      '8G',
+    );
+    await tester.pump();
     await tester.ensureVisible(find.text('Save'));
     await tester.tap(find.text('Save'));
     await tester.pump();
@@ -118,7 +151,7 @@ void main() {
       find.textContaining('Could not save configuration:'),
       findsOneWidget,
     );
-    expect(find.text('8G'), findsOneWidget);
+    expect(find.text('8'), findsOneWidget);
     expect(
       tester
           .widget<FilledButton>(find.widgetWithText(FilledButton, 'Save'))
@@ -140,7 +173,9 @@ void main() {
     expect(store.loads, hasLength(2));
     store.loads.last.complete('ram="4G"\n');
     await tester.pumpAndSettle();
-    expect(find.text('4G'), findsOneWidget);
+    await tester.tap(find.text('Resources'));
+    await tester.pumpAndSettle();
+    expect(find.text('4'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

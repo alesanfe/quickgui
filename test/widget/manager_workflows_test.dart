@@ -106,32 +106,95 @@ void main() {
     return ManagerScreen(tester);
   }
 
-  for (final action in ['Info', 'Create', 'Apply', 'Delete']) {
-    testWidgets('snapshot $action sends only the selected action', (
+  // Snapshot actions are split by scope (QGUI-SNAP-001): creating a
+  // snapshot is a global action driven by the tag field, while apply/
+  // delete act on the selected row of the existing-snapshots list.
+  testWidgets('snapshot Create sends the typed tag', (tester) async {
+    final screen = await open(tester);
+    await screen.chooseAction('Snapshots');
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Snapshot tag'),
+      'checkpoint',
+    );
+    await tester.pump();
+    await screen.confirm('Create snapshot');
+    expect(backend.actionCalls, [
+      [
+        '--vm',
+        '${directory.path}${Platform.pathSeparator}linux-test.conf',
+        '--snapshot',
+        'create',
+        'checkpoint',
+      ],
+    ]);
+  });
+
+  testWidgets('snapshot Info runs from the More actions menu', (tester) async {
+    final screen = await open(tester);
+    await screen.chooseAction('Snapshots');
+    await tester.tap(find.byTooltip('More snapshot actions'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Snapshot backend info'));
+    await tester.pumpAndSettle();
+    expect(backend.actionCalls, [
+      [
+        '--vm',
+        '${directory.path}${Platform.pathSeparator}linux-test.conf',
+        '--snapshot',
+        'info',
+      ],
+    ]);
+  });
+
+  for (final (label, flag) in [('Apply', 'apply'), ('Delete', 'delete')]) {
+    Future<void> tapRowAction(WidgetTester tester) async {
+      // Apply is a text button on the row; Delete is an icon button —
+      // the row keeps destructive affordances icon-only + tooltip.
+      if (flag == 'delete') {
+        await tester.tap(find.byTooltip('Delete snapshot'));
+      } else {
+        await tester.tap(find.text(label));
+      }
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('snapshot $label on a row confirms then sends $flag', (
       tester,
     ) async {
+      backend.snapshots = [
+        {'id': '1', 'name': 'before-upgrade', 'date': 1700000000},
+      ];
       final screen = await open(tester);
       await screen.chooseAction('Snapshots');
-      await tester.enterText(find.byType(TextField).last, 'checkpoint');
-      await tester.pump();
-      await screen.confirm(action);
-      if (action == 'Apply' || action == 'Delete') {
-        // Destructive snapshot actions require a second confirmation.
-        await screen.confirm(action);
-      }
+      await tapRowAction(tester);
+      // Destructive actions require a second confirmation.
+      await screen.confirm(label);
       expect(backend.actionCalls, [
         [
           '--vm',
           '${directory.path}${Platform.pathSeparator}linux-test.conf',
           '--snapshot',
-          action.toLowerCase(),
-          if (action != 'Info') 'checkpoint',
+          flag,
+          'before-upgrade',
         ],
       ]);
     });
+
+    testWidgets('snapshot $label cancelled at confirmation runs nothing', (
+      tester,
+    ) async {
+      backend.snapshots = [
+        {'id': '1', 'name': 'before-upgrade', 'date': 1700000000},
+      ];
+      final screen = await open(tester);
+      await screen.chooseAction('Snapshots');
+      await tapRowAction(tester);
+      await screen.confirm('Cancel');
+      expect(backend.actionCalls, isEmpty);
+    });
   }
 
-  testWidgets('snapshot dialog lists existing snapshots and fills the tag', (
+  testWidgets('snapshot dialog lists existing snapshots with per-row actions', (
     tester,
   ) async {
     backend.snapshots = [
@@ -146,55 +209,47 @@ void main() {
     await screen.chooseAction('Snapshots');
     expect(find.text('Existing snapshots'), findsOneWidget);
     expect(find.text('before-upgrade'), findsOneWidget);
-    await tester.tap(find.text('before-upgrade'));
-    await tester.pump();
-    expect(find.widgetWithText(TextField, 'before-upgrade'), findsOneWidget);
+    expect(find.text('Apply'), findsOneWidget);
+    expect(find.byTooltip('Delete snapshot'), findsOneWidget);
   });
 
-  testWidgets('snapshot dialog can be dismissed with Cancel', (tester) async {
+  testWidgets('snapshot dialog can be dismissed with Close', (tester) async {
     final screen = await open(tester);
     await screen.chooseAction('Snapshots');
-    await tester.enterText(find.byType(TextField).last, 'checkpoint');
-    await screen.confirm('Cancel');
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Snapshot tag'),
+      'checkpoint',
+    );
+    await screen.confirm('Close');
     expect(backend.actionCalls, isEmpty);
   });
 
-  for (final action in ['Apply', 'Delete']) {
-    testWidgets('snapshot $action cancelled at confirmation runs nothing', (
-      tester,
-    ) async {
-      final screen = await open(tester);
-      await screen.chooseAction('Snapshots');
-      await tester.enterText(find.byType(TextField).last, 'checkpoint');
-      await tester.pump();
-      await screen.confirm(action);
-      await screen.confirm('Cancel');
-      expect(backend.actionCalls, isEmpty);
-    });
-  }
-
-  testWidgets('snapshot actions stay disabled until a tag is entered', (
+  testWidgets('snapshot Create stays disabled until a tag is entered', (
     tester,
   ) async {
     final screen = await open(tester);
     await screen.chooseAction('Snapshots');
-    for (final label in ['Create', 'Apply', 'Delete']) {
-      expect(
-        tester
-            .widget<TextButton>(find.widgetWithText(TextButton, label).last)
-            .onPressed,
-        isNull,
-      );
-    }
-    await screen.confirm('Info');
-    expect(backend.actionCalls, [
-      [
-        '--vm',
-        '${directory.path}${Platform.pathSeparator}linux-test.conf',
-        '--snapshot',
-        'info',
-      ],
-    ]);
+    expect(
+      tester
+          .widget<FilledButton>(
+            find.widgetWithText(FilledButton, 'Create snapshot'),
+          )
+          .onPressed,
+      isNull,
+    );
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Snapshot tag'),
+      'checkpoint',
+    );
+    await tester.pump();
+    expect(
+      tester
+          .widget<FilledButton>(
+            find.widgetWithText(FilledButton, 'Create snapshot'),
+          )
+          .onPressed,
+      isNotNull,
+    );
   });
 
   testWidgets('snapshot tag with spaces is forwarded as one argument', (
@@ -202,9 +257,12 @@ void main() {
   ) async {
     final screen = await open(tester);
     await screen.chooseAction('Snapshots');
-    await tester.enterText(find.byType(TextField).last, 'my snapshot');
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Snapshot tag'),
+      'my snapshot',
+    );
     await tester.pump();
-    await screen.confirm('Create');
+    await screen.confirm('Create snapshot');
     expect(backend.actionCalls, [
       [
         '--vm',
@@ -236,7 +294,9 @@ void main() {
       await tester.pump();
       expect(
         tester
-            .widget<TextButton>(find.widgetWithText(TextButton, confirm).last)
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, confirm).last,
+            )
             .onPressed,
         isNull,
       );
@@ -436,7 +496,9 @@ void main() {
     expect(find.textContaining('SPICE port: 5930'), findsOneWidget);
     await tester.tap(find.byTooltip('Connect display with SPICE'));
     await tester.pump();
-    expect(find.byTooltip('SSH server not detected on guest'), findsOneWidget);
+    // The disabled SSH affordance appears on the row and in the
+    // details pane — both carry the same reason tooltip.
+    expect(find.byTooltip('SSH server not detected on guest'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 

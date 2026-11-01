@@ -62,50 +62,61 @@ extension on _ManagerState {
           confPath: _vmConfFiles[currentVm] ?? '$currentVm.conf',
         );
       case 'shared':
-        _editVmConfValues(currentVm, {
-          'public_dir': context.t('Shared folder'),
-        }, title: context.t('Shared folder'));
-      case 'resources':
-        _editVmConfValues(currentVm, {
-          'ram': context.t('RAM (e.g. 4G)'),
-          'cpu_cores': context.t('CPU cores'),
-          'disk_size': context.t('Disk size (e.g. 64G)'),
-        }, title: context.t('Resources'));
-      case 'display':
+        // Structured picker + visible requirements (QGUI-SHARE-001/002):
+        // the user browses for a host directory and learns how it is
+        // exposed to the guest instead of typing a raw path.
         _editVmConfValues(
           currentVm,
-          {'viewer': context.t('Display viewer')},
-          title: context.t('Display viewer'),
-          options: {
-            'viewer': ['spicy', 'remote-viewer', 'none'],
+          {'public_dir': context.t('Host directory to share')},
+          title: context.t('Shared folder'),
+          helpers: {
+            'public_dir': context.t(
+              'Exposed to the guest as a network/shared folder. The guest needs the matching driver or mount helper, and changes apply on the next start. Prefer read-only data — guests can modify these files.',
+            ),
+          },
+          fieldBuilders: {
+            'public_dir': (context, controller) => PathPickerField(
+              controller: controller,
+              label: context.t('Host directory to share'),
+            ),
+          },
+        );
+      case 'resources':
+        _openVmSettings(currentVm, 'resources');
+      case 'display':
+        // Viewer selector marks binaries the host probe did not find
+        // (QGUI-VIEW-002) and explains when the change takes effect.
+        // Localised strings are captured before the async probe loop.
+        final viewerLabel = context.t('Viewer');
+        final viewerTitle = context.t(
+          'Display viewer for {0}',
+          args: [currentVm],
+        );
+        final viewerHelper = context.t(
+          'Automatic lets quickemu pick an installed viewer at launch. The change applies on the next start.',
+        );
+        final available = <String, bool>{};
+        for (final v in const ['spicy', 'remote-viewer']) {
+          available[v] = await _probe.hasTool(v);
+        }
+        if (!mounted) return;
+        _editVmConfValues(
+          currentVm,
+          {'viewer': viewerLabel},
+          title: viewerTitle,
+          helpers: {'viewer': viewerHelper},
+          fieldBuilders: {
+            'viewer': (context, controller) => ViewerSelector(
+              controller: controller,
+              label: viewerLabel,
+              available: available,
+            ),
           },
         );
       case 'bootnet':
-        _editVmConfValues(
-          currentVm,
-          {
-            'boot': context.t('Boot mode'),
-            'network': context.t('Network'),
-            'macaddr': context.t('MAC address'),
-            'secureboot': context.t('Secure boot'),
-            'tpm': context.t('TPM'),
-          },
-          title: context.t('Boot & network'),
-          options: {
-            'boot': ['efi', 'legacy'],
-            'network': ['nat', 'restrict', 'bridged', 'none'],
-            'secureboot': ['on', 'off'],
-            'tpm': ['on', 'off'],
-          },
-        );
+        _openVmSettings(currentVm, 'boot,network');
       case 'devices':
-        _editVmConfValues(currentVm, {
-          'usb_devices': context.t('USB devices'),
-          'gpu_passthrough': context.t('GPU passthrough'),
-          'port_forwards': context.t('Port forwards'),
-          'sound_card': context.t('Sound card'),
-          'display': context.t('Display'),
-        }, title: context.t('Devices'));
+        _openVmSettings(currentVm, 'devices');
       case 'pause':
         await runVmActionOrLegacy(_backend, 'pause', [
           '--vm',

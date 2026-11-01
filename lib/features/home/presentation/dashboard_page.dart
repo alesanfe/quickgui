@@ -71,24 +71,31 @@ class DashboardPage extends ConsumerWidget {
           Wrap(
             spacing: 12,
             runSpacing: 12,
+            // Actionable metrics (QGUI-DASH-002): each card navigates to
+            // the filtered/related view, so it reads as interactive —
+            // chevron + pointer — not as a static figure.
             children: [
               _metric(
                 context,
                 Icons.computer,
                 context.t('Machines'),
                 '${machines.length}',
+                route: '/machines',
               ),
               _metric(
                 context,
                 Icons.play_circle,
                 context.t('Running'),
                 '${machines.where((m) => m.active).length}',
+                route: '/machines',
               ),
               _metric(
                 context,
                 Icons.warning_amber,
                 context.t('Warnings'),
                 '${machines.where((m) => m.state == 'stale').length}',
+                route: '/machines',
+                warning: machines.any((m) => m.state == 'stale'),
               ),
               _metric(
                 context,
@@ -99,6 +106,9 @@ class DashboardPage extends ConsumerWidget {
                   loading: () => '…',
                   error: (_, _) => '—',
                 ),
+                route: '/diagnostics',
+                // Under ~10 GB VM creation/resizes will likely fail.
+                warning: (free.asData?.value ?? 1 << 40) < (10 << 30),
               ),
             ],
           ),
@@ -291,32 +301,55 @@ class DashboardPage extends ConsumerWidget {
     );
   }
 
+  /// One metric card: icon → value → label, a chevron affordance when
+  /// it navigates, and a warning tint for exception states
+  /// (QGUI-DASH-001/003). Focusable + semantic so it works by keyboard.
   Widget _metric(
     BuildContext context,
     IconData icon,
     String label,
-    String value,
-  ) => SizedBox(
-    width: 220,
-    child: Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Row(
-          children: [
-            Icon(icon, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(value, style: Theme.of(context).textTheme.headlineSmall),
-                  Text(label),
-                ],
-              ),
+    String value, {
+    String? route,
+    bool warning = false,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
+    final iconColor = warning ? scheme.error : scheme.primary;
+    return SizedBox(
+      width: 220,
+      child: Card(
+        color: warning ? scheme.errorContainer : null,
+        child: InkWell(
+          onTap: route == null ? null : () => context.go(route),
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Icon(icon, color: iconColor),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        value,
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      Text(label),
+                    ],
+                  ),
+                ),
+                if (route != null)
+                  Icon(
+                    Icons.chevron_right,
+                    size: 18,
+                    color: scheme.onSurfaceVariant,
+                  ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }

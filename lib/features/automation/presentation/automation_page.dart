@@ -14,6 +14,7 @@ import 'package:quickgui/features/catalog/domain/version.dart';
 import 'package:quickgui/features/catalog/presentation/operating_system_selection.dart';
 import 'package:quickgui/features/catalog/presentation/version_selection.dart';
 import 'package:quickgui/features/machines/providers/vm_library_providers.dart';
+import 'package:quickgui/shared/widgets/disabled_reason.dart';
 
 /// Automation section: describe a machine, let `quickprovision` obtain,
 /// install, provision, verify and seal it — the pipeline that turns a
@@ -176,30 +177,16 @@ class _AutomationPageState extends ConsumerState<AutomationPage> {
               ],
             ),
             const SizedBox(height: 12),
+            // Basic block: identity + resources — enough to run.
             Wrap(
               spacing: 12,
               runSpacing: 8,
               children: [
                 _field(_name, context.t('Name'), width: 220),
-                _field(_hostname, context.t('Hostname'), width: 220),
-                _field(_username, context.t('Username'), width: 160),
                 _field(_cpus, context.t('CPU cores'), width: 110),
                 _field(_ram, context.t('RAM'), width: 110),
                 _field(_disk, context.t('Disk size'), width: 110),
-                _field(_sshTimeout, context.t('SSH timeout (min)'), width: 140),
               ],
-            ),
-            const SizedBox(height: 12),
-            _field(
-              _packages,
-              context.t('Packages (comma separated)'),
-              width: 460,
-            ),
-            const SizedBox(height: 8),
-            _field(
-              _services,
-              context.t('Services to enable (comma separated)'),
-              width: 460,
             ),
             const SizedBox(height: 12),
             Text(
@@ -223,9 +210,43 @@ class _AutomationPageState extends ConsumerState<AutomationPage> {
                   ),
               ],
             ),
-            const SizedBox(height: 8),
-            Row(
+            // Advanced block (QGUI-AUTO-001): specialised fields hide
+            // behind disclosure so the default flow stays short.
+            ExpansionTile(
+              tilePadding: EdgeInsets.zero,
+              title: Text(context.t('Advanced options')),
+              subtitle: Text(
+                context.t('Credentials, packages, services and snapshot'),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              childrenPadding: const EdgeInsets.only(top: 8),
               children: [
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 8,
+                  children: [
+                    _field(_hostname, context.t('Hostname'), width: 220),
+                    _field(_username, context.t('Username'), width: 160),
+                    _field(
+                      _sshTimeout,
+                      context.t('SSH timeout (min)'),
+                      width: 140,
+                    ),
+                    _field(_snapshot, context.t('Snapshot name'), width: 180),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                _field(
+                  _packages,
+                  context.t('Packages (comma separated)'),
+                  width: 460,
+                ),
+                const SizedBox(height: 8),
+                _field(
+                  _services,
+                  context.t('Services to enable (comma separated)'),
+                  width: 460,
+                ),
                 SizedBox(
                   width: 260,
                   child: SwitchListTile(
@@ -235,24 +256,40 @@ class _AutomationPageState extends ConsumerState<AutomationPage> {
                     onChanged: (v) => setState(() => _shutdown = v),
                   ),
                 ),
-                _field(_snapshot, context.t('Snapshot name'), width: 180),
-                const Spacer(),
               ],
             ),
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 OutlinedButton.icon(
                   icon: const Icon(Icons.preview),
                   label: Text(context.t('Preview plan')),
                   onPressed: _formValid && !ui.busy ? _previewPlan : null,
                 ),
-                FilledButton.icon(
-                  icon: const Icon(Icons.play_arrow),
-                  label: Text(context.t('Start automation run')),
-                  onPressed: _formValid && !ui.busy ? _startRun : null,
-                ),
+                if (_formValid && !ui.busy)
+                  FilledButton.icon(
+                    icon: const Icon(Icons.play_arrow),
+                    label: Text(context.t('Start automation run')),
+                    onPressed: _startRun,
+                  )
+                else
+                  // UX-002: the blocked primary action says what is
+                  // missing, accessible by keyboard focus.
+                  DisabledReason(
+                    reason: ui.busy
+                        ? context.t('An operation is in progress')
+                        : context.t(
+                            'Pick an operating system, a version and a name',
+                          ),
+                    child: FilledButton.icon(
+                      icon: const Icon(Icons.play_arrow),
+                      label: Text(context.t('Start automation run')),
+                      onPressed: null,
+                    ),
+                  ),
                 if (ui.busy)
                   const Padding(
                     padding: EdgeInsets.all(8),

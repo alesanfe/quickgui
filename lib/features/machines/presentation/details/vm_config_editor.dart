@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -8,6 +9,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/infrastructure/storage/vm_config.dart';
 import 'package:quickgui/shared/dialogs/conf_conflict.dart';
+import 'package:quickgui/shared/widgets/lined_text_field.dart';
+import 'package:quickgui/shared/widgets/scroll_dialog.dart';
 
 class VmConfigEditorDialog extends ConsumerStatefulWidget {
   final String vmName;
@@ -26,19 +29,27 @@ class VmConfigEditorDialog extends ConsumerStatefulWidget {
 
 class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
   final TextEditingController _editorController = TextEditingController();
+  final FocusNode _editorFocus = FocusNode(debugLabel: 'conf-editor');
   bool _loading = true;
+
+  /// Invalid line numbers from the last save attempt — shown as a
+  /// navigable summary and highlighted in the gutter.
+  List<int> _badLines = const [];
   String? _error;
 
   /// quickemu conf lines are `key="value"`; comments (#) and blank lines
-  /// are allowed. Returns the offending line number, or null if valid.
-  static int? _firstInvalidLine(String text) {
+  /// are allowed. Returns every offending 1-based line number so the
+  /// error summary can list — and navigate to — all of them
+  /// (QGUI-CONF-003).
+  static List<int> _invalidLines(String text) {
     final lines = text.split('\n');
-    for (var i = 0; i < lines.length; i++) {
-      final line = lines[i].trim();
-      if (line.isEmpty || line.startsWith('#')) continue;
-      if (!RegExp(r'^[a-zA-Z_][\w-]*\s*=').hasMatch(line)) return i + 1;
-    }
-    return null;
+    return [
+      for (var i = 0; i < lines.length; i++)
+        if (lines[i].trim().isNotEmpty &&
+            !lines[i].trim().startsWith('#') &&
+            !RegExp(r'^[a-zA-Z_][\w-]*\s*=').hasMatch(lines[i].trim()))
+          i + 1,
+    ];
   }
 
   String _initialContent = '';
@@ -112,18 +123,36 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
     });
   }
 
+  /// Moves the caret (and scroll) to [line] (1-based) so a click on an
+  /// error row lands exactly on the offending text.
+  void _goToLine(int line) {
+    final lines = _editorController.text.split('\n');
+    var offset = 0;
+    for (var i = 0; i < line - 1 && i < lines.length; i++) {
+      offset += lines[i].length + 1;
+    }
+    _editorController.selection = TextSelection.collapsed(offset: offset);
+    _editorFocus.requestFocus();
+  }
+
   Future<void> _save() async {
-    final badLine = _firstInvalidLine(_editorController.text);
-    if (badLine != null) {
+    final bad = _invalidLines(_editorController.text);
+    if (bad.isNotEmpty) {
       setState(() {
+        _badLines = bad;
         _error = context.t(
-          'Line {0}: expected key="value".',
-          args: ['$badLine'],
+          '{0} line(s) do not match key="value".',
+          args: ['${bad.length}'],
         );
       });
+      _goToLine(bad.first);
       return;
     }
     if (!mounted) return;
+    setState(() {
+      _badLines = const [];
+      _error = null;
+    });
     if (!await _checkExternalChange()) return;
     if (!mounted) return;
     await ref
@@ -237,77 +266,26 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
   }
 
   @override
+  void dispose() {
+    _editorController.dispose();
+    _editorFocus.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    const mono = TextStyle(fontFamily: 'monospace', fontSize: 13, height: 1.4);
     return PopScope(
       canPop: _allowPop,
       onPopInvokedWithResult: (_, _) => _onPopAttempt(),
-      child: AlertDialog(
-        title: Text(context.t('Edit VM: {0}', args: [widget.vmName])),
-        content: _loading
-            ? const SizedBox(
-                height: 100,
-                child: Center(child: CircularProgressIndicator()),
-              )
-            : SizedBox(
-                width: double.maxFinite,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      widget.confPath,
-                      style: const TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton.icon(
-                        icon: const Icon(Icons.help_outline),
-                        label: Text(context.t('Open config documentation')),
-                        onPressed: _openDocs,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Flexible(
-                      child: TextField(
-                        controller: _editorController,
-                        maxLines: null,
-                        keyboardType: TextInputType.multiline,
-                        style: const TextStyle(fontFamily: 'monospace'),
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.all(8),
-                        ),
-                        onChanged: (_) {
-                          if (_error != null) {
-                            setState(() => _error = null);
-                          }
-                        },
-                      ),
-                    ),
-                    if (_error != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.error_outline,
-                              size: 16,
-                              color: Theme.of(context).colorScheme.error,
-                            ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                _error!,
-                                style: TextStyle(
-                                  color: Theme.of(context).colorScheme.error,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
-              ),
+      child: QDialog(
+        title: context.t('Edit VM: {0}', args: [widget.vmName]),
+        width: 720,
+        trailing: TextButton.icon(
+          icon: const Icon(Icons.help_outline, size: 18),
+          onPressed: _openDocs,
+          label: Text(context.t('Config documentation')),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -319,8 +297,123 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
               icon: const Icon(Icons.restore),
               label: Text(context.t('Restore backup')),
             ),
-          ElevatedButton(onPressed: _save, child: Text(context.t('Save'))),
+          FilledButton(onPressed: _save, child: Text(context.t('Save'))),
         ],
+        child: _loading
+            ? const SizedBox(
+                height: 100,
+                child: Center(child: CircularProgressIndicator()),
+              )
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Path at AA contrast, copyable, elided in the middle
+                  // for long working directories (QGUI-CONF-001).
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Tooltip(
+                          message: widget.confPath,
+                          child: Text(
+                            widget.confPath,
+                            overflow: TextOverflow.ellipsis,
+                            style: mono.copyWith(
+                              fontSize: 12,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: context.t('Copy path'),
+                        icon: const Icon(Icons.copy, size: 16),
+                        onPressed: () async {
+                          await Clipboard.setData(
+                            ClipboardData(text: widget.confPath),
+                          );
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(context.t('Copied'))),
+                            );
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  // Fixed-height editor region inside the scrollable
+                  // dialog body: the gutter scrolls with the text.
+                  SizedBox(
+                    height: (MediaQuery.sizeOf(context).height * 0.5).clamp(
+                      200.0,
+                      560.0,
+                    ),
+                    child: LinedTextField(
+                      controller: _editorController,
+                      focusNode: _editorFocus,
+                      style: mono,
+                      errorLines: _badLines.toSet(),
+                      onChanged: (_) {
+                        if (_error != null || _badLines.isNotEmpty) {
+                          setState(() {
+                            _error = null;
+                            _badLines = const [];
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                  if (_error != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.error_outline,
+                                size: 16,
+                                color: Theme.of(context).colorScheme.error,
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  _error!,
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.error,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          for (final line in _badLines)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2),
+                              child: InkWell(
+                                onTap: () => _goToLine(line),
+                                child: Text(
+                                  context.t(
+                                    'Line {0}: expected key="value" — click to jump',
+                                    args: ['$line'],
+                                  ),
+                                  style: TextStyle(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .primary,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
       ),
     );
   }

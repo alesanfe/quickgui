@@ -9,6 +9,7 @@ import 'package:quickgui/features/catalog/domain/version.dart';
 import 'package:quickgui/features/catalog/presentation/option_selection.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/features/machines/presentation/shared/process_output_dialog.dart';
+import 'package:quickgui/shared/widgets/field_help.dart';
 
 class VersionSelection extends ConsumerStatefulWidget {
   const VersionSelection({required this.operatingSystem, super.key});
@@ -88,61 +89,84 @@ class _VersionSelectionState extends ConsumerState<VersionSelection> {
             ),
           ),
         ),
+        actions: [
+          // QGUI-VERSION-003: one global architecture check in the
+          // header instead of a repeated competitive icon per row.
+          TextButton.icon(
+            icon: const Icon(Icons.fact_check_outlined, size: 18),
+            label: Text(context.t('Check architectures')),
+            onPressed: () async {
+              final result = await ref.read(backendProvider).runQuickget([
+                '--check-all-arch',
+                widget.operatingSystem.code,
+              ]);
+              if (context.mounted) {
+                showProcessOutputDialog(context, [result]);
+              }
+            },
+          ),
+        ],
       ),
       body: Scrollbar(
         controller: _scrollController,
-        child: ListView.builder(
+        child: ListView(
           controller: _scrollController,
           padding: const EdgeInsets.only(top: 4),
-          itemCount: list.length,
-          itemBuilder: (context, index) {
-            final item = list[index];
-            return Card(
-              child: ListTile(
-                title: Text(item.version),
-                trailing: IconButton(
-                  tooltip: context.t('Check all architectures'),
-                  icon: const Icon(Icons.fact_check_outlined),
-                  onPressed: () async {
-                    final result = await ref.read(backendProvider).runQuickget([
-                      '--check-all-arch',
-                      widget.operatingSystem.code,
-                      item.version,
-                    ]);
-                    if (context.mounted) {
-                      showProcessOutputDialog(context, [result]);
-                    }
-                  },
+          children: [
+            // C-08 / QGUI-VERSION-002: quickget does not declare release
+            // metadata (LTS/recommended/EOL), so we say so honestly once
+            // instead of guessing from version numbers per row.
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: FieldHelp(
+                description: context.t(
+                  'Recommendation unavailable — quickget does not report release metadata for this OS.',
                 ),
-                onTap: () {
-                  if (item.options.length > 1) {
-                    Navigator.of(context)
-                        .push<Option>(
-                          MaterialPageRoute(
-                            fullscreenDialog: true,
-                            builder: (context) => OptionSelection(list[index]),
-                          ),
-                        )
-                        .then((selection) {
-                          if (selection != null && context.mounted) {
-                            Navigator.of(context)
-                                .pop(Tuple2<Version, Option?>(item, selection));
-                          }
-                        });
-                  } else {
-                    Navigator.of(context).pop(
-                      Tuple2<Version, Option?>(
-                        item,
-                        item.options.isEmpty ? null : item.options.first,
-                      ),
-                    );
-                  }
-                },
+                constraint: context.t(
+                  'Expand a version to compare editions and check architecture support before downloading.',
+                ),
               ),
-            );
-          },
+            ),
+            for (final item in list)
+              Card(
+                child: ListTile(
+                  title: Text(item.version),
+                  // Objective data only — no invented "recommended"
+                  // badge: the real edition list from the model.
+                  subtitle: item.options.isNotEmpty
+                      ? Text(item.options.map((o) => o.option).join(', '))
+                      : null,
+                  onTap: () => _select(item),
+                ),
+              ),
+          ],
         ),
       ),
     );
+  }
+
+  void _select(Version item) {
+    if (item.options.length > 1) {
+      final navigator = Navigator.of(context);
+      navigator
+          .push<Option>(
+            MaterialPageRoute(
+              fullscreenDialog: true,
+              builder: (context) => OptionSelection(item),
+            ),
+          )
+          .then((selection) {
+            if (selection != null && context.mounted) {
+              navigator.pop(Tuple2<Version, Option?>(item, selection));
+            }
+          });
+    } else {
+      Navigator.of(context).pop(
+        Tuple2<Version, Option?>(
+          item,
+          item.options.isEmpty ? null : item.options.first,
+        ),
+      );
+    }
   }
 }

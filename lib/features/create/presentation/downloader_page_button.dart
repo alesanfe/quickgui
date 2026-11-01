@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:quickgui/shared/widgets/disabled_reason.dart';
 
 /// Wide labelled button used by the download controls (OS / Version /
 /// Download). [busy] replaces the text with a progress indicator while
-/// a pre-flight check is in flight.
+/// a pre-flight check is in flight. [disabledReason] explains a null
+/// [onPressed] through the shared disabled-state pattern.
 class DownloaderPageButton extends StatelessWidget {
   const DownloaderPageButton({
     required this.text,
     this.label,
     this.onPressed,
     this.busy = false,
+    this.disabledReason,
     super.key,
   });
 
@@ -16,9 +19,27 @@ class DownloaderPageButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
   final bool busy;
+  final String? disabledReason;
 
   @override
   Widget build(BuildContext context) {
+    final button = ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+      ),
+      onPressed: busy ? null : onPressed,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(0, 16, 0, 16),
+        child: busy
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Text(text),
+      ),
+    );
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
@@ -36,23 +57,10 @@ class DownloaderPageButton extends StatelessWidget {
                 ),
               ),
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.onSurface,
-                backgroundColor: Theme.of(context).colorScheme.surface,
-              ),
-              onPressed: busy ? null : onPressed,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(0, 16, 0, 16),
-                child: busy
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(text),
-              ),
-            ),
+            if (disabledReason != null && onPressed == null && !busy)
+              DisabledReason(reason: disabledReason!, child: button)
+            else
+              button,
           ],
         ),
       ),

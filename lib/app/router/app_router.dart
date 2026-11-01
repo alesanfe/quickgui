@@ -42,6 +42,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                         path: 'settings',
                         builder: (context, state) => VmSettingsPage(
                           vmName: state.pathParameters['name']!,
+                          // ?section=Network[,Devices] filters the page
+                          // to those domain sections (specialised menus).
+                          section: state.uri.queryParameters['section'],
                         ),
                       ),
                     ],

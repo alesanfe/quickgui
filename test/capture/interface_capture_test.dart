@@ -399,7 +399,9 @@ void main() {
   /// to the bottom first so the About section builds its children.
   Future<void> Function(WidgetTester t) settingsItem(String label) =>
       (t) async {
-        final scrollable = find.byType(Scrollable).last;
+        // The page has two Scrollables (the ListView and the search
+        // TextField inside it); the list's is the ancestor → .first.
+        final scrollable = find.byType(Scrollable).first;
         t
             .state<ScrollableState>(scrollable)
             .position

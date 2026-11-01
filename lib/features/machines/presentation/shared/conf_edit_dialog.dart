@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
+import 'package:quickgui/shared/widgets/scroll_dialog.dart';
 
 /// Edits one or more `key="value"` entries of a VM .conf file.
 /// [title] names the purpose of the dialog (e.g. 'Resources') so the
@@ -31,56 +32,45 @@ Future<void> showConfEditDialog(
     controllers[key] = TextEditingController(text: current);
   }
   if (!context.mounted) return;
-  final result = await showDialog<bool>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Text('$title — $vmName'),
-      content: SizedBox(
-        width: double.maxFinite,
-        // Scrollable: the 16-field "Settings (all)" dialog must stay
-        // usable at the minimum window height (~800px).
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: keys.entries.map((e) {
-              final opts = options?[e.key];
-              final current = controllers[e.key]!.text;
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: opts == null
-                    ? TextField(
-                        controller: controllers[e.key],
-                        decoration: InputDecoration(labelText: e.value),
-                      )
-                    : DropdownButtonFormField<String>(
-                        // Keep the current value as an extra item when it
-                        // is not one of the known options — picking
-                        // opts.first would silently rewrite the .conf on OK.
-                        initialValue: current.isEmpty ? null : current,
-                        decoration: InputDecoration(labelText: e.value),
-                        items: {...opts, if (current.isNotEmpty) current}
-                            .map(
-                              (o) => DropdownMenuItem(value: o, child: Text(o)),
-                            )
-                            .toList(),
-                        onChanged: (v) => controllers[e.key]!.text = v ?? '',
-                      ),
-              );
-            }).toList(),
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: Text(context.t('Cancel')),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          child: Text(context.t('OK')),
-        ),
-      ],
+  final result = await QDialog.show<bool>(
+    context,
+    title: '$title — $vmName',
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: keys.entries.map((e) {
+        final opts = options?[e.key];
+        final current = controllers[e.key]!.text;
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: opts == null
+              ? TextField(
+                  controller: controllers[e.key],
+                  decoration: InputDecoration(labelText: e.value),
+                )
+              : DropdownButtonFormField<String>(
+                  // Keep the current value as an extra item when it
+                  // is not one of the known options — picking
+                  // opts.first would silently rewrite the .conf on OK.
+                  initialValue: current.isEmpty ? null : current,
+                  decoration: InputDecoration(labelText: e.value),
+                  items: {...opts, if (current.isNotEmpty) current}
+                      .map((o) => DropdownMenuItem(value: o, child: Text(o)))
+                      .toList(),
+                  onChanged: (v) => controllers[e.key]!.text = v ?? '',
+                ),
+        );
+      }).toList(),
     ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(false),
+        child: Text(context.t('Cancel')),
+      ),
+      FilledButton(
+        onPressed: () => Navigator.of(context).pop(true),
+        child: Text(context.t('Save')),
+      ),
+    ],
   );
   if (result != true) return;
   for (final key in keys.keys) {

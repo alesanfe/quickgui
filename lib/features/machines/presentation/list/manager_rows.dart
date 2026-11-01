@@ -135,12 +135,24 @@ extension on _ManagerState {
                   ('export', context.t('Export')),
                   ('tags', context.t('Edit tags')),
                 ])
-                  OutlinedButton(
-                    onPressed: _batchBusy || _selection.isEmpty
-                        ? null
-                        : () => _batch(action.$1),
-                    child: Text(action.$2),
-                  ),
+                  // Incompatible batch actions explain themselves
+                  // (QGUI-MACH-003): empty selection and busy state
+                  // carry a keyboard-accessible reason.
+                  if (_batchBusy || _selection.isEmpty)
+                    DisabledReason(
+                      reason: _batchBusy
+                          ? context.t('A batch operation is in progress')
+                          : context.t('Select machines first'),
+                      child: OutlinedButton(
+                        onPressed: null,
+                        child: Text(action.$2),
+                      ),
+                    )
+                  else
+                    OutlinedButton(
+                      onPressed: () => _batch(action.$1),
+                      child: Text(action.$2),
+                    ),
                 if (_batchBusy)
                   const SizedBox(
                     width: 20,
@@ -435,15 +447,17 @@ extension on _ManagerState {
                   : context.t('Start the virtual machine'),
               onPressed: active ? null : () => _startVm(currentVm),
             ),
-            IconButton(
-              icon: Icon(
-                active ? Icons.stop : Icons.stop_outlined,
-                color: active ? Colors.red : null,
-                semanticLabel: active ? 'Stop' : 'Not running',
-              ),
-              tooltip: active
-                  ? context.t('Shut down or stop the virtual machine')
-                  : context.t('Not running'),
+            // M-03 / QGUI-UX-002: the unavailable Stop is recognisably
+            // disabled AND explains its precondition through the
+            // DisabledReason wrapper (tooltip + semantics, keyboard
+            // focusable) instead of a bare grey icon.
+            reasonedIconButton(
+              context: context,
+              icon: active ? Icons.stop : Icons.stop_outlined,
+              color: active ? Colors.red : null,
+              tooltip: context.t('Shut down or stop the virtual machine'),
+              semanticLabel: active ? 'Stop' : 'Not running',
+              disabledReason: context.t('Available while the VM is running'),
               onPressed: !active ? null : () => _stopVm(currentVm),
             ),
             if (active)
@@ -487,17 +501,17 @@ extension on _ManagerState {
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              IconButton(
-                icon: Icon(
-                  Icons.monitor,
-                  color: (_spicy && vmInfo.spicePort != null)
-                      ? buttonColor
-                      : null,
-                  semanticLabel: 'Connect display with SPICE',
-                ),
-                tooltip: _spicy
-                    ? context.t('Connect display with SPICE')
-                    : context.t('SPICE client not found'),
+              reasonedIconButton(
+                context: context,
+                icon: Icons.monitor,
+                color: (_spicy && vmInfo.spicePort != null)
+                    ? buttonColor
+                    : null,
+                semanticLabel: 'Connect display with SPICE',
+                tooltip: context.t('Connect display with SPICE'),
+                disabledReason: !_spicy
+                    ? context.t('SPICE client not found')
+                    : context.t('No SPICE display on this VM'),
                 onPressed: !_spicy || vmInfo.spicePort == null
                     ? null
                     : () {
@@ -508,91 +522,110 @@ extension on _ManagerState {
                         );
                       },
               ),
-              IconButton(
-                icon: SvgPicture.asset(
-                  'assets/images/console.svg',
-                  semanticsLabel: 'Connect with SSH',
-                  colorFilter: ColorFilter.mode(
-                    sshy ? buttonColor : Colors.grey,
-                    BlendMode.srcIn,
+              () {
+                // Same disabled-reason treatment for the SVG SSH button
+                // — reasonedIconButton only covers IconData icons.
+                final button = IconButton(
+                  icon: SvgPicture.asset(
+                    'assets/images/console.svg',
+                    semanticsLabel: 'Connect with SSH',
+                    colorFilter: ColorFilter.mode(
+                      sshy ? buttonColor : Colors.grey,
+                      BlendMode.srcIn,
+                    ),
                   ),
-                ),
-                tooltip: !sshy
-                    ? context.t('SSH server not detected on guest')
-                    : _terminalEmulator == null
-                    ? context.t('No terminal emulator found')
-                    : context.t('Connect with SSH'),
-                onPressed: !sshy || _terminalEmulator == null
-                    ? null
-                    : () async {
-                        final savedUser = await _prefs.getAs<String>(
-                          'sshUser_$currentVm',
-                        );
-                        if (!mounted) return;
-                        final TextEditingController
-                        usernameController = TextEditingController(
-                          text: savedUser ?? Platform.environment['USER'] ?? '',
-                        );
-                        showDialog<bool>(
-                          context: context,
-                          builder: (BuildContext context) => AlertDialog(
-                            title: Text(
-                              context.t(
-                                'Launch SSH connection to {0}',
-                                args: [currentVm],
+                  tooltip: !sshy
+                      ? context.t('SSH server not detected on guest')
+                      : _terminalEmulator == null
+                      ? context.t('No terminal emulator found')
+                      : context.t('Connect with SSH'),
+                  onPressed: !sshy || _terminalEmulator == null
+                      ? null
+                      : () async {
+                          final savedUser = await _prefs.getAs<String>(
+                            'sshUser_$currentVm',
+                          );
+                          if (!mounted) return;
+                          final TextEditingController usernameController =
+                              TextEditingController(
+                                text:
+                                    savedUser ??
+                                    Platform.environment['USER'] ??
+                                    '',
+                              );
+                          showDialog<bool>(
+                            context: context,
+                            builder: (BuildContext context) => AlertDialog(
+                              title: Text(
+                                context.t(
+                                  'Launch SSH connection to {0}',
+                                  args: [currentVm],
+                                ),
                               ),
+                              content: TextField(
+                                controller: usernameController,
+                                decoration: InputDecoration(
+                                  hintText: context.t("SSH username"),
+                                ),
+                              ),
+                              actions: <Widget>[
+                                TextButton(
+                                  onPressed: () {
+                                    // Remove the stale known_hosts entry, e.g.
+                                    // when a new guest reuses the SSH port of a
+                                    // deleted VM.
+                                    unawaitedLogged(
+                                      _backend.forgetSshHostKey(
+                                        vmInfo.sshPort!,
+                                      ),
+                                      AppLog.vmLifecycle,
+                                      'forget ssh key :${vmInfo.sshPort!}',
+                                    );
+                                  },
+                                  child: Text(context.t('Forget host key')),
+                                ),
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(context, false),
+                                  child: Text(context.t('Cancel')),
+                                ),
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(context).pop(true),
+                                  child: Text(context.t('Connect')),
+                                ),
+                              ],
                             ),
-                            content: TextField(
-                              controller: usernameController,
-                              decoration: InputDecoration(
-                                hintText: context.t("SSH username"),
-                              ),
-                            ),
-                            actions: <Widget>[
-                              TextButton(
-                                onPressed: () {
-                                  // Remove the stale known_hosts entry, e.g.
-                                  // when a new guest reuses the SSH port of a
-                                  // deleted VM.
-                                  unawaitedLogged(
-                                    _backend.forgetSshHostKey(vmInfo.sshPort!),
-                                    AppLog.vmLifecycle,
-                                    'forget ssh key :${vmInfo.sshPort!}',
-                                  );
-                                },
-                                child: Text(context.t('Forget host key')),
-                              ),
-                              TextButton(
-                                onPressed: () => Navigator.pop(context, false),
-                                child: Text(context.t('Cancel')),
-                              ),
-                              TextButton(
-                                onPressed: () =>
-                                    Navigator.of(context).pop(true),
-                                child: Text(context.t('Connect')),
-                              ),
-                            ],
-                          ),
-                        ).then((result) {
-                          result = result ?? false;
-                          if (result) {
-                            _prefs.set(
-                              'sshUser_$currentVm',
-                              usernameController.text,
-                            );
-                            unawaitedLogged(
-                              _backend.connectSsh(
-                                terminalEmulator: _terminalEmulator!,
-                                user: usernameController.text,
-                                sshPort: vmInfo.sshPort!,
-                              ),
-                              AppLog.vmLifecycle,
-                              'ssh :${vmInfo.sshPort!}',
-                            );
-                          }
-                        });
-                      },
-              ),
+                          ).then((result) {
+                            result = result ?? false;
+                            if (result) {
+                              _prefs.set(
+                                'sshUser_$currentVm',
+                                usernameController.text,
+                              );
+                              unawaitedLogged(
+                                _backend.connectSsh(
+                                  terminalEmulator: _terminalEmulator!,
+                                  user: usernameController.text,
+                                  sshPort: vmInfo.sshPort!,
+                                ),
+                                AppLog.vmLifecycle,
+                                'ssh :${vmInfo.sshPort!}',
+                              );
+                            }
+                          });
+                        },
+                );
+                if (!sshy || _terminalEmulator == null) {
+                  return DisabledReason(
+                    reason: !sshy
+                        ? context.t('SSH server not detected on guest')
+                        : context.t('No terminal emulator found'),
+                    child: button,
+                  );
+                }
+                return button;
+              }(),
             ],
           ),
         ),
