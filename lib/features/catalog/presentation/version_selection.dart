@@ -123,7 +123,7 @@ class _VersionSelectionState extends ConsumerState<VersionSelection> {
                   'Recommendation unavailable — quickget does not report release metadata for this OS.',
                 ),
                 constraint: context.t(
-                  'Expand a version to compare editions and check architecture support before downloading.',
+                  'Select a version to continue — Check architectures verifies host support before downloading.',
                 ),
               ),
             ),

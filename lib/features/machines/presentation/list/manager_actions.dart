@@ -214,7 +214,26 @@ extension on _ManagerState {
           return Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: builder != null
-                ? builder(context, controllers[e.key]!)
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      builder(context, controllers[e.key]!),
+                      if (helper != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Text(
+                            helper,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                                ),
+                          ),
+                        ),
+                    ],
+                  )
                 : opts == null
                 ? TextField(
                     controller: controllers[e.key],

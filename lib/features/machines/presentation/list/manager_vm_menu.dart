@@ -88,10 +88,8 @@ extension on _ManagerState {
         // (QGUI-VIEW-002) and explains when the change takes effect.
         // Localised strings are captured before the async probe loop.
         final viewerLabel = context.t('Viewer');
-        final viewerTitle = context.t(
-          'Display viewer for {0}',
-          args: [currentVm],
-        );
+        // The dialog shell already appends the VM name to the title.
+        final viewerTitle = context.t('Display viewer');
         final viewerHelper = context.t(
           'Automatic lets quickemu pick an installed viewer at launch. The change applies on the next start.',
         );

@@ -2374,7 +2374,7 @@ msgstr ""
 msgid "Exit code: {0} (failed)"
 msgstr ""
 
-msgid "Expand a version to compare editions and check architecture support before downloading."
+msgid "Select a version to continue — Check architectures verifies host support before downloading."
 msgstr ""
 
 msgid "Exposed to the guest as a network/shared folder. The guest needs the matching driver or mount helper, and changes apply on the next start. Prefer read-only data — guests can modify these files."
