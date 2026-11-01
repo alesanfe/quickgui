@@ -1611,6 +1611,33 @@ msgstr "Stale — the process exited unexpectedly."
 msgid "Stale"
 msgstr "Stale"
 
+msgid "Hardware"
+msgstr "Hardware"
+
+msgid "Start options"
+msgstr "Start options"
+
+msgid "Guest & power"
+msgstr "Guest & power"
+
+msgid "Advanced"
+msgstr "Advanced"
+
+msgid "Ctrl+F"
+msgstr "Ctrl+F"
+
+msgid "Ctrl+N"
+msgstr "Ctrl+N"
+
+msgid "Ctrl+R"
+msgstr "Ctrl+R"
+
+msgid "Esc"
+msgstr "Esc"
+
+msgid "F1"
+msgstr "F1"
+
 msgid "Answering — network details available."
 msgstr "Answering — network details available."
 

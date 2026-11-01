@@ -334,17 +334,28 @@ void main() {
     // MenuAnchor — and the details pane repeats labels such as
     // 'Snapshots' and 'Display viewer' in non-interactive rows, so the
     // finder must be scoped to the menu's own buttons.
-    final menuItems = find.descendant(
+    var menuItems = find.descendant(
       of: find.byType(MenuItemButton),
       matching: find.text(label),
     );
-    final firstRow = find.text('Edit configuration').last;
-    final scrollable = find
-        .ancestor(of: firstRow, matching: find.byType(Scrollable))
-        .first;
-    // Rows near the menu's clip edge count as laid-out but their centre
-    // is not hittable — centre the target inside the menu's viewport.
+    // Rarely-used entries live one level down in cascading
+    // SubmenuButtons — open each until the target appears.
+    for (final sub in find.byType(SubmenuButton).evaluate().toList()) {
+      if (menuItems.evaluate().isNotEmpty) break;
+      await t.tap(find.byWidget(sub.widget));
+      await t.pumpAndSettle();
+      menuItems = find.descendant(
+        of: find.byType(MenuItemButton),
+        matching: find.text(label),
+      );
+    }
     final item = menuItems.last;
+    // Rows near the menu's clip edge count as laid-out but their centre
+    // is not hittable — centre the target inside its own panel's
+    // viewport (root menu or the open submenu).
+    final scrollable = find
+        .ancestor(of: item, matching: find.byType(Scrollable))
+        .first;
     final state = t.state<ScrollableState>(scrollable);
     final itemRect = t.getRect(item);
     final scrollRect = t.getRect(scrollable);
@@ -397,6 +408,9 @@ void main() {
       for (var i = 0; i < 6; i++) {
         await t.pump(const Duration(milliseconds: 200));
       }
+      // 'Edit configuration' cascades under Advanced ▸.
+      await t.tap(find.widgetWithText(SubmenuButton, 'Advanced'));
+      await t.pumpAndSettle();
       await t.tap(find.text('Edit configuration').last);
       // Mount the dialog so loadRaw() starts, then give the real file IO
       // a real event-loop window to complete.

@@ -29,12 +29,18 @@ class ManagerScreen {
     // same-named controls in the details pane and row quick actions, which
     // sit under the open menu and swallow the tap on its barrier.
     var item = find.widgetWithText(MenuItemButton, label);
-    if (item.evaluate().isEmpty) {
-      item = find.text(label);
+    // Rarely-used actions live in cascading SubmenuButtons — their
+    // children only enter the tree once the submenu is open, so open
+    // each submenu in turn until the item appears.
+    for (final sub in find.byType(SubmenuButton).evaluate().toList()) {
+      if (item.evaluate().isNotEmpty) break;
+      await tester.tap(find.byWidget(sub.widget));
+      await tester.pumpAndSettle();
+      item = find.widgetWithText(MenuItemButton, label);
     }
-    await tester.ensureVisible(item.last);
+    await tester.ensureVisible(item.first);
     await tester.pumpAndSettle();
-    await tester.tap(item.last);
+    await tester.tap(item.first.hitTestable());
     await tester.pumpAndSettle();
   }
 

@@ -1726,6 +1726,33 @@ msgstr "Obsoleto — el proceso terminó inesperadamente."
 msgid "Stale"
 msgstr "Obsoleto"
 
+msgid "Hardware"
+msgstr "Hardware"
+
+msgid "Start options"
+msgstr "Opciones de arranque"
+
+msgid "Guest & power"
+msgstr "Invitado y encendido"
+
+msgid "Advanced"
+msgstr "Avanzado"
+
+msgid "Ctrl+F"
+msgstr "Ctrl+F"
+
+msgid "Ctrl+N"
+msgstr "Ctrl+N"
+
+msgid "Ctrl+R"
+msgstr "Ctrl+R"
+
+msgid "Esc"
+msgstr "Esc"
+
+msgid "F1"
+msgstr "F1"
+
 msgid "Answering — network details available."
 msgstr "Responde — detalles de red disponibles."
 

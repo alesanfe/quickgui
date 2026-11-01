@@ -71,8 +71,11 @@ void main() {
     await open(tester);
     await tester.tap(find.text('Import a disk image'));
     await tester.pump();
-    await tester.tap(find.text('Continue').first);
-    await tester.pump();
+    // The Stepper keeps every step's controls in the tree inside
+    // collapsed cross-fades — hitTestable picks the visible Continue
+    // once the expand animation has finished.
+    await tester.tap(find.text('Continue').hitTestable().first);
+    await tester.pumpAndSettle();
     expect(
       find.text('You will pick the disk image at the end.'),
       findsOneWidget,
@@ -83,10 +86,10 @@ void main() {
     await open(tester);
     await tester.tap(find.text('Import a disk image'));
     await tester.pump();
-    await tester.tap(find.text('Continue').first); // → System
-    await tester.pump();
-    await tester.tap(find.text('Continue').first); // → Resources
-    await tester.pump();
+    await tester.tap(find.text('Continue').hitTestable().first); // → System
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Continue').hitTestable().first); // → Resources
+    await tester.pumpAndSettle();
     expect(find.text('Profile'), findsWidgets);
     expect(find.text('RAM'), findsOneWidget);
     expect(find.text('CPU cores'), findsOneWidget);

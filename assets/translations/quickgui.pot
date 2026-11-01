@@ -529,6 +529,33 @@ msgstr ""
 msgid "Stale"
 msgstr ""
 
+msgid "Hardware"
+msgstr ""
+
+msgid "Start options"
+msgstr ""
+
+msgid "Guest & power"
+msgstr ""
+
+msgid "Advanced"
+msgstr ""
+
+msgid "Ctrl+F"
+msgstr ""
+
+msgid "Ctrl+N"
+msgstr ""
+
+msgid "Ctrl+R"
+msgstr ""
+
+msgid "Esc"
+msgstr ""
+
+msgid "F1"
+msgstr ""
+
 msgid "New size (current: {0}, grow only)"
 msgstr ""
 
