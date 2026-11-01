@@ -136,6 +136,9 @@ class _VersionSelectionState extends ConsumerState<VersionSelection> {
                   subtitle: item.options.isNotEmpty
                       ? Text(item.options.map((o) => o.option).join(', '))
                       : null,
+                  // QGUI-VERSION-102: the row is a selection, not just a
+                  // label — a chevron makes the affordance unambiguous.
+                  trailing: const Icon(Icons.chevron_right),
                   onTap: () => _select(item),
                 ),
               ),

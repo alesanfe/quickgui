@@ -141,7 +141,8 @@ class _AutomationPageState extends ConsumerState<AutomationPage> {
         const SizedBox(height: 16),
         if (run == null) ...[
           _buildForm(context, ui),
-          if (ui.plan != null) _PlanCard(plan: ui.plan!),
+          if (ui.plan != null)
+            _PlanCard(plan: ui.plan!, profile: _buildProfile()),
         ] else
           _RunCard(run: run, log: ui.log),
       ],
@@ -417,11 +418,13 @@ class _UnavailableNotice extends StatelessWidget {
   );
 }
 
-/// The resolved plan: provider plus the steps the engine will run.
+/// The resolved plan: target VM, provider, the steps the engine will
+/// run and the artefacts it will create (QGUI-AUTO-101).
 class _PlanCard extends StatelessWidget {
-  const _PlanCard({required this.plan});
+  const _PlanCard({required this.plan, required this.profile});
 
   final Map<String, dynamic> plan;
+  final AutomationProfile profile;
 
   @override
   Widget build(BuildContext context) {
@@ -442,11 +445,59 @@ class _PlanCard extends StatelessWidget {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
+            // Target + resources: what the user is about to create.
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                Chip(
+                  avatar: const Icon(Icons.computer, size: 16),
+                  label: Text(
+                    '${profile.name} — ${profile.os} ${profile.release}',
+                  ),
+                ),
+                Chip(label: Text('${profile.cpus} CPU · ${profile.ram} RAM')),
+                Chip(label: Text('${profile.diskSize} disk')),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              context.t('Steps the engine will run:'),
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            const SizedBox(height: 4),
             Wrap(
               spacing: 6,
               runSpacing: 6,
               children: [for (final s in steps) Chip(label: Text('$s'))],
             ),
+            const SizedBox(height: 8),
+            Text(
+              context.t(
+                    'Creates {0}/ with the disk and {0}.conf',
+                    args: [profile.name],
+                  ) +
+                  (profile.snapshot.isNotEmpty
+                      ? context.t(
+                          ', plus snapshot "{0}"',
+                          args: [profile.snapshot],
+                        )
+                      : '') +
+                  (profile.shutdown
+                      ? context.t(', and shuts down when done')
+                      : ''),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            if (profile.checks.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                context.t(
+                  'Post-install checks: {0}',
+                  args: [profile.checks.map((c) => c.name).join(', ')],
+                ),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
             for (final w in warnings)
               Padding(
                 padding: const EdgeInsets.only(top: 8),

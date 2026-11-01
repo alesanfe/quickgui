@@ -35,7 +35,34 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('4.9.9'), findsOneWidget);
     expect(find.text('swtpm'), findsOneWidget);
-    expect(find.text('Missing'), findsWidgets);
+    // DIAG-103: optional tools absent read as advisory, not 'Missing'.
+    expect(find.text('Not installed (optional)'), findsWidgets);
     expect(find.text('snapshots'), findsOneWidget);
+  });
+
+  testWidgets('a missing required tool still reads as Missing', (tester) async {
+    tester.view.physicalSize = const Size(1000, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          backendProvider.overrideWithValue(
+            FakeVirtualizationBackend()
+              ..capabilities = {
+                'schemaVersion': 1,
+                'applicationVersion': '4.9.9',
+                'capabilities': {'snapshots': true},
+              },
+          ),
+          hostProbeProvider.overrideWithValue(
+            FakeHostProbe()..tools.remove('qemu-img'),
+          ),
+        ],
+        child: testApp(home: const DiagnosticsPage()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Missing'), findsWidgets);
   });
 }

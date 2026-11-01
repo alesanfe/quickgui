@@ -2628,3 +2628,126 @@ msgstr "Sharing"
 msgid "Shut down {0}?"
 msgstr "Shut down {0}?"
 
+
+msgid ", and shuts down when done"
+msgstr ", and shuts down when done"
+
+msgid ", plus snapshot \"{0}\""
+msgstr ", plus snapshot \"{0}\""
+
+msgid "API contract"
+msgstr "API contract"
+
+msgid "Automatic resolves to {0} on this host. The change applies on the next start; tools marked \"not installed\" will fail at launch — check Diagnostics."
+msgstr "Automatic resolves to {0} on this host. The change applies on the next start; tools marked \"not installed\" will fail at launch — check Diagnostics."
+
+msgid "Could not reach the update service — check your internet connection."
+msgstr "Could not reach the update service — check your internet connection."
+
+msgid "Creates {0}/ with the disk and {0}.conf"
+msgstr "Creates {0}/ with the disk and {0}.conf"
+
+msgid "Delete snapshot"
+msgstr "Delete snapshot"
+
+msgid "Description"
+msgstr "Description"
+
+msgid "Disabled"
+msgstr "Disabled"
+
+msgid "Enabled"
+msgstr "Enabled"
+
+msgid "Everything is already at its default value."
+msgstr "Everything is already at its default value."
+
+msgid "Exposed to the guest as a network/shared folder. The guest needs the matching driver or mount helper, and changes apply on the next start. Prefer read-only data — guests can modify these files. Avoid sharing your whole home directory or credential folders."
+msgstr "Exposed to the guest as a network/shared folder. The guest needs the matching driver or mount helper, and changes apply on the next start. Prefer read-only data — guests can modify these files. Avoid sharing your whole home directory or credential folders."
+
+msgid "Extra shared directories"
+msgstr "Extra shared directories"
+
+msgid "Finished"
+msgstr "Finished"
+
+msgid "Guest-to-host inbox directories"
+msgstr "Guest-to-host inbox directories"
+
+msgid "Last checked: {0}"
+msgstr "Last checked: {0}"
+
+msgid "Mount tags"
+msgstr "Mount tags"
+
+msgid "No supported viewer (spicy, remote-viewer) was found on this host — install one or pick a different display type. Tools marked \"not installed\" will fail at launch; check Diagnostics."
+msgstr "No supported viewer (spicy, remote-viewer) was found on this host — install one or pick a different display type. Tools marked \"not installed\" will fail at launch; check Diagnostics."
+
+msgid "Not installed (optional)"
+msgstr "Not installed (optional)"
+
+msgid "Optional space-separated host paths shared via virtiofs (quickemu 5.0+)."
+msgstr "Optional space-separated host paths shared via virtiofs (quickemu 5.0+)."
+
+msgid "Optional — only needed for Windows/macOS guests that use a TPM."
+msgstr "Optional — only needed for Windows/macOS guests that use a TPM."
+
+msgid "Optional — opens the console of running machines; another viewer can replace it."
+msgstr "Optional — opens the console of running machines; another viewer can replace it."
+
+msgid "Optional — speeds up differential downloads."
+msgstr "Optional — speeds up differential downloads."
+
+msgid "Optional — used by some networking features and QMP socket probes."
+msgstr "Optional — used by some networking features and QMP socket probes."
+
+msgid "Post-install checks: {0}"
+msgstr "Post-install checks: {0}"
+
+msgid "Required for disk creation and resizing."
+msgstr "Required for disk creation and resizing."
+
+msgid "Required — the app drives this tool for every VM operation."
+msgstr "Required — the app drives this tool for every VM operation."
+
+msgid "Restore defaults"
+msgstr "Restore defaults"
+
+msgid "Space-separated directories the guest can write into (inboxes). Leave empty unless a workflow needs guest-to-host transfers."
+msgstr "Space-separated directories the guest can write into (inboxes). Leave empty unless a workflow needs guest-to-host transfers."
+
+msgid "Space-separated mount tags matching the extra directories, in the same order — the guest mounts them by tag."
+msgstr "Space-separated mount tags matching the extra directories, in the same order — the guest mounts them by tag."
+
+msgid "Started"
+msgstr "Started"
+
+msgid "Steps the engine will run:"
+msgstr "Steps the engine will run:"
+
+msgid "The structured command contract between Quickgui and the quickemu backend. A missing or incompatible contract falls back to parsing text output — most features still work, new ones may be unavailable."
+msgstr "The structured command contract between Quickgui and the quickemu backend. A missing or incompatible contract falls back to parsing text output — most features still work, new ones may be unavailable."
+
+msgid "The update check failed unexpectedly."
+msgstr "The update check failed unexpectedly."
+
+msgid "The update service did not respond in time — try again later."
+msgstr "The update service did not respond in time — try again later."
+
+msgid "The update service failed the security check — do not retry on an untrusted network."
+msgstr "The update service failed the security check — do not retry on an untrusted network."
+
+msgid "The update service is temporarily unavailable (HTTP error)."
+msgstr "The update service is temporarily unavailable (HTTP error)."
+
+msgid "The update service returned an unexpected response."
+msgstr "The update service returned an unexpected response."
+
+msgid "These settings will return to their defaults:"
+msgstr "These settings will return to their defaults:"
+
+msgid "version {0}"
+msgstr "version {0}"
+
+msgid "{0} s"
+msgstr "{0} s"

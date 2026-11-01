@@ -62,16 +62,30 @@ extension on _ManagerState {
           confPath: _vmConfFiles[currentVm] ?? '$currentVm.conf',
         );
       case 'shared':
-        // Structured picker + visible requirements (QGUI-SHARE-001/002):
-        // the user browses for a host directory and learns how it is
-        // exposed to the guest instead of typing a raw path.
+        // Structured model (QGUI-SHARE-101/103): primary share via
+        // public_dir, optional extra 9p shares (share_dirs/share_tags
+        // pair) and guest→host inboxes, each with its own explanation.
         _editVmConfValues(
           currentVm,
-          {'public_dir': context.t('Host directory to share')},
+          {
+            'public_dir': context.t('Host directory to share'),
+            'share_dirs': context.t('Extra shared directories'),
+            'share_tags': context.t('Mount tags'),
+            'share_in_dirs': context.t('Guest-to-host inbox directories'),
+          },
           title: context.t('Shared folder'),
           helpers: {
             'public_dir': context.t(
-              'Exposed to the guest as a network/shared folder. The guest needs the matching driver or mount helper, and changes apply on the next start. Prefer read-only data — guests can modify these files.',
+              'Exposed to the guest as a network/shared folder. The guest needs the matching driver or mount helper, and changes apply on the next start. Prefer read-only data — guests can modify these files. Avoid sharing your whole home directory or credential folders.',
+            ),
+            'share_dirs': context.t(
+              'Optional space-separated host paths shared via virtiofs (quickemu 5.0+).',
+            ),
+            'share_tags': context.t(
+              'Space-separated mount tags matching the extra directories, in the same order — the guest mounts them by tag.',
+            ),
+            'share_in_dirs': context.t(
+              'Space-separated directories the guest can write into (inboxes). Leave empty unless a workflow needs guest-to-host transfers.',
             ),
           },
           fieldBuilders: {
@@ -86,18 +100,28 @@ extension on _ManagerState {
       case 'display':
         // Viewer selector marks binaries the host probe did not find
         // (QGUI-VIEW-002) and explains when the change takes effect.
-        // Localised strings are captured before the async probe loop.
+        // 'Automatic' is resolved against the real host probe so the
+        // user sees which concrete viewer it will pick (QGUI-VIEW-101).
         final viewerLabel = context.t('Viewer');
         // The dialog shell already appends the VM name to the title.
         final viewerTitle = context.t('Display viewer');
-        final viewerHelper = context.t(
-          'Automatic lets quickemu pick an installed viewer at launch. The change applies on the next start.',
-        );
         final available = <String, bool>{};
         for (final v in const ['spicy', 'remote-viewer']) {
           available[v] = await _probe.hasTool(v);
         }
         if (!mounted) return;
+        final resolved = available.entries
+            .where((e) => e.value)
+            .map((e) => e.key)
+            .firstOrNull;
+        final viewerHelper = resolved == null
+            ? context.t(
+                'No supported viewer (spicy, remote-viewer) was found on this host — install one or pick a different display type. Tools marked "not installed" will fail at launch; check Diagnostics.',
+              )
+            : context.t(
+                'Automatic resolves to {0} on this host. The change applies on the next start; tools marked "not installed" will fail at launch — check Diagnostics.',
+                args: [resolved],
+              );
         _editVmConfValues(
           currentVm,
           {'viewer': viewerLabel},

@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
+import 'package:go_router/go_router.dart';
 import 'package:quickgui/core/constants/preference_keys.dart';
 import 'package:quickgui/core/extensions/preferences_repository_x.dart';
 import 'package:quickgui/features/activity/domain/app_operation.dart';
+import 'package:quickgui/features/activity/presentation/operation_tile.dart';
 import 'package:quickgui/features/activity/providers/activity_providers.dart';
 import 'package:quickgui/shared/models/operation_state.dart';
 import 'package:quickgui/shared/providers/preferences_providers.dart';
@@ -28,11 +30,13 @@ class _ActivityPageState extends ConsumerState<ActivityPage> {
   _StatusTab _tab = _StatusTab.all;
   ActivityFilter _filter = const ActivityFilter();
   final _searchCtrl = TextEditingController();
+  final _searchFocus = FocusNode(debugLabel: 'activity-search');
   var _restored = false;
 
   @override
   void dispose() {
     _searchCtrl.dispose();
+    _searchFocus.dispose();
     super.dispose();
   }
 
@@ -137,179 +141,188 @@ class _ActivityPageState extends ConsumerState<ActivityPage> {
     ];
     final requiresActionCount = all.where((e) => e.requiresAction).length;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(context.t('Activity')),
-        actions: [
-          if (_filter.isActive || _tab != _StatusTab.all)
-            IconButton(
-              tooltip: context.t('Clear filters'),
-              icon: const Icon(Icons.filter_alt_off),
-              onPressed: _clearFilters,
+    return CallbackShortcuts(
+      // Keyboard parity with the manager: Ctrl+F jumps to search.
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.keyF, control: true):
+            _searchFocus.requestFocus,
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(context.t('Activity')),
+          actions: [
+            if (_filter.isActive || _tab != _StatusTab.all)
+              IconButton(
+                tooltip: context.t('Clear filters'),
+                icon: const Icon(Icons.filter_alt_off),
+                onPressed: _clearFilters,
+              ),
+            if (all.isNotEmpty)
+              IconButton(
+                tooltip: context.t('Clear history'),
+                icon: const Icon(Icons.clear_all),
+                onPressed: () =>
+                    ref.read(activityProvider.notifier).clearHistory(),
+              ),
+          ],
+        ),
+        body: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            TextField(
+              controller: _searchCtrl,
+              focusNode: _searchFocus,
+              decoration: InputDecoration(
+                isDense: true,
+                prefixIcon: const Icon(Icons.search),
+                hintText: context.t('Search by machine, message or error code'),
+                suffixIcon: _filter.query.isEmpty
+                    ? null
+                    : IconButton(
+                        tooltip: context.t('Clear search'),
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchCtrl.clear();
+                          _apply(_filter.copyWith(query: ''));
+                        },
+                      ),
+                border: const OutlineInputBorder(),
+              ),
+              onChanged: (v) => _apply(_filter.copyWith(query: v.trim())),
             ),
-          if (all.isNotEmpty)
-            IconButton(
-              tooltip: context.t('Clear history'),
-              icon: const Icon(Icons.clear_all),
-              onPressed: () =>
-                  ref.read(activityProvider.notifier).clearHistory(),
-            ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          TextField(
-            controller: _searchCtrl,
-            decoration: InputDecoration(
-              isDense: true,
-              prefixIcon: const Icon(Icons.search),
-              hintText: context.t('Search by machine, message or error code'),
-              suffixIcon: _filter.query.isEmpty
-                  ? null
-                  : IconButton(
-                      tooltip: context.t('Clear search'),
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        _searchCtrl.clear();
-                        _apply(_filter.copyWith(query: ''));
-                      },
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                for (var i = 0; i < tabs.length; i++)
+                  FilterChip(
+                    selected: _tab == _StatusTab.values[i],
+                    label: Text(
+                      tabs[i].$2 > 0
+                          ? '${tabs[i].$1} (${tabs[i].$2})'
+                          : tabs[i].$1,
                     ),
-              border: const OutlineInputBorder(),
-            ),
-            onChanged: (v) => _apply(_filter.copyWith(query: v.trim())),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 4,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              for (var i = 0; i < tabs.length; i++)
-                FilterChip(
-                  selected: _tab == _StatusTab.values[i],
-                  label: Text(
-                    tabs[i].$2 > 0
-                        ? '${tabs[i].$1} (${tabs[i].$2})'
-                        : tabs[i].$1,
+                    onSelected: (_) => _setTab(_StatusTab.values[i]),
                   ),
-                  onSelected: (_) => _setTab(_StatusTab.values[i]),
-                ),
-              const VerticalDivider(),
-              if (kinds.length > 1)
-                PopupMenuButton<OperationKind?>(
-                  tooltip: context.t('Filter by type'),
-                  onSelected: (k) => _apply(_filter.copyWith(kind: () => k)),
+                const VerticalDivider(),
+                if (kinds.length > 1)
+                  PopupMenuButton<OperationKind?>(
+                    tooltip: context.t('Filter by type'),
+                    onSelected: (k) => _apply(_filter.copyWith(kind: () => k)),
+                    itemBuilder: (context) => [
+                      PopupMenuItem(child: Text(context.t('All types'))),
+                      for (final k in kinds)
+                        PopupMenuItem(
+                          value: k,
+                          child: Text(operationKindLabel(context, k)),
+                        ),
+                    ],
+                    child: Chip(
+                      avatar: const Icon(Icons.filter_list, size: 18),
+                      label: Text(
+                        _filter.kind == null
+                            ? context.t('Type')
+                            : operationKindLabel(context, _filter.kind!),
+                      ),
+                    ),
+                  ),
+                if (targets.length > 1)
+                  PopupMenuButton<String?>(
+                    tooltip: context.t('Filter by machine'),
+                    onSelected: (t) =>
+                        _apply(_filter.copyWith(target: () => t)),
+                    itemBuilder: (context) => [
+                      PopupMenuItem(child: Text(context.t('All machines'))),
+                      for (final t in targets)
+                        PopupMenuItem(value: t, child: Text(t)),
+                    ],
+                    child: Chip(
+                      avatar: const Icon(Icons.computer, size: 18),
+                      label: Text(_filter.target ?? context.t('Machine')),
+                    ),
+                  ),
+                PopupMenuButton<Duration?>(
+                  tooltip: context.t('Filter by time'),
+                  onSelected: (d) => _apply(_filter.copyWith(maxAge: () => d)),
                   itemBuilder: (context) => [
-                    PopupMenuItem(child: Text(context.t('All types'))),
-                    for (final k in kinds)
+                    for (final (duration, label) in _timeRanges)
                       PopupMenuItem(
-                        value: k,
-                        child: Text(operationKindLabel(context, k)),
+                        value: duration,
+                        child: Text(context.t(label)),
                       ),
                   ],
                   child: Chip(
-                    avatar: const Icon(Icons.filter_list, size: 18),
+                    avatar: const Icon(Icons.schedule, size: 18),
                     label: Text(
-                      _filter.kind == null
-                          ? context.t('Type')
-                          : operationKindLabel(context, _filter.kind!),
-                    ),
-                  ),
-                ),
-              if (targets.length > 1)
-                PopupMenuButton<String?>(
-                  tooltip: context.t('Filter by machine'),
-                  onSelected: (t) => _apply(_filter.copyWith(target: () => t)),
-                  itemBuilder: (context) => [
-                    PopupMenuItem(child: Text(context.t('All machines'))),
-                    for (final t in targets)
-                      PopupMenuItem(value: t, child: Text(t)),
-                  ],
-                  child: Chip(
-                    avatar: const Icon(Icons.computer, size: 18),
-                    label: Text(_filter.target ?? context.t('Machine')),
-                  ),
-                ),
-              PopupMenuButton<Duration?>(
-                tooltip: context.t('Filter by time'),
-                onSelected: (d) => _apply(_filter.copyWith(maxAge: () => d)),
-                itemBuilder: (context) => [
-                  for (final (duration, label) in _timeRanges)
-                    PopupMenuItem(
-                      value: duration,
-                      child: Text(context.t(label)),
-                    ),
-                ],
-                child: Chip(
-                  avatar: const Icon(Icons.schedule, size: 18),
-                  label: Text(
-                    context.t(
-                      _timeRanges
-                          .firstWhere(
-                            (e) => e.$1 == _filter.maxAge,
-                            orElse: () => _timeRanges.first,
-                          )
-                          .$2,
-                    ),
-                  ),
-                ),
-              ),
-              FilterChip(
-                selected: _filter.retryableOnly,
-                label: Text(context.t('Retryable only')),
-                onSelected: (v) => _apply(_filter.copyWith(retryableOnly: v)),
-              ),
-              FilterChip(
-                selected: _filter.requiresActionOnly,
-                avatar: requiresActionCount > 0
-                    ? Badge(label: Text('$requiresActionCount'))
-                    : null,
-                label: Text(context.t('Requires action')),
-                onSelected: (v) =>
-                    _apply(_filter.copyWith(requiresActionOnly: v)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          if (_tab == _StatusTab.running || _tab == _StatusTab.all) ...[
-            if (visibleActive.isNotEmpty)
-              _SectionHeader(context.t('In progress')),
-            for (final op in visibleActive) OperationTile(op: op),
-            if (visibleActive.isNotEmpty) const SizedBox(height: 16),
-          ],
-          if (filtered.isNotEmpty || visibleActive.isNotEmpty)
-            _SectionHeader(context.t('History')),
-          if (filtered.isEmpty && visibleActive.isEmpty)
-            Padding(
-              padding: const EdgeInsets.all(32),
-              child: Center(
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.history,
-                      size: 48,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      !_filter.isActive
-                          ? context.t(
-                              'No activity yet. Downloads and machine '
-                              'operations will show up here.',
+                      context.t(
+                        _timeRanges
+                            .firstWhere(
+                              (e) => e.$1 == _filter.maxAge,
+                              orElse: () => _timeRanges.first,
                             )
-                          : context.t(
-                              'No operations match the current filters.',
-                            ),
-                      textAlign: TextAlign.center,
+                            .$2,
+                      ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            )
-          else
-            for (final e in filtered) _HistoryTile(entry: e),
-        ],
+                FilterChip(
+                  selected: _filter.retryableOnly,
+                  label: Text(context.t('Retryable only')),
+                  onSelected: (v) => _apply(_filter.copyWith(retryableOnly: v)),
+                ),
+                FilterChip(
+                  selected: _filter.requiresActionOnly,
+                  avatar: requiresActionCount > 0
+                      ? Badge(label: Text('$requiresActionCount'))
+                      : null,
+                  label: Text(context.t('Requires action')),
+                  onSelected: (v) =>
+                      _apply(_filter.copyWith(requiresActionOnly: v)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            if (_tab == _StatusTab.running || _tab == _StatusTab.all) ...[
+              if (visibleActive.isNotEmpty)
+                _SectionHeader(context.t('In progress')),
+              for (final op in visibleActive) OperationTile(op: op),
+              if (visibleActive.isNotEmpty) const SizedBox(height: 16),
+            ],
+            if (filtered.isNotEmpty || visibleActive.isNotEmpty)
+              _SectionHeader(context.t('History')),
+            if (filtered.isEmpty && visibleActive.isEmpty)
+              Padding(
+                padding: const EdgeInsets.all(32),
+                child: Center(
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.history,
+                        size: 48,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        !_filter.isActive
+                            ? context.t(
+                                'No activity yet. Downloads and machine '
+                                'operations will show up here.',
+                              )
+                            : context.t(
+                                'No operations match the current filters.',
+                              ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              for (final e in filtered) _HistoryTile(entry: e),
+          ],
+        ),
       ),
     );
   }
@@ -499,6 +512,9 @@ class _HistoryTile extends ConsumerWidget {
     };
     return ListTile(
       dense: true,
+      // ACT-103: tapping a row opens the full record — start/end times,
+      // message and contextual actions (Open machine, Copy report).
+      onTap: () => _showDetail(context),
       leading: Icon(operationKindIcon(entry.kind)),
       title: Text(
         '${operationKindLabel(context, entry.kind)} — ${entry.target}'
@@ -506,7 +522,11 @@ class _HistoryTile extends ConsumerWidget {
         '${entry.occurrences > 1 ? ' ×${entry.occurrences}' : ''}',
       ),
       subtitle: Text(
-        '${_formatTime(entry.completedAt)}'
+        // ACT-101: absolute time + relative age + duration — the row
+        // answers "what, when, how long" without opening a detail view.
+        '${_formatTime(entry.completedAt)} '
+        '(${formatOperationAgo(context, entry.completedAt)}) · '
+        '${formatOperationDuration(context, entry.completedAt.difference(entry.startedAt))}'
         '${lifecycleLabel != null ? ' — $lifecycleLabel' : ''}'
         '${entry.failureCode != null ? ' — ${entry.failureCode}' : ''}'
         '${entry.message.isNotEmpty ? ' — ${entry.message}' : ''}',
@@ -546,6 +566,76 @@ class _HistoryTile extends ConsumerWidget {
               onPressed: () => _copyDiagnostic(context),
             ),
           Icon(icon, color: color, semanticLabel: statusLabel),
+        ],
+      ),
+    );
+  }
+
+  void _showDetail(BuildContext context) {
+    final canOpen =
+        GoRouter.maybeOf(context) != null && entry.target.isNotEmpty;
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          '${operationKindLabel(context, entry.kind)} — ${entry.target}',
+        ),
+        content: SizedBox(
+          width: 720,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${context.t('Started')}: ${_formatTime(entry.startedAt)} — '
+                  '${context.t('Finished')}: ${_formatTime(entry.completedAt)} '
+                  '(${formatOperationAgo(context, entry.completedAt)}) · '
+                  '${context.t('Duration')}: ${formatOperationDuration(context, entry.completedAt.difference(entry.startedAt))}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: 8),
+                SelectableText(
+                  entry.message.isEmpty
+                      ? switch (entry.status) {
+                          OperationStatus.succeeded => context.t('Completed'),
+                          OperationStatus.failed => context.t('Failed'),
+                          OperationStatus.cancelled => context.t('Cancelled'),
+                          OperationStatus.interrupted => context.t(
+                            'Interrupted',
+                          ),
+                        }
+                      : entry.message,
+                  style: const TextStyle(fontFamily: 'monospace'),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          if (canOpen)
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                context.push('/machines/${Uri.encodeComponent(entry.target)}');
+              },
+              child: Text(context.t('Open machine')),
+            ),
+          TextButton(
+            onPressed: () => Clipboard.setData(
+              ClipboardData(
+                text:
+                    '${entry.completedAt.toIso8601String()} '
+                    '${entry.kind.name} ${entry.status.name}\n'
+                    '${entry.message}',
+              ),
+            ),
+            child: Text(context.t('Copy report')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(context.t('Close')),
+          ),
         ],
       ),
     );

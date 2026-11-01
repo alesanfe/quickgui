@@ -2623,3 +2623,126 @@ msgstr ""
 msgid "Shut down {0}?"
 msgstr ""
 
+
+msgid ", and shuts down when done"
+msgstr ""
+
+msgid ", plus snapshot \"{0}\""
+msgstr ""
+
+msgid "API contract"
+msgstr ""
+
+msgid "Automatic resolves to {0} on this host. The change applies on the next start; tools marked \"not installed\" will fail at launch — check Diagnostics."
+msgstr ""
+
+msgid "Could not reach the update service — check your internet connection."
+msgstr ""
+
+msgid "Creates {0}/ with the disk and {0}.conf"
+msgstr ""
+
+msgid "Delete snapshot"
+msgstr ""
+
+msgid "Description"
+msgstr ""
+
+msgid "Disabled"
+msgstr ""
+
+msgid "Enabled"
+msgstr ""
+
+msgid "Everything is already at its default value."
+msgstr ""
+
+msgid "Exposed to the guest as a network/shared folder. The guest needs the matching driver or mount helper, and changes apply on the next start. Prefer read-only data — guests can modify these files. Avoid sharing your whole home directory or credential folders."
+msgstr ""
+
+msgid "Extra shared directories"
+msgstr ""
+
+msgid "Finished"
+msgstr ""
+
+msgid "Guest-to-host inbox directories"
+msgstr ""
+
+msgid "Last checked: {0}"
+msgstr ""
+
+msgid "Mount tags"
+msgstr ""
+
+msgid "No supported viewer (spicy, remote-viewer) was found on this host — install one or pick a different display type. Tools marked \"not installed\" will fail at launch; check Diagnostics."
+msgstr ""
+
+msgid "Not installed (optional)"
+msgstr ""
+
+msgid "Optional space-separated host paths shared via virtiofs (quickemu 5.0+)."
+msgstr ""
+
+msgid "Optional — only needed for Windows/macOS guests that use a TPM."
+msgstr ""
+
+msgid "Optional — opens the console of running machines; another viewer can replace it."
+msgstr ""
+
+msgid "Optional — speeds up differential downloads."
+msgstr ""
+
+msgid "Optional — used by some networking features and QMP socket probes."
+msgstr ""
+
+msgid "Post-install checks: {0}"
+msgstr ""
+
+msgid "Required for disk creation and resizing."
+msgstr ""
+
+msgid "Required — the app drives this tool for every VM operation."
+msgstr ""
+
+msgid "Restore defaults"
+msgstr ""
+
+msgid "Space-separated directories the guest can write into (inboxes). Leave empty unless a workflow needs guest-to-host transfers."
+msgstr ""
+
+msgid "Space-separated mount tags matching the extra directories, in the same order — the guest mounts them by tag."
+msgstr ""
+
+msgid "Started"
+msgstr ""
+
+msgid "Steps the engine will run:"
+msgstr ""
+
+msgid "The structured command contract between Quickgui and the quickemu backend. A missing or incompatible contract falls back to parsing text output — most features still work, new ones may be unavailable."
+msgstr ""
+
+msgid "The update check failed unexpectedly."
+msgstr ""
+
+msgid "The update service did not respond in time — try again later."
+msgstr ""
+
+msgid "The update service failed the security check — do not retry on an untrusted network."
+msgstr ""
+
+msgid "The update service is temporarily unavailable (HTTP error)."
+msgstr ""
+
+msgid "The update service returned an unexpected response."
+msgstr ""
+
+msgid "These settings will return to their defaults:"
+msgstr ""
+
+msgid "version {0}"
+msgstr ""
+
+msgid "{0} s"
+msgstr ""

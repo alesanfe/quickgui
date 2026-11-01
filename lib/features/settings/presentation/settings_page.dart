@@ -15,8 +15,11 @@ import 'package:quickgui/core/constants/preference_keys.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/features/machines/providers/vm_library_providers.dart';
+import 'package:quickgui/features/activity/presentation/operation_tile.dart';
 import 'package:quickgui/features/notifications/domain/vm_event_notification.dart';
 import 'package:quickgui/features/notifications/providers/notification_providers.dart';
+import 'package:quickgui/features/settings/domain/settings_state.dart';
+import 'package:quickgui/features/settings/domain/ui_preferences.dart';
 import 'package:quickgui/features/settings/providers/settings_providers.dart';
 import 'package:quickgui/features/settings/providers/ui_preferences_providers.dart';
 import 'package:quickgui/features/settings/providers/update_check_providers.dart';
@@ -39,6 +42,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   /// page structure is data-driven so a query can hide non-matching
   /// tiles without touching their behaviour.
   String _search = '';
+  final _searchFocus = FocusNode(debugLabel: 'settings-search');
+
+  @override
+  void dispose() {
+    _searchFocus.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -286,67 +296,86 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     ];
     final query = _search.trim().toLowerCase();
     return Scaffold(
-      appBar: AppBar(title: Text(context.t('Settings'))),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          TextField(
-            decoration: InputDecoration(
-              isDense: true,
-              prefixIcon: const Icon(Icons.search),
-              hintText: context.t('Search settings'),
-              border: const OutlineInputBorder(),
-              suffixIcon: _search.isEmpty
-                  ? null
-                  : IconButton(
-                      tooltip: context.t('Clear search'),
-                      icon: const Icon(Icons.clear),
-                      onPressed: () => setState(() => _search = ''),
-                    ),
-            ),
-            onChanged: (v) => setState(() => _search = v),
-          ),
-          const SizedBox(height: 8),
-          for (final (header, items) in sections)
-            if (query.isEmpty ||
-                items.any((e) => e.$1.toLowerCase().contains(query))) ...[
-              _header(header),
-              for (final (keywords, item) in items)
-                if (query.isEmpty || keywords.toLowerCase().contains(query))
-                  item,
-              const Divider(),
-            ],
-          _vmNotificationSection(context),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: RichText(
-              textAlign: TextAlign.center,
-              text: TextSpan(
-                // Not DefaultTextStyle.of(context): this context is the
-                // page's own element, above the Scaffold's Material, so
-                // it resolves the WidgetsApp fallback style (48px
-                // monospace) instead of the body style.
-                style: Theme.of(context).textTheme.bodySmall,
-                children: [
-                  const TextSpan(
-                    text: 'Authors\n',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  _link('Yannick Mauray', 'https://github.com/ymauray'),
-                  const TextSpan(text: ', '),
-                  _link('Mark Johnson', 'https://github.com/marxjohnson'),
-                  const TextSpan(text: ', '),
-                  _link('Martin Wimpress', 'https://wimpysworld.io'),
-                  TextSpan(text: '\n© 2021 - ${DateTime.now().year} '),
-                  _link(
-                    'Quickemu Project',
-                    'https://github.com/quickemu-project',
-                  ),
-                ],
-              ),
-            ),
+      appBar: AppBar(
+        title: Text(context.t('Settings')),
+        actions: [
+          // SET-101: granular restore — a preview lists exactly which
+          // settings differ from defaults before anything is reset.
+          IconButton(
+            tooltip: context.t('Restore defaults'),
+            icon: const Icon(Icons.restore),
+            onPressed: () => _restoreDefaults(settings, prefs),
           ),
         ],
+      ),
+      body: CallbackShortcuts(
+        // Keyboard parity: Ctrl+F jumps straight to the search field.
+        bindings: {
+          const SingleActivator(LogicalKeyboardKey.keyF, control: true):
+              _searchFocus.requestFocus,
+        },
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            TextField(
+              focusNode: _searchFocus,
+              decoration: InputDecoration(
+                isDense: true,
+                prefixIcon: const Icon(Icons.search),
+                hintText: context.t('Search settings'),
+                border: const OutlineInputBorder(),
+                suffixIcon: _search.isEmpty
+                    ? null
+                    : IconButton(
+                        tooltip: context.t('Clear search'),
+                        icon: const Icon(Icons.clear),
+                        onPressed: () => setState(() => _search = ''),
+                      ),
+              ),
+              onChanged: (v) => setState(() => _search = v),
+            ),
+            const SizedBox(height: 8),
+            for (final (header, items) in sections)
+              if (query.isEmpty ||
+                  items.any((e) => e.$1.toLowerCase().contains(query))) ...[
+                _header(header),
+                for (final (keywords, item) in items)
+                  if (query.isEmpty || keywords.toLowerCase().contains(query))
+                    item,
+                const Divider(),
+              ],
+            _vmNotificationSection(context),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  // Not DefaultTextStyle.of(context): this context is the
+                  // page's own element, above the Scaffold's Material, so
+                  // it resolves the WidgetsApp fallback style (48px
+                  // monospace) instead of the body style.
+                  style: Theme.of(context).textTheme.bodySmall,
+                  children: [
+                    const TextSpan(
+                      text: 'Authors\n',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    _link('Yannick Mauray', 'https://github.com/ymauray'),
+                    const TextSpan(text: ', '),
+                    _link('Mark Johnson', 'https://github.com/marxjohnson'),
+                    const TextSpan(text: ', '),
+                    _link('Martin Wimpress', 'https://wimpysworld.io'),
+                    TextSpan(text: '\n© 2021 - ${DateTime.now().year} '),
+                    _link(
+                      'Quickemu Project',
+                      'https://github.com/quickemu-project',
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -445,6 +474,83 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 
+  /// SET-101: shows the diff from defaults before resetting — nothing
+  /// is restored silently.
+  Future<void> _restoreDefaults(
+    SettingsState settings,
+    UiPreferences prefs,
+  ) async {
+    const defaults = UiPreferences();
+    final systemLocale = SettingsState.normalizeLocale(
+      Platform.localeName,
+      supportedLocales,
+    );
+    final changes = <(String, String)>[
+      if (settings.darkMode) (context.t('Use dark mode'), context.t('Enabled')),
+      if (settings.locale != systemLocale)
+        (
+          context.t('Language'),
+          localeNames[settings.locale] ?? settings.locale,
+        ),
+      if (prefs.refreshIntervalSeconds != defaults.refreshIntervalSeconds)
+        (context.t('Refresh interval'), '${prefs.refreshIntervalSeconds} s'),
+      if (prefs.preferredViewer != defaults.preferredViewer)
+        (context.t('Preferred display viewer'), prefs.preferredViewer),
+      if (prefs.advancedConfig)
+        (context.t('Advanced configuration mode'), context.t('Enabled')),
+      if (!prefs.notifyOnComplete)
+        (context.t('Notify when downloads finish'), context.t('Disabled')),
+      if (!prefs.confirmRiskyActions)
+        (context.t('Confirm risky actions'), context.t('Disabled')),
+    ];
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => QDialog(
+        title: context.t('Restore defaults'),
+        width: 420,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(context.t('Cancel')),
+          ),
+          FilledButton(
+            onPressed: changes.isEmpty
+                ? null
+                : () => Navigator.of(context).pop(true),
+            child: Text(context.t('Restore')),
+          ),
+        ],
+        child: changes.isEmpty
+            ? Text(context.t('Everything is already at its default value.'))
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.t('These settings will return to their defaults:'),
+                  ),
+                  const SizedBox(height: 8),
+                  for (final (name, current) in changes)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: Text('• $name — $current'),
+                    ),
+                ],
+              ),
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    final settingsCtl = ref.read(settingsProvider.notifier);
+    final prefsCtl = ref.read(uiPreferencesProvider.notifier);
+    settingsCtl.setDarkMode(enabled: false);
+    settingsCtl.setLocale(systemLocale);
+    await prefsCtl.setRefreshIntervalSeconds(defaults.refreshIntervalSeconds);
+    await prefsCtl.setPreferredViewer(defaults.preferredViewer);
+    await prefsCtl.setNotifyOnComplete(defaults.notifyOnComplete);
+    await prefsCtl.setConfirmRiskyActions(defaults.confirmRiskyActions);
+    await prefsCtl.setAdvancedConfig(defaults.advancedConfig);
+  }
+
   TextSpan _link(String text, String url) => TextSpan(
     text: text,
     style: TextStyle(
@@ -454,12 +560,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     recognizer: TapGestureRecognizer()..onTap = () => launchUrl(Uri.parse(url)),
   );
 
-  /// QGUI-UPD-001/002: the result dialog keeps its own state — a failed
-  /// check offers Retry without leaving the dialog, the request shows
-  /// progress and the message does not blindly blame the network.
+  /// QGUI-UPD-001/002/101: the result dialog keeps its own state — a
+  /// failed check offers Retry without leaving the dialog, errors are
+  /// classified (connection vs service vs unexpected response) and the
+  /// last check timestamp stays visible.
   Future<void> _checkUpdates() async {
     var checking = true;
     var latest = '';
+    String? error;
+    DateTime? checkedAt;
     final current = ref.read(hostProbeProvider).appVersion;
     await showDialog<void>(
       context: context,
@@ -467,24 +576,45 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         builder: (context, setState) {
           Future<void> check() async {
             setState(() => checking = true);
-            final v = await ref.read(latestReleaseProvider)();
+            final r = await ref.read(latestReleaseProvider)();
             if (context.mounted) {
               setState(() {
-                latest = v;
+                latest = r.version;
+                error = r.errorKind;
+                checkedAt = DateTime.now();
                 checking = false;
               });
             }
           }
 
-          if (checking && latest.isEmpty) {
+          if (checking && latest.isEmpty && error == null) {
             // First frame — kick the initial request.
             Future.microtask(check);
           }
+          final errorText = switch (error) {
+            'connection' => context.t(
+              'Could not reach the update service — check your internet connection.',
+            ),
+            'timeout' => context.t(
+              'The update service did not respond in time — try again later.',
+            ),
+            'tls' => context.t(
+              'The update service failed the security check — do not retry on an untrusted network.',
+            ),
+            'service' => context.t(
+              'The update service is temporarily unavailable (HTTP error).',
+            ),
+            'response' => context.t(
+              'The update service returned an unexpected response.',
+            ),
+            'unknown' => context.t('The update check failed unexpectedly.'),
+            _ => '',
+          };
           return QDialog(
             title: context.t('Check for updates'),
             width: 420,
             actions: [
-              if (!checking && latest.isEmpty)
+              if (!checking && error != null)
                 TextButton.icon(
                   icon: const Icon(Icons.refresh, size: 18),
                   label: Text(context.t('Retry')),
@@ -509,15 +639,33 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     padding: EdgeInsets.all(16),
                     child: Center(child: CircularProgressIndicator()),
                   )
-                : Text(
-                    latest.isEmpty
-                        ? context.t(
-                            'Could not check for updates — the update service was unreachable or returned an invalid response.',
-                          )
-                        : context.t(
-                            'Installed: {0}\nLatest: {1}',
-                            args: [current, latest],
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        errorText.isNotEmpty
+                            ? errorText
+                            : context.t(
+                                'Installed: {0}\nLatest: {1}',
+                                args: [current, latest],
+                              ),
+                      ),
+                      if (checkedAt != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text(
+                            // Relative label — an absolute timestamp would
+                            // make this dialog non-deterministic in
+                            // capture tests.
+                            context.t(
+                              'Last checked: {0}',
+                              args: [formatOperationAgo(context, checkedAt!)],
+                            ),
+                            style: Theme.of(context).textTheme.bodySmall,
                           ),
+                        ),
+                    ],
                   ),
           );
         },

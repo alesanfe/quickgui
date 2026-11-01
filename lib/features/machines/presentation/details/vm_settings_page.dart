@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show LogicalKeyboardKey;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:go_router/go_router.dart';
@@ -539,212 +540,227 @@ class _VmSettingsPageState extends ConsumerState<VmSettingsPage> {
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _onPopAttempt();
       },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(context.t('Settings — {0}', args: [widget.vmName])),
-          actions: [
-            Tooltip(
-              message: context.t(
-                'Show all options, including ones not covered by the basic editor',
+      child: CallbackShortcuts(
+        // Ctrl+S saves like the button does — a desktop form is expected
+        // to honour the save accelerator (QGUI-X-002).
+        bindings: {
+          const SingleActivator(LogicalKeyboardKey.keyS, control: true): () {
+            if (!_saving && _isDirty) _save();
+          },
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(context.t('Settings — {0}', args: [widget.vmName])),
+            actions: [
+              Tooltip(
+                message: context.t(
+                  'Show all options, including ones not covered by the basic editor',
+                ),
+                child: Row(
+                  children: [
+                    Text(context.t('Advanced')),
+                    Switch(
+                      value: _advanced,
+                      onChanged: (v) => setState(() => _advanced = v),
+                    ),
+                  ],
+                ),
               ),
-              child: Row(
-                children: [
-                  Text(context.t('Advanced')),
-                  Switch(
-                    value: _advanced,
-                    onChanged: (v) => setState(() => _advanced = v),
+              const SizedBox(width: 8),
+              IconButton(
+                tooltip: context.t('Open config documentation'),
+                icon: const Icon(Icons.help_outline),
+                onPressed: () => launchUrl(
+                  Uri.parse(
+                    'https://github.com/quickemu-project/quickemu/blob/master/docs/quickemu_conf.5.md',
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            IconButton(
-              tooltip: context.t('Open config documentation'),
-              icon: const Icon(Icons.help_outline),
-              onPressed: () => launchUrl(
-                Uri.parse(
-                  'https://github.com/quickemu-project/quickemu/blob/master/docs/quickemu_conf.5.md',
-                ),
-                mode: LaunchMode.externalApplication,
-              ),
-            ),
-          ],
-        ),
-        body: _loading
-            ? const Center(child: CircularProgressIndicator())
-            : _loadFailed
-            ? Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(context.t('Unable to load configuration')),
-                    const SizedBox(height: 8),
-                    FilledButton(
-                      onPressed: _load,
-                      child: Text(context.t('Retry')),
-                    ),
-                  ],
-                ),
-              )
-            : Form(
-                key: _form,
-                child: ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    Card(
-                      child: ListTile(
-                        leading: const Icon(Icons.info_outline),
-                        title: Text(
-                          context.t('Changes take effect at the next start'),
-                        ),
-                        subtitle: Text(
-                          context.t(
-                            'Stop the machine before changing disks, firmware or network configuration.',
-                          ),
-                        ),
-                      ),
-                    ),
-                    // Section jump bar + settings search (ALLSET-004):
-                    // chips scroll to their card, the field filters by
-                    // label, key or current value without hiding errors.
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: TextField(
-                        decoration: InputDecoration(
-                          isDense: true,
-                          prefixIcon: const Icon(Icons.search),
-                          hintText: context.t('Search settings'),
-                          border: const OutlineInputBorder(),
-                          suffixIcon: _search.isEmpty
-                              ? null
-                              : IconButton(
-                                  tooltip: context.t('Clear search'),
-                                  icon: const Icon(Icons.clear),
-                                  onPressed: () => setState(() => _search = ''),
-                                ),
-                        ),
-                        onChanged: (v) => setState(() => _search = v),
-                      ),
-                    ),
-                    if (filter == null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Wrap(
-                          spacing: 6,
-                          runSpacing: 4,
-                          children: [
-                            for (final s in sections)
-                              ActionChip(
-                                label: Text(s.title),
-                                onPressed: () => _scrollToSection(s.title),
-                              ),
-                            if (_advanced && _extraKeys.isNotEmpty)
-                              ActionChip(
-                                label: Text(context.t('Advanced (other keys)')),
-                                onPressed: () => _scrollToSection(
-                                  context.t('Advanced (other keys)'),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    for (final section in sections)
-                      _SectionCard(
-                        key: _sectionKeys[section.title],
-                        title: section.title,
-                        errorCount: section.fields
-                            .where((k) => _errors.containsKey(k))
-                            .length,
-                        fields: [
-                          for (final key in section.fields)
-                            if (_matchesSearch(key, _labelFor(context, key)))
-                              (key, _controllerFor(key)),
-                        ],
-                        state: this,
-                      ),
-                    if (_advanced && _extraKeys.isNotEmpty)
-                      _SectionCard(
-                        key: _sectionKeys[context.t('Advanced (other keys)')],
-                        title: context.t('Advanced (other keys)'),
-                        errorCount: _extraKeys
-                            .where((k) => _errors.containsKey(k))
-                            .length,
-                        fields: [
-                          for (final key in _extraKeys)
-                            if (_matchesSearch(key, key))
-                              (key, _controllerFor(key)),
-                        ],
-                        state: this,
-                      ),
-                    const SizedBox(height: 24),
-
-                    if (_advanced)
-                      TextButton.icon(
-                        onPressed: () => showDialog<void>(
-                          context: context,
-                          builder: (context) => VmConfigEditorDialog(
-                            vmName: widget.vmName,
-                            confPath: _confPath,
-                          ),
-                        ),
-                        icon: const Icon(Icons.code),
-                        label: Text(context.t('Edit raw configuration')),
-                      ),
-                  ],
+                  mode: LaunchMode.externalApplication,
                 ),
               ),
-        // Fixed action bar (ALLSET-002): cancel/save always visible,
-        // unsaved-changes indicator and an error summary next to Save.
-        bottomNavigationBar: _loading || _loadFailed
-            ? null
-            : SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
+            ],
+          ),
+          body: _loading
+              ? const Center(child: CircularProgressIndicator())
+              : _loadFailed
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (_errors.isNotEmpty)
-                        InputChip(
-                          avatar: Icon(
-                            Icons.error_outline,
-                            size: 18,
-                            color: Theme.of(context).colorScheme.error,
-                          ),
-                          label: Text(
-                            context.t(
-                              '{0} invalid',
-                              args: ['${_errors.length}'],
-                            ),
-                          ),
-                          onPressed: () =>
-                              _scrollToSection(_sectionOf(_errors.keys.first)),
-                        )
-                      else
-                        InputChip(
-                          avatar: Icon(
-                            _isDirty ? Icons.edit : Icons.check_circle_outline,
-                            size: 18,
-                          ),
-                          label: Text(
-                            _isDirty
-                                ? context.t('Unsaved changes')
-                                : context.t('No changes'),
-                          ),
-                        ),
-                      const Spacer(),
-                      TextButton(
-                        onPressed: _onPopAttempt,
-                        child: Text(context.t('Cancel')),
-                      ),
-                      const SizedBox(width: 8),
-                      FilledButton.icon(
-                        icon: const Icon(Icons.save),
-                        label: Text(context.t('Save')),
-                        onPressed: _saving || !_isDirty ? null : _save,
+                      Text(context.t('Unable to load configuration')),
+                      const SizedBox(height: 8),
+                      FilledButton(
+                        onPressed: _load,
+                        child: Text(context.t('Retry')),
                       ),
                     ],
                   ),
+                )
+              : Form(
+                  key: _form,
+                  child: ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      Card(
+                        child: ListTile(
+                          leading: const Icon(Icons.info_outline),
+                          title: Text(
+                            context.t('Changes take effect at the next start'),
+                          ),
+                          subtitle: Text(
+                            context.t(
+                              'Stop the machine before changing disks, firmware or network configuration.',
+                            ),
+                          ),
+                        ),
+                      ),
+                      // Section jump bar + settings search (ALLSET-004):
+                      // chips scroll to their card, the field filters by
+                      // label, key or current value without hiding errors.
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: TextField(
+                          decoration: InputDecoration(
+                            isDense: true,
+                            prefixIcon: const Icon(Icons.search),
+                            hintText: context.t('Search settings'),
+                            border: const OutlineInputBorder(),
+                            suffixIcon: _search.isEmpty
+                                ? null
+                                : IconButton(
+                                    tooltip: context.t('Clear search'),
+                                    icon: const Icon(Icons.clear),
+                                    onPressed: () =>
+                                        setState(() => _search = ''),
+                                  ),
+                          ),
+                          onChanged: (v) => setState(() => _search = v),
+                        ),
+                      ),
+                      if (filter == null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Wrap(
+                            spacing: 6,
+                            runSpacing: 4,
+                            children: [
+                              for (final s in sections)
+                                ActionChip(
+                                  label: Text(s.title),
+                                  onPressed: () => _scrollToSection(s.title),
+                                ),
+                              if (_advanced && _extraKeys.isNotEmpty)
+                                ActionChip(
+                                  label: Text(
+                                    context.t('Advanced (other keys)'),
+                                  ),
+                                  onPressed: () => _scrollToSection(
+                                    context.t('Advanced (other keys)'),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      for (final section in sections)
+                        _SectionCard(
+                          key: _sectionKeys[section.title],
+                          title: section.title,
+                          errorCount: section.fields
+                              .where((k) => _errors.containsKey(k))
+                              .length,
+                          fields: [
+                            for (final key in section.fields)
+                              if (_matchesSearch(key, _labelFor(context, key)))
+                                (key, _controllerFor(key)),
+                          ],
+                          state: this,
+                        ),
+                      if (_advanced && _extraKeys.isNotEmpty)
+                        _SectionCard(
+                          key: _sectionKeys[context.t('Advanced (other keys)')],
+                          title: context.t('Advanced (other keys)'),
+                          errorCount: _extraKeys
+                              .where((k) => _errors.containsKey(k))
+                              .length,
+                          fields: [
+                            for (final key in _extraKeys)
+                              if (_matchesSearch(key, key))
+                                (key, _controllerFor(key)),
+                          ],
+                          state: this,
+                        ),
+                      const SizedBox(height: 24),
+
+                      if (_advanced)
+                        TextButton.icon(
+                          onPressed: () => showDialog<void>(
+                            context: context,
+                            builder: (context) => VmConfigEditorDialog(
+                              vmName: widget.vmName,
+                              confPath: _confPath,
+                            ),
+                          ),
+                          icon: const Icon(Icons.code),
+                          label: Text(context.t('Edit raw configuration')),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
+          // Fixed action bar (ALLSET-002): cancel/save always visible,
+          // unsaved-changes indicator and an error summary next to Save.
+          bottomNavigationBar: _loading || _loadFailed
+              ? null
+              : SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        if (_errors.isNotEmpty)
+                          InputChip(
+                            avatar: Icon(
+                              Icons.error_outline,
+                              size: 18,
+                              color: Theme.of(context).colorScheme.error,
+                            ),
+                            label: Text(
+                              context.t(
+                                '{0} invalid',
+                                args: ['${_errors.length}'],
+                              ),
+                            ),
+                            onPressed: () => _scrollToSection(
+                              _sectionOf(_errors.keys.first),
+                            ),
+                          )
+                        else
+                          InputChip(
+                            avatar: Icon(
+                              _isDirty
+                                  ? Icons.edit
+                                  : Icons.check_circle_outline,
+                              size: 18,
+                            ),
+                            label: Text(
+                              _isDirty
+                                  ? context.t('Unsaved changes')
+                                  : context.t('No changes'),
+                            ),
+                          ),
+                        const Spacer(),
+                        TextButton(
+                          onPressed: _onPopAttempt,
+                          child: Text(context.t('Cancel')),
+                        ),
+                        const SizedBox(width: 8),
+                        FilledButton.icon(
+                          icon: const Icon(Icons.save),
+                          label: Text(context.t('Save')),
+                          onPressed: _saving || !_isDirty ? null : _save,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+        ),
       ),
     );
   }

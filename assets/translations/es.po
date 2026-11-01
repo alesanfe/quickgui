@@ -2448,3 +2448,126 @@ msgstr "Compartición"
 msgid "Shut down {0}?"
 msgstr "¿Apagar {0}?"
 
+
+msgid ", and shuts down when done"
+msgstr ", y apaga al terminar"
+
+msgid ", plus snapshot \"{0}\""
+msgstr ", más la instantánea \"{0}\""
+
+msgid "API contract"
+msgstr "Contrato de API"
+
+msgid "Automatic resolves to {0} on this host. The change applies on the next start; tools marked \"not installed\" will fail at launch — check Diagnostics."
+msgstr "Automático se resuelve a {0} en este equipo. El cambio se aplica en el próximo inicio; las herramientas marcadas como \"no instaladas\" fallarán al arrancar — revisa Diagnóstico."
+
+msgid "Could not reach the update service — check your internet connection."
+msgstr "No se pudo contactar con el servicio de actualizaciones — comprueba tu conexión a internet."
+
+msgid "Creates {0}/ with the disk and {0}.conf"
+msgstr "Crea {0}/ con el disco y {0}.conf"
+
+msgid "Delete snapshot"
+msgstr "Eliminar instantánea"
+
+msgid "Description"
+msgstr "Descripción"
+
+msgid "Disabled"
+msgstr "Desactivado"
+
+msgid "Enabled"
+msgstr "Activado"
+
+msgid "Everything is already at its default value."
+msgstr "Todo está ya en su valor por defecto."
+
+msgid "Exposed to the guest as a network/shared folder. The guest needs the matching driver or mount helper, and changes apply on the next start. Prefer read-only data — guests can modify these files. Avoid sharing your whole home directory or credential folders."
+msgstr "Se expone al invitado como carpeta compartida de red. El invitado necesita el controlador o ayudante de montaje correspondiente, y los cambios se aplican en el próximo inicio. Prefiere datos de solo lectura — el invitado puede modificar estos archivos. Evita compartir todo tu directorio personal o carpetas de credenciales."
+
+msgid "Extra shared directories"
+msgstr "Directorios compartidos extra"
+
+msgid "Finished"
+msgstr "Finalizado"
+
+msgid "Guest-to-host inbox directories"
+msgstr "Directorios de entrada invitado→anfitrión"
+
+msgid "Last checked: {0}"
+msgstr "Última comprobación: {0}"
+
+msgid "Mount tags"
+msgstr "Etiquetas de montaje"
+
+msgid "No supported viewer (spicy, remote-viewer) was found on this host — install one or pick a different display type. Tools marked \"not installed\" will fail at launch; check Diagnostics."
+msgstr "No se encontró ningún visor compatible (spicy, remote-viewer) en este equipo — instala uno o elige otro tipo de pantalla. Las herramientas marcadas como \"no instaladas\" fallarán al arrancar; revisa Diagnóstico."
+
+msgid "Not installed (optional)"
+msgstr "No instalado (opcional)"
+
+msgid "Optional space-separated host paths shared via virtiofs (quickemu 5.0+)."
+msgstr "Rutas del anfitrión separadas por espacios compartidas mediante virtiofs (quickemu 5.0+)."
+
+msgid "Optional — only needed for Windows/macOS guests that use a TPM."
+msgstr "Opcional — solo necesario para invitados Windows/macOS que usan TPM."
+
+msgid "Optional — opens the console of running machines; another viewer can replace it."
+msgstr "Opcional — abre la consola de las máquinas en ejecución; puede sustituirse por otro visor."
+
+msgid "Optional — speeds up differential downloads."
+msgstr "Opcional — acelera las descargas diferenciales."
+
+msgid "Optional — used by some networking features and QMP socket probes."
+msgstr "Opcional — lo usan algunas funciones de red y las sondas de socket QMP."
+
+msgid "Post-install checks: {0}"
+msgstr "Comprobaciones post-instalación: {0}"
+
+msgid "Required for disk creation and resizing."
+msgstr "Necesario para crear y redimensionar discos."
+
+msgid "Required — the app drives this tool for every VM operation."
+msgstr "Requerido — la aplicación usa esta herramienta en cada operación de MV."
+
+msgid "Restore defaults"
+msgstr "Restaurar valores por defecto"
+
+msgid "Space-separated directories the guest can write into (inboxes). Leave empty unless a workflow needs guest-to-host transfers."
+msgstr "Directorios separados por espacios en los que el invitado puede escribir (buzones). Déjalo vacío salvo que un flujo necesite transferencias invitado→anfitrión."
+
+msgid "Space-separated mount tags matching the extra directories, in the same order — the guest mounts them by tag."
+msgstr "Etiquetas de montaje separadas por espacios, en el mismo orden que los directorios extra — el invitado las monta por etiqueta."
+
+msgid "Started"
+msgstr "Iniciado"
+
+msgid "Steps the engine will run:"
+msgstr "Pasos que ejecutará el motor:"
+
+msgid "The structured command contract between Quickgui and the quickemu backend. A missing or incompatible contract falls back to parsing text output — most features still work, new ones may be unavailable."
+msgstr "El contrato de comandos estructurado entre Quickgui y el backend quickemu. Un contrato ausente o incompatible recurre a analizar la salida de texto — la mayoría de funciones siguen funcionando, pero las nuevas pueden no estar disponibles."
+
+msgid "The update check failed unexpectedly."
+msgstr "La comprobación de actualizaciones falló inesperadamente."
+
+msgid "The update service did not respond in time — try again later."
+msgstr "El servicio de actualizaciones no respondió a tiempo — inténtalo más tarde."
+
+msgid "The update service failed the security check — do not retry on an untrusted network."
+msgstr "El servicio de actualizaciones falló la comprobación de seguridad — no reintentes en una red no confiable."
+
+msgid "The update service is temporarily unavailable (HTTP error)."
+msgstr "El servicio de actualizaciones no está disponible temporalmente (error HTTP)."
+
+msgid "The update service returned an unexpected response."
+msgstr "El servicio de actualizaciones devolvió una respuesta inesperada."
+
+msgid "These settings will return to their defaults:"
+msgstr "Estos ajustes volverán a sus valores por defecto:"
+
+msgid "version {0}"
+msgstr "versión {0}"
+
+msgid "{0} s"
+msgstr "{0} s"

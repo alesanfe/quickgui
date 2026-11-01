@@ -146,6 +146,7 @@ class _DownloadControlsState extends ConsumerState<DownloadControls> {
               label: context.t("Operating system"),
               text: _selectedOperatingSystem?.name ?? context.t('Select...'),
               onPressed: steps[0].$3,
+              icon: Icons.chevron_right,
             ),
             // Disabled steps explain what is missing instead of just
             // greying out (QGUI-CREATE-004 / QGUI-UX-002).
@@ -154,6 +155,7 @@ class _DownloadControlsState extends ConsumerState<DownloadControls> {
               text: versionButtonLabel,
               onPressed: steps[1].$3,
               disabledReason: context.t('Select an operating system first'),
+              icon: Icons.chevron_right,
             ),
             DownloaderPageButton(
               label: context.t('Download'),
@@ -161,6 +163,7 @@ class _DownloadControlsState extends ConsumerState<DownloadControls> {
               busy: _checking,
               onPressed: steps[2].$3,
               disabledReason: context.t('Select a version first'),
+              icon: Icons.download,
             ),
           ],
         ),

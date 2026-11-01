@@ -28,38 +28,53 @@ void main() {
 
   group('fetchLatestQuickguiRelease', () {
     test('parses tag_name from the GitHub payload', () async {
-      final tag = await HttpOverrides.runZoned(
+      final r = await HttpOverrides.runZoned(
         fetchLatestQuickguiRelease,
         createHttpClient: (_) =>
             _FakeHttpClient('{"tag_name": "1.2.3", "other": 1}'),
       );
-      expect(tag, '1.2.3');
+      expect(r.version, '1.2.3');
+      expect(r.errorKind, isNull);
     });
 
-    test('returns empty when the payload has no tag', () async {
-      final tag = await HttpOverrides.runZoned(
+    test('flags a "response" error when the payload has no tag', () async {
+      final r = await HttpOverrides.runZoned(
         fetchLatestQuickguiRelease,
         createHttpClient: (_) => _FakeHttpClient('{"name": "release"}'),
       );
-      expect(tag, isEmpty);
+      expect(r.version, isEmpty);
+      expect(r.errorKind, 'response');
     });
 
-    test('returns empty when the request fails', () async {
-      final tag = await HttpOverrides.runZoned(
+    test('flags a "service" error on non-200 HTTP status', () async {
+      final r = await HttpOverrides.runZoned(
+        fetchLatestQuickguiRelease,
+        createHttpClient: (_) =>
+            _FakeHttpClient('rate limited', statusCode: 429),
+      );
+      expect(r.version, isEmpty);
+      expect(r.errorKind, 'service');
+    });
+
+    test('flags a "connection" error when the request fails', () async {
+      final r = await HttpOverrides.runZoned(
         fetchLatestQuickguiRelease,
         createHttpClient: (_) => _FailingHttpClient(),
       );
-      expect(tag, isEmpty);
+      expect(r.version, isEmpty);
+      expect(r.errorKind, 'connection');
     });
   });
 }
 
 class _FakeHttpClient extends Fake implements HttpClient {
-  _FakeHttpClient(this._body);
+  _FakeHttpClient(this._body, {this.statusCode = 200});
   final String _body;
+  final int statusCode;
 
   @override
-  Future<HttpClientRequest> getUrl(Uri url) async => _FakeRequest(_body);
+  Future<HttpClientRequest> getUrl(Uri url) async =>
+      _FakeRequest(_body, statusCode);
 }
 
 class _FailingHttpClient extends Fake implements HttpClient {
@@ -69,14 +84,15 @@ class _FailingHttpClient extends Fake implements HttpClient {
 }
 
 class _FakeRequest extends Fake implements HttpClientRequest {
-  _FakeRequest(this._body);
+  _FakeRequest(this._body, this._statusCode);
   final String _body;
+  final int _statusCode;
 
   @override
   final HttpHeaders headers = _FakeHeaders();
 
   @override
-  Future<HttpClientResponse> close() async => _FakeResponse(_body);
+  Future<HttpClientResponse> close() async => _FakeResponse(_body, _statusCode);
 }
 
 class _FakeHeaders extends Fake implements HttpHeaders {
@@ -85,9 +101,13 @@ class _FakeHeaders extends Fake implements HttpHeaders {
 }
 
 class _FakeResponse extends Fake implements HttpClientResponse {
-  _FakeResponse(this._body);
+  _FakeResponse(this._body, this._statusCode);
   final String _body;
+  final int _statusCode;
   late final Stream<List<int>> _stream = Stream.value(utf8.encode(_body));
+
+  @override
+  int get statusCode => _statusCode;
 
   @override
   Stream<S> transform<S>(StreamTransformer<List<int>, S> streamTransformer) =>

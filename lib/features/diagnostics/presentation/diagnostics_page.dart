@@ -88,9 +88,16 @@ class _ReportView extends StatelessWidget {
           _Info('Quickgui', r.quickguiVersion),
           _Info('quickemu', r.backendVersion ?? context.t('Unknown')),
           _Status(
-            context.t('Contract version'),
+            // DIAG-101: 'Contract version 1 · OK' read as jargon — name
+            // the thing and what happens when it is missing.
+            context.t('API contract'),
             ok: r.contractCompatible,
-            detail: r.contractVersion?.toString() ?? context.t('None'),
+            detail: r.contractVersion == null
+                ? context.t('None')
+                : context.t('version {0}', args: ['${r.contractVersion}']),
+            explanation: context.t(
+              'The structured command contract between Quickgui and the quickemu backend. A missing or incompatible contract falls back to parsing text output — most features still work, new ones may be unavailable.',
+            ),
           ),
         ]),
         _Section(context.t('Host'), [
@@ -117,7 +124,16 @@ class _ReportView extends StatelessWidget {
           ),
         ]),
         _Section(context.t('Tools'), [
-          for (final e in r.tools.entries) _Status(e.key, ok: e.value),
+          // DIAG-103: a missing optional tool is not a broken system —
+          // it renders neutral with an explanation instead of red
+          // 'Missing'.
+          for (final e in r.tools.entries)
+            _Status(
+              e.key,
+              ok: e.value,
+              optional: _optionalTools.contains(e.key),
+              explanation: _toolExplanations(context, e.key),
+            ),
         ]),
         _Section(context.t('Backend compatibility'), [
           _Status(
@@ -201,11 +217,42 @@ class _Info extends StatelessWidget {
   );
 }
 
+/// Tools Quickgui can work without — used by DIAG-103 to mark them
+/// optional instead of sounding an alarm.
+const _optionalTools = {'swtpm', 'spicy', 'zsync', 'socat'};
+
+String? _toolExplanations(BuildContext context, String tool) => switch (tool) {
+  'quickemu' || 'quickget' => context.t(
+    'Required — the app drives this tool for every VM operation.',
+  ),
+  'qemu-img' => context.t('Required for disk creation and resizing.'),
+  'swtpm' => context.t(
+    'Optional — only needed for Windows/macOS guests that use a TPM.',
+  ),
+  'spicy' => context.t(
+    'Optional — opens the console of running machines; another viewer can replace it.',
+  ),
+  'zsync' => context.t('Optional — speeds up differential downloads.'),
+  'socat' => context.t(
+    'Optional — used by some networking features and QMP socket probes.',
+  ),
+  _ => null,
+};
+
 class _Status extends StatelessWidget {
-  const _Status(this.label, {required this.ok, this.detail, this.explanation});
+  const _Status(
+    this.label, {
+    required this.ok,
+    this.detail,
+    this.explanation,
+    this.optional = false,
+  });
   final String label;
   final bool ok;
   final String? detail;
+
+  /// DIAG-103: a missing optional check is advisory, not a failure.
+  final bool optional;
 
   /// DIAG-002: what the check means plus the recommended fix — shown
   /// on demand so failures read as next steps, not just red icons.
@@ -214,10 +261,22 @@ class _Status extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final state = ok ? context.t('OK') : context.t('Missing');
+    final state = ok
+        ? context.t('OK')
+        : optional
+        ? context.t('Not installed (optional)')
+        : context.t('Missing');
     final icon = Icon(
-      ok ? Icons.check_circle : Icons.cancel,
-      color: ok ? scheme.primary : scheme.error,
+      ok
+          ? Icons.check_circle
+          : optional
+          ? Icons.info_outline
+          : Icons.cancel,
+      color: ok
+          ? scheme.primary
+          : optional
+          ? scheme.onSurfaceVariant
+          : scheme.error,
     );
     final stateText = Text(detail == null ? state : '$detail · $state');
     if (explanation == null) {

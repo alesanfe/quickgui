@@ -279,8 +279,10 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
     // short .conf files don't leave dead space, bounded so long files
     // stay inside the scrollable dialog body. 18.2 = 13pt × 1.4.
     final editorHeight =
-        ((_editorController.text.split('\n').length + 1) * 18.2 + 40)
-            .clamp(160.0, 560.0);
+        ((_editorController.text.split('\n').length + 1) * 18.2 + 40).clamp(
+          160.0,
+          560.0,
+        );
     return PopScope(
       canPop: _allowPop,
       onPopInvokedWithResult: (_, _) => _onPopAttempt(),

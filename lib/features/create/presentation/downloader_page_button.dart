@@ -12,6 +12,7 @@ class DownloaderPageButton extends StatelessWidget {
     this.onPressed,
     this.busy = false,
     this.disabledReason,
+    this.icon,
     super.key,
   });
 
@@ -20,6 +21,11 @@ class DownloaderPageButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final bool busy;
   final String? disabledReason;
+
+  /// QGUI-CREATE-101: picker steps show a chevron, the final step a
+  /// download glyph — the button is a navigation/launch action, not a
+  /// plain label.
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +43,16 @@ class DownloaderPageButton extends StatelessWidget {
                 width: 20,
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
-            : Text(text),
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Flexible(child: Text(text, overflow: TextOverflow.ellipsis)),
+                  if (icon != null) ...[
+                    const SizedBox(width: 6),
+                    Icon(icon, size: 18),
+                  ],
+                ],
+              ),
       ),
     );
     return Expanded(
