@@ -148,6 +148,27 @@ final OperatingSystem _captureOs = OperatingSystem('Ubuntu', 'ubuntu')
     Version('25.10')..options.add(Option('desktop', 'qemu')),
   ];
 
+/// Realistic multi-entry slice of the quickget catalogue (~950 upstream) —
+/// enough rows for the OS-selection capture to exercise list density and
+/// scrolling (VISTA-029 N-2). Icons resolve to the generic fallback so the
+/// render stays deterministic (SVG assets would race FakeAsync).
+final List<OperatingSystem> _captureOsList = [
+  _captureOs,
+  OperatingSystem('Kubuntu', 'kubuntu'),
+  OperatingSystem('Ubuntu MATE', 'ubuntu-mate'),
+  OperatingSystem('Xubuntu', 'xubuntu'),
+  OperatingSystem('Debian', 'debian'),
+  OperatingSystem('Fedora', 'fedora'),
+  OperatingSystem('Linux Mint', 'linuxmint'),
+  OperatingSystem('Arch Linux', 'archlinux'),
+  OperatingSystem('openSUSE', 'opensuse'),
+  OperatingSystem('Pop!_OS', 'popos'),
+  OperatingSystem('Zorin OS', 'zorin'),
+  OperatingSystem('NixOS', 'nixos'),
+  OperatingSystem('Windows 11', 'windows'),
+  OperatingSystem('FreeDOS', 'freedos'),
+];
+
 /// Fixed machine library for dashboard captures — mirrors the three VMs
 /// written into [_vmDir] by [_resetVmDir].
 const _captureMachines = <LibraryMachine>[
@@ -221,9 +242,7 @@ Widget _app({
         ..lastActionResult = actionResult,
     ),
     hostProbeProvider.overrideWithValue(probe ?? FakeHostProbe()),
-    osCatalogueProvider.overrideWithValue(
-      Future.value(<OperatingSystem>[_captureOs]),
-    ),
+    osCatalogueProvider.overrideWithValue(Future.value(_captureOsList)),
     // Reads/writes the real .conf files on disk, but stays synchronous so
     // captures don't depend on real file IO completing under FakeAsync.
     vmConfigStoreProvider.overrideWithValue(_SyncVmConfigStore(_vmDir.path)),

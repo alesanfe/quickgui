@@ -408,6 +408,7 @@ void main() {
     Future<void> openDashboard(
       WidgetTester tester, {
       required Map<String, GoRouterWidgetBuilder> stubs,
+      GoRouterWidgetBuilder? dashboardBuilder,
     }) async {
       tester.view.physicalSize = const Size(1600, 1200);
       tester.view.devicePixelRatio = 1;
@@ -417,7 +418,8 @@ void main() {
         routes: [
           GoRoute(
             path: '/',
-            builder: (context, state) => const DashboardPage(),
+            builder:
+                dashboardBuilder ?? (context, state) => const DashboardPage(),
           ),
           for (final e in stubs.entries) GoRoute(path: e.key, builder: e.value),
         ],
@@ -462,6 +464,29 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('ROUTE /machines'), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('metric values shrink instead of overflowing at 200% scale', (
+      tester,
+    ) async {
+      // Extreme free-space value (VISTA-029 N-3): the FittedBox must scale
+      // it down inside the 220px card instead of overflowing or wrapping
+      // mid-token.
+      host.free = 999950 * 1024 * 1024 * 1024; // ~999.9 TB
+      backend
+        ..vms = []
+        ..capabilities = {'capabilities': <String, dynamic>{}};
+      await openDashboard(
+        tester,
+        stubs: {},
+        dashboardBuilder: (context, state) => MediaQuery(
+          data: MediaQuery.of(context)
+              .copyWith(textScaler: const TextScaler.linear(2.0)),
+          child: const DashboardPage(),
+        ),
+      );
+      expect(tester.takeException(), isNull);
+      expect(find.textContaining('999950.0 GB'), findsOneWidget);
     });
 
     testWidgets('navigates to the create flow', (tester) async {

@@ -343,9 +343,15 @@ class DashboardPage extends ConsumerWidget {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      Text(
-                        value,
-                        style: Theme.of(context).textTheme.headlineSmall,
+                      // Extreme values ("999.9 GB") shrink instead of
+                      // wrapping mid-token or overflowing the card.
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          value,
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
                       ),
                       Text(label),
                     ],
@@ -358,9 +364,15 @@ class DashboardPage extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              value,
-                              style: Theme.of(context).textTheme.headlineSmall,
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                value,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineSmall,
+                              ),
                             ),
                             Text(label),
                           ],
