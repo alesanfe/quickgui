@@ -205,7 +205,7 @@ class DashboardPage extends ConsumerWidget {
                                   // state transitions on dashboard cards.
                                   Semantics(
                                     liveRegion: true,
-                                    child: Text(machine.state),
+                                    child: _stateBadge(context, machine.state),
                                   ),
                                   Text(
                                     '${machine.values['cpu_cores'] ?? '—'} CPU · ${machine.values['ram'] ?? '—'} RAM',
@@ -254,6 +254,29 @@ class DashboardPage extends ConsumerWidget {
             ),
         ],
       ),
+    );
+  }
+
+  /// Compact status badge matching the details-pane state colours.
+  Widget _stateBadge(BuildContext context, String state) {
+    final scheme = Theme.of(context).colorScheme;
+    final (label, color) = switch (state) {
+      'running' => (context.t('Running'), Colors.green),
+      'paused' => (context.t('Paused'), scheme.tertiary),
+      'stale' => (context.t('Stale'), scheme.error),
+      _ => (context.t('Stopped'), scheme.onSurfaceVariant),
+    };
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 6),
+        Text(label, style: TextStyle(color: color)),
+      ],
     );
   }
 

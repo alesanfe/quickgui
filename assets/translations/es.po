@@ -1723,6 +1723,9 @@ msgstr "{0} evento(s) del journal requieren atención (24 h)."
 msgid "Stale — the process exited unexpectedly."
 msgstr "Obsoleto — el proceso terminó inesperadamente."
 
+msgid "Stale"
+msgstr "Obsoleto"
+
 msgid "Answering — network details available."
 msgstr "Responde — detalles de red disponibles."
 

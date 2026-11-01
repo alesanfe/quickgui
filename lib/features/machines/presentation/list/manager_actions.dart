@@ -199,9 +199,10 @@ extension on _ManagerState {
       builder: (context) => AlertDialog(
         title: Text('$title — $currentVm'),
         content: SizedBox(
-          width: double.maxFinite,
-          // Scrollable: the 16-field "Settings (all)" dialog must stay
-          // usable at the minimum window height (~800px).
+          // Bounded width: a handful of fields stretched across the
+          // full screen reads badly. The scroll view still protects
+          // the 16-field "Settings (all)" at small window heights.
+          width: 560,
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,

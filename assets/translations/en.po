@@ -1608,6 +1608,9 @@ msgstr "{0} journal event(s) need attention (24 h)."
 msgid "Stale — the process exited unexpectedly."
 msgstr "Stale — the process exited unexpectedly."
 
+msgid "Stale"
+msgstr "Stale"
+
 msgid "Answering — network details available."
 msgstr "Answering — network details available."
 

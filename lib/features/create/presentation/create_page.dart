@@ -193,36 +193,51 @@ class _CreatePageState extends ConsumerState<CreatePage> {
                 const Divider(),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          context.t(
-                            'Pick an operating system and a version, or drop a disk image anywhere on this page.',
+                  child: Center(
+                    // Bounded width keeps the three-step picker usable
+                    // on wide windows instead of stretching edge to edge.
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 720),
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              context.t(
+                                'Pick an operating system and a version, or drop a disk image anywhere on this page.',
+                              ),
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
                           ),
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
+                          const DownloadControls(),
+                        ],
                       ),
-                      const DownloadControls(),
-                    ],
-                  ),
-                ),
-                TextButton.icon(
-                  icon: const Icon(Icons.upload_file),
-                  label: Text(context.t('Import a disk image')),
-                  onPressed: _importImage,
-                ),
-                TextButton.icon(
-                  icon: const Icon(Icons.auto_fix_high),
-                  label: Text(context.t('Guided creation')),
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      fullscreenDialog: true,
-                      builder: (context) => const CreateWizardPage(),
                     ),
                   ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 12,
+                  runSpacing: 8,
+                  children: [
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.upload_file),
+                      label: Text(context.t('Import a disk image')),
+                      onPressed: _importImage,
+                    ),
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.auto_fix_high),
+                      label: Text(context.t('Guided creation')),
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          fullscreenDialog: true,
+                          builder: (context) => const CreateWizardPage(),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

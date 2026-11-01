@@ -46,15 +46,20 @@ class VmDetailsPane extends StatelessWidget {
       return Center(child: Text(context.t('Select a virtual machine')));
     }
     final active = state == 'running' || state == 'paused';
+    // Only configured keys are listed — a pane full of '—' rows reads
+    // as broken. Unset values keep their quickemu launch defaults.
     final fields = <(String, String)>[
-      (context.t('Guest OS'), conf['guest_os'] ?? '—'),
-      (context.t('RAM'), conf['ram'] ?? '—'),
-      (context.t('CPU cores'), conf['cpu_cores'] ?? '—'),
-      (context.t('Disk size'), conf['disk_size'] ?? '—'),
-      (context.t('Boot mode'), conf['boot'] ?? '—'),
-      (context.t('Network'), conf['network'] ?? '—'),
-      (context.t('Display'), conf['display'] ?? '—'),
-      (context.t('Display viewer'), conf['viewer'] ?? '—'),
+      for (final (label, key) in [
+        (context.t('Guest OS'), 'guest_os'),
+        (context.t('RAM'), 'ram'),
+        (context.t('CPU cores'), 'cpu_cores'),
+        (context.t('Disk size'), 'disk_size'),
+        (context.t('Boot mode'), 'boot'),
+        (context.t('Network'), 'network'),
+        (context.t('Display'), 'display'),
+        (context.t('Display viewer'), 'viewer'),
+      ])
+        if (conf[key]?.isNotEmpty ?? false) (label, conf[key]!),
     ];
     final scheme = Theme.of(context).colorScheme;
     final (stateLabel, stateColor) = switch (state) {

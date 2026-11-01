@@ -526,6 +526,9 @@ msgstr ""
 msgid "Stale (process exited unexpectedly)"
 msgstr ""
 
+msgid "Stale"
+msgstr ""
+
 msgid "New size (current: {0}, grow only)"
 msgstr ""
 
