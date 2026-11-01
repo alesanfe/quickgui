@@ -283,11 +283,14 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  for (final (label, flag) in [
-    ('Resume', '--resume'),
-    ('Check VM', '--doctor'),
+  for (final (label, flag, state) in [
+    ('Resume', '--resume', 'paused'),
+    ('Check VM', '--doctor', 'stopped'),
   ]) {
     testWidgets('$label sends one command for the selected VM', (tester) async {
+      backend.states = {
+        'linux-test': {'state': state},
+      };
       final screen = await open(tester);
       await screen.chooseAction(label);
       expect(backend.actionCalls, [

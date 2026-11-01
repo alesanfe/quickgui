@@ -55,7 +55,22 @@ class VmActionsMenu extends StatelessWidget {
           'settings',
         },
       ),
-      ('Lifecycle', {'pause', 'resume', 'screenshot', 'send-keys', 'reset'}),
+      (
+        'Lifecycle',
+        {
+          'start',
+          'pause',
+          'resume',
+          'suspend',
+          'reset',
+          'screenshot',
+          'send-keys',
+          'start-profile',
+          'start-offline',
+          'launch-plan',
+        },
+      ),
+      ('Console', {'guest-agent', 'serial-console', 'monitor-console'}),
       (
         'Maintenance',
         {
@@ -69,6 +84,8 @@ class VmActionsMenu extends StatelessWidget {
           'move',
           'hotplug',
           'backup',
+          'shortcut',
+          'remove-shortcut',
         },
       ),
     ];

@@ -567,6 +567,8 @@ extension on _ManagerState {
                       _vmConfFiles[currentVm] ?? '$currentVm.conf',
                       '--pause',
                     ]);
+                  case 'start':
+                    _startVm(currentVm);
                   case 'resume':
                     await runVmActionOrLegacy(_backend, 'resume', [
                       '--vm',
@@ -886,7 +888,18 @@ extension on _ManagerState {
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),
-                if (active)
+                if (_vmStates[currentVm] == 'paused' ||
+                    _vmStates[currentVm] == 'suspended')
+                  PopupMenuItem(
+                    value: 'resume',
+                    child: ListTile(
+                      leading: const Icon(Icons.play_circle),
+                      title: Text(context.t('Resume')),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  )
+                else if (active)
                   PopupMenuItem(
                     value: 'pause',
                     child: ListTile(
@@ -897,11 +910,13 @@ extension on _ManagerState {
                     ),
                   )
                 else
+                  // `--resume` errors on a stopped VM ("not running") —
+                  // offer the real start path instead.
                   PopupMenuItem(
-                    value: 'resume',
+                    value: 'start',
                     child: ListTile(
-                      leading: const Icon(Icons.play_circle),
-                      title: Text(context.t('Resume')),
+                      leading: const Icon(Icons.play_arrow),
+                      title: Text(context.t('Start')),
                       dense: true,
                       contentPadding: EdgeInsets.zero,
                     ),
