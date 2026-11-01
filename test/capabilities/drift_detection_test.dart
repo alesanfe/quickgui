@@ -41,7 +41,10 @@ const Set<String> _knownBackendOptions = {
   '--serial', '--serial-telnet-host', '--serial-telnet-port', '--shortcut',
   '--shutdown', '--snapshot', '--snapshot-tree', '--snapshot-verify',
   '--sound-card', '--sound-duplex', '--spice-port', '--ssh-access',
-  '--ssh-port', '--stats', '--status', '--status-quo', '--trash',
+  '--ssh-port', '--stats', '--status', '--status-quo', '--suspend',
+  '--trash',
+  '--backup-incr', '--backup-incr-list', '--snapshot-policy', '--dry',
+  '--memory', '--quiesce', '--snapshot-desc',
   '--trash-empty', '--trash-list', '--trash-restore', '--type',
   '--usb-controller', '--usb-passthrough', '--version', '--vfio-scan',
   '--viewer', '--vm', '--width',
@@ -61,6 +64,11 @@ const Set<String> _knownBackendOptions = {
   '--disable-unattended', '--download', '--insecure',
   '--list-csv', '--list-json', '--open-homepage', '--show', '--unattended',
   '--update', '--url', '--minimum-trust', '--chunkcheck',
+  // quickemu subcommand families (dispatchGuest/dispatchSSH verbs —
+  // these reach the CLI as bare words after `quickemu`, not --flags)
+  'guest ping', 'guest info', 'guest exec', 'guest push', 'guest pull',
+  'guest shutdown', 'guest reboot', 'guest halt', 'guest fsfreeze',
+  'ssh', 'scp', 'sftp', 'ssh-config', 'ssh-forget',
 };
 
 /// quickemu checkout candidates (Windows worktree and the WSL mirror).

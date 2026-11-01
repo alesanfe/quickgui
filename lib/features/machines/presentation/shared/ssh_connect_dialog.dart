@@ -19,6 +19,7 @@ Future<void> showSshConnectDialog(
   required VirtualizationBackend backend,
   required PreferencesRepository prefs,
   required String vm,
+  required String confPath,
   required String sshPort,
   required String terminalEmulator,
   List<String> guestAddresses = const [],
@@ -123,6 +124,51 @@ Future<void> showSshConnectDialog(
               );
             },
             child: Text(context.t('Copy command')),
+          ),
+          TextButton(
+            onPressed: () {
+              final messenger = ScaffoldMessenger.of(context);
+              final okMsg = context.t('SSH config entry written');
+              final failPrefix = context.t('ssh-config failed');
+              // `quickemu ssh-config` writes a Host stanza into
+              // ~/.ssh/config — non-interactive, structured output.
+              unawaitedLogged(
+                backend
+                    .sshConfig(confPath)
+                    .then(
+                      (r) => messenger.showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            r.exitCode == 0
+                                ? okMsg
+                                : '$failPrefix: '
+                                      '${'${r.stderr}${r.stdout}'.trim()}',
+                          ),
+                        ),
+                      ),
+                    ),
+                AppLog.vmLifecycle,
+                'ssh-config $confPath',
+              );
+            },
+            child: Text(context.t('Save to SSH config')),
+          ),
+          TextButton(
+            onPressed: () {
+              // Interactive SFTP needs a real TTY — run the backend's
+              // `sftp` verb inside the terminal emulator.
+              unawaitedLogged(
+                backend.launchVmToolInTerminal(
+                  terminalEmulator,
+                  'sftp',
+                  confPath,
+                ),
+                AppLog.vmLifecycle,
+                'sftp $vm',
+              );
+              Navigator.pop(context, false);
+            },
+            child: Text(context.t('Open SFTP')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, false),

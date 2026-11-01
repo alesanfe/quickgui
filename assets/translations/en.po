@@ -2018,3 +2018,108 @@ msgstr "Records the attached device in the VM configuration (--persist)."
 
 msgid "Start with profile"
 msgstr "Start with profile"
+
+msgid "Apply policy"
+msgstr "Apply policy"
+
+msgid "Command to run in the guest"
+msgstr "Command to run in the guest"
+
+msgid "Confirm"
+msgstr "Confirm"
+
+msgid "Create desktop shortcut"
+msgstr "Create desktop shortcut"
+
+msgid "Create incremental"
+msgstr "Create incremental"
+
+msgid "Description (--snapshot-desc)"
+msgstr "Description (--snapshot-desc)"
+
+msgid "Freeze"
+msgstr "Freeze"
+
+msgid "Freeze status"
+msgstr "Freeze status"
+
+msgid "Guest agent — {0}"
+msgstr "Guest agent — {0}"
+
+msgid "Guest agent…"
+msgstr "Guest agent…"
+
+msgid "Guest path"
+msgstr "Guest path"
+
+msgid "Guest {0}"
+msgstr "Guest {0}"
+
+msgid "Halt"
+msgstr "Halt"
+
+msgid "Include memory (--memory)"
+msgstr "Include memory (--memory)"
+
+msgid "Incremental backups"
+msgstr "Incremental backups"
+
+msgid "List increments"
+msgstr "List increments"
+
+msgid "Local path"
+msgstr "Local path"
+
+msgid "Monitor console"
+msgstr "Monitor console"
+
+msgid "Open SFTP"
+msgstr "Open SFTP"
+
+msgid "Ping"
+msgstr "Ping"
+
+msgid "Policy"
+msgstr "Policy"
+
+msgid "Pull (from guest)"
+msgstr "Pull (from guest)"
+
+msgid "Push (to guest)"
+msgstr "Push (to guest)"
+
+msgid "Quiesce filesystem"
+msgstr "Quiesce filesystem"
+
+msgid "Reboot"
+msgstr "Reboot"
+
+msgid "Requires a running VM"
+msgstr "Requires a running VM"
+
+msgid "SSH config entry written"
+msgstr "SSH config entry written"
+
+msgid "Save to SSH config"
+msgstr "Save to SSH config"
+
+msgid "Serial console"
+msgstr "Serial console"
+
+msgid "Shutdown"
+msgstr "Shutdown"
+
+msgid "Start offline (no network)"
+msgstr "Start offline (no network)"
+
+msgid "Suspend to disk"
+msgstr "Suspend to disk"
+
+msgid "Thaw"
+msgstr "Thaw"
+
+msgid "Transfer"
+msgstr "Transfer"
+
+msgid "ssh-config failed"
+msgstr "ssh-config failed"

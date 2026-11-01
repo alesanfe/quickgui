@@ -325,6 +325,60 @@ class FakeVirtualizationBackend implements VirtualizationBackend {
   @override
   Future<void> linkedClone(String target, String destination) async {}
 
+  Map<String, dynamic>? guestPingResult;
+  Map<String, dynamic>? guestInfoResult;
+  Map<String, dynamic>? guestExecResult;
+  Map<String, dynamic>? guestXferResult;
+  Map<String, dynamic>? guestFreezeResult;
+  ProcResult guestPowerResult = const ProcResult(0, '', '');
+  final List<String> guestPowerCalls = [];
+
+  @override
+  Future<Map<String, dynamic>?> guestPing(String confPath) async =>
+      guestPingResult;
+
+  @override
+  Future<Map<String, dynamic>?> guestInfo(String confPath) async =>
+      guestInfoResult;
+
+  @override
+  Future<Map<String, dynamic>?> guestExec(
+    String confPath,
+    List<String> argv,
+  ) async => guestExecResult;
+
+  @override
+  Future<Map<String, dynamic>?> guestTransfer(
+    String confPath, {
+    required bool push,
+    required String localPath,
+    required String guestPath,
+    bool force = false,
+  }) async => guestXferResult;
+
+  @override
+  Future<ProcResult> guestPower(String confPath, String action) async {
+    guestPowerCalls.add(action);
+    return guestPowerResult;
+  }
+
+  @override
+  Future<Map<String, dynamic>?> guestFsFreeze(
+    String confPath,
+    String sub,
+  ) async => guestFreezeResult;
+
+  @override
+  Future<ProcResult> launchVmToolInTerminal(
+    String terminalEmulator,
+    String tool,
+    String confPath,
+  ) async => const ProcResult(0, '', '');
+
+  @override
+  Future<ProcResult> sshConfig(String confPath) async =>
+      const ProcResult(0, '', '');
+
   final List<(String, String)> profileStarts = [];
 
   @override

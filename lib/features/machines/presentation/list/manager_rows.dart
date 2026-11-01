@@ -496,6 +496,7 @@ extension on _ManagerState {
                       builder: (dialogContext) => _BackupsDialog(
                         backend: _backend,
                         vm: currentVm,
+                        confPath: _vmConfFiles[currentVm] ?? '$currentVm.conf',
                         onChanged: _getVms,
                       ),
                     );
@@ -627,6 +628,54 @@ extension on _ManagerState {
                     if (profileId == null || !context.mounted) return;
                     await _backend.startWithProfile(currentVm, profileId);
                     _getVms();
+                  case 'start-offline':
+                    final r = await runVmActionOrLegacy(_backend, 'start', [
+                      '--vm',
+                      _vmConfFiles[currentVm] ?? '$currentVm.conf',
+                      '--offline',
+                    ]);
+                    if (!context.mounted) return;
+                    _showProcessOutput([r]);
+                    _getVms();
+                  case 'suspend':
+                    final r = await runVmActionOrLegacy(_backend, 'suspend', [
+                      '--vm',
+                      _vmConfFiles[currentVm] ?? '$currentVm.conf',
+                      '--suspend',
+                    ]);
+                    if (!context.mounted) return;
+                    _showProcessOutput([r]);
+                    _getVms();
+                  case 'guest-agent':
+                    await showDialog<void>(
+                      context: context,
+                      builder: (context) => _GuestAgentDialog(
+                        backend: _backend,
+                        vm: currentVm,
+                        confPath: _vmConfFiles[currentVm] ?? '$currentVm.conf',
+                      ),
+                    );
+                    _getVms();
+                  case 'serial-console':
+                  case 'monitor-console':
+                    // Interactive telnet attach — needs a real TTY, so
+                    // it launches inside the configured terminal
+                    // emulator rather than a captive pipe.
+                    final r = await _backend.launchVmToolInTerminal(
+                      _terminalEmulator ?? 'xterm',
+                      choice,
+                      _vmConfFiles[currentVm] ?? '$currentVm.conf',
+                    );
+                    if (!context.mounted) return;
+                    _showProcessOutput([r]);
+                  case 'shortcut':
+                    final r = await runVmActionOrLegacy(_backend, 'shortcut', [
+                      '--vm',
+                      _vmConfFiles[currentVm] ?? '$currentVm.conf',
+                      '--shortcut',
+                    ]);
+                    if (!context.mounted) return;
+                    _showProcessOutput([r]);
                   case 'reset':
                     // QEMU monitor `system_reset` — equivalent to pressing
                     // the reset button: abrupt reboot, unsaved guest state
@@ -875,6 +924,65 @@ extension on _ManagerState {
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),
+                if (!active)
+                  PopupMenuItem(
+                    value: 'start-offline',
+                    child: ListTile(
+                      leading: const Icon(Icons.wifi_off),
+                      title: Text(context.t('Start offline (no network)')),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                if (active)
+                  PopupMenuItem(
+                    value: 'suspend',
+                    child: ListTile(
+                      leading: const Icon(Icons.bedtime),
+                      title: Text(context.t('Suspend to disk')),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                if (active)
+                  PopupMenuItem(
+                    value: 'guest-agent',
+                    child: ListTile(
+                      leading: const Icon(Icons.terminal),
+                      title: Text(context.t('Guest agent…')),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                if (active) ...[
+                  PopupMenuItem(
+                    value: 'serial-console',
+                    child: ListTile(
+                      leading: const Icon(Icons.cable),
+                      title: Text(context.t('Serial console')),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'monitor-console',
+                    child: ListTile(
+                      leading: const Icon(Icons.bug_report),
+                      title: Text(context.t('Monitor console')),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                ],
+                PopupMenuItem(
+                  value: 'shortcut',
+                  child: ListTile(
+                    leading: const Icon(Icons.shortcut),
+                    title: Text(context.t('Create desktop shortcut')),
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
                 PopupMenuItem(
                   value: 'doctor',
                   child: ListTile(

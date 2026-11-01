@@ -348,7 +348,20 @@ class StructuredQuickemu {
   /// `status` still validates against `vm.status`.
   static bool _commandMatches(String expected, String actual) {
     if (expected == actual) return true;
-    String norm(String c) => c.replaceFirst(RegExp(r'^(vm|host)\.'), '');
+    // Namespaced emitters (vm.*, host.*, ops.*, qmp.*) put the family in
+    // the prefix; dots that remain inside the namespace separate
+    // sub-actions and correspond to CLI dashes (`vm.trash.list` ↔
+    // `trash-list`, `ops.op-status` ↔ `op-status`). Unnamespaced names
+    // like `guest.exec` keep their dot untouched.
+    String norm(String c) {
+      for (final prefix in const ['vm.', 'host.', 'ops.', 'qmp.']) {
+        if (c.startsWith(prefix)) {
+          return c.substring(prefix.length).replaceAll('.', '-');
+        }
+      }
+      return c;
+    }
+
     final e = norm(expected);
     final a = norm(actual);
     if (e == a) return true;
@@ -364,12 +377,23 @@ class StructuredQuickemu {
       'delete-disk': {'trashed', 'delete'},
       'delete-plan': {'plan', 'delete-plan'},
       'execution-plan': {'plan'},
-      'snapshot-list': {'snapshot.list'},
-      'snapshot-create': {'snapshot.created'},
-      'snapshot-apply': {'snapshot.applied', 'restored'},
-      'snapshot-delete': {'snapshot.deleted'},
+      'snapshot-list': {'snapshot.list', 'snapshot-list'},
+      'snapshot-create': {'snapshot.created', 'snapshot-created'},
+      'snapshot-apply': {'snapshot.applied', 'snapshot-applied', 'restored'},
+      'snapshot-delete': {'snapshot.deleted', 'snapshot-deleted'},
       'list-vms': {'list'},
       'profile': {'started', 'profile'},
+      'suspend': {'suspend', 'suspended'},
+      'ssh-config': {'ssh_config'},
+      'serial-console': {'serial_console', 'serial'},
+      'monitor-console': {'monitor_console', 'monitor'},
+      'host-info': {'info'},
+      'disk-compact': {'compact'},
+      'hotplug': {'execute'},
+      'hotunplug': {'execute'},
+      'op-status': {'status'},
+      'backup-incr': {'backup'},
+      'backup-incr-list': {'backup-list'},
     };
     return aliases[e]?.contains(a) ?? false;
   }

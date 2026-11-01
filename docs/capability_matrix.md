@@ -13,7 +13,7 @@ Generated from `assets/capabilities/capability_manifest.json` by `tool/generate_
 | `vm.lifecycle.resume` | lifecycle | `--resume` | vm_menu.lifecycle.resume | 1 | Sí |
 | `vm.lifecycle.fullscreen` | lifecycle | `--fullscreen, --full-screen` | vm_menu.display_viewer.fullscreen, settings.preferred_viewer | 1 | Sí |
 | `vm.lifecycle.statusQuo` | lifecycle | `--status-quo` | vm_menu.maintenance.check_vm | 1 | Sí |
-| `vm.lifecycle.offline` | lifecycle | `--offline` | vm_settings.network_key | 1 | Sí |
+| `vm.lifecycle.offline` | lifecycle | `--offline` | vm_settings.network_key, vm_menu.start_offline | 1 | Sí |
 | `vm.lifecycle.restart` | lifecycle | `--restart` | vm_page.advanced.restart | 1 | Sí |
 | `vm.library.list` | library | `--list-vms` | machines.list, dashboard.vm_cards | 2 | Sí |
 | `vm.library.inspectConf` | library | `--inspect-conf` | vm_settings.all_dialog, vm_page.configuration | 1 | Sí |
@@ -31,7 +31,7 @@ Generated from `assets/capabilities/capability_manifest.json` by `tool/generate_
 | `vm.trash.list` | deletion | `--trash-list` | vm_menu.maintenance.trash | 2 | Sí |
 | `vm.trash.restore` | deletion | `--trash-restore` | vm_menu.maintenance.trash_restore | 1 | Sí |
 | `vm.trash.empty` | deletion | `--trash-empty` | machines.trash_dialog.empty | 2 | Sí |
-| `desktop.shortcut` | desktop | `--shortcut, --delete-shortcut` | — | 0 | No |
+| `desktop.shortcut` | desktop | `--shortcut, --delete-shortcut` | vm_menu.maintenance.shortcut | 1 | Sí |
 | `vm.backup.create` | backup | `--backup` | vm_menu.maintenance.backups.create | 1 | Sí |
 | `vm.backup.list` | backup | `--backup-list` | vm_menu.maintenance.backups.list | 2 | Sí |
 | `vm.backup.restore` | backup | `--backup-restore` | vm_menu.maintenance.backups.restore | 1 | Sí |
@@ -78,7 +78,7 @@ Generated from `assets/capabilities/capability_manifest.json` by `tool/generate_
 | `backend.external` | internal | `--external` | — | 0 | Justificada |
 | `backend.param.vm` | internal | `--vm` | — | 0 | Justificada |
 | `backend.param.planId` | internal | `--plan-id` | — | 0 | Justificada |
-| `backend.alias` | internal | `--list, --vms, --conf, --plan, --scan, --keys, --cmd, --disk, --watch, --cancel, --restore, --verify, --quo, --msrs, --msrs-always, --apply, --info, --create, --delete, --resize, --console, --vnc, --spice-console, --publicdir, --snapshot-list, --snapshot-apply, --snapshot-create, --snapshot-delete, --snapshot-info, --ignore-msrs, --serial-console, --monitor-console, --disk-resize-commit, --extra-args, --keyboard-layout` | — | 0 | Justificada |
+| `backend.alias` | internal | `--list, --vms, --conf, --plan, --scan, --keys, --cmd, --disk, --watch, --cancel, --restore, --verify, --quo, --msrs, --msrs-always, --apply, --info, --create, --delete, --resize, --console, --vnc, --spice-console, --publicdir, --snapshot-list, --snapshot-apply, --snapshot-create, --snapshot-delete, --snapshot-info, --ignore-msrs, --disk-resize-commit, --extra-args, --keyboard-layout` | — | 0 | Justificada |
 | `cli.help` | internal | `--help` | — | 0 | Justificada |
 | `launch.display` | launch | `--display` | vm_settings.display_key, settings.preferred_viewer | 1 | Sí |
 | `launch.viewer` | launch | `--viewer` | settings.preferred_viewer, vm_settings.viewer_key | 1 | Sí |
@@ -109,14 +109,24 @@ Generated from `assets/capabilities/capability_manifest.json` by `tool/generate_
 | `library.state.refresh` | library | `VmLibraryProvider` | machines.list.state_badges | 1 | Sí |
 | `activity.auditTrail` | operations | `ActivityProvider` | activity.list, activity.operation_tile | 1 | Sí |
 | `app.downloadNotifications` | operations | `AppShell` | system.desktop_notification | 1 | Sí |
+| `vm.guest.agent` | guest | `guest ping, guest info, guest exec, guest push, guest pull, guest shutdown, guest reboot, guest halt, guest fsfreeze` | vm_menu.guest_agent | 2 | Sí |
+| `vm.lifecycle.suspend` | lifecycle | `--suspend` | vm_menu.suspend | 2 | Sí |
+| `vm.console.serial` | console | `--serial-console` | vm_menu.serial_console | 1 | Sí |
+| `vm.console.monitor` | console | `--monitor-console` | vm_menu.monitor_console | 1 | Sí |
+| `vm.backup.incremental` | backup | `--backup-incr, --backup-incr-list` | vm_menu.maintenance.backups.incremental | 1 | Sí |
+| `vm.snapshot.policy` | snapshots | `--snapshot-policy, --dry` | vm_snapshots.policy | 1 | Sí |
+| `vm.ssh.config` | network | `ssh-config` | vm_connect.ssh.save_config | 2 | Sí |
+| `vm.ssh.sftp` | network | `sftp` | vm_connect.ssh.sftp | 2 | Sí |
+| `vm.snapshot.live_options` | snapshots | `--memory, --quiesce, --snapshot-desc` | vm_snapshots.create_options | 1 | Sí |
+| `vm.ssh.client` | network | `ssh, scp, ssh-forget` | vm_connect.ssh | 1 | Sí |
 
 ## Metrics
 
 | Metric | Value |
 |---|---|
-| Capabilities | 105 |
-| implemented | 89 |
-| unsupported | 3 |
+| Capabilities | 115 |
+| implemented | 100 |
+| unsupported | 2 |
 | notApplicable | 13 |
-| Weighted coverage score | 99.1% |
+| Weighted coverage score | 99.5% |
 

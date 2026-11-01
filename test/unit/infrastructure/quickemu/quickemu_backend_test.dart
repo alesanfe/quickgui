@@ -656,6 +656,79 @@ void main() {
             'vm.ip',
             (b) => b.guestIpInfo('vm1.conf'),
           ),
+          (
+            'guest-ping',
+            ['guest', 'ping', '--vm', 'vm1.conf'],
+            'guest.ping',
+            (b) => b.guestPing('vm1.conf'),
+          ),
+          (
+            'guest-info',
+            ['guest', 'info', '--vm', 'vm1.conf'],
+            'guest.info',
+            (b) => b.guestInfo('vm1.conf'),
+          ),
+          (
+            'guest-push',
+            [
+              'guest',
+              'push',
+              '--vm',
+              'vm1.conf',
+              '--force',
+              '/local/f',
+              '/guest/f',
+            ],
+            'guest.push',
+            (b) => b.guestTransfer(
+              'vm1.conf',
+              push: true,
+              localPath: '/local/f',
+              guestPath: '/guest/f',
+              force: true,
+            ),
+          ),
+          (
+            'guest-pull',
+            ['guest', 'pull', '--vm', 'vm1.conf', '/local/f', '/guest/f'],
+            'guest.pull',
+            (b) => b.guestTransfer(
+              'vm1.conf',
+              push: false,
+              localPath: '/local/f',
+              guestPath: '/guest/f',
+            ),
+          ),
+          (
+            'guest-shutdown',
+            ['guest', 'shutdown', '--vm', 'vm1.conf'],
+            'guest.shutdown',
+            (b) => b.guestPower('vm1.conf', 'shutdown'),
+          ),
+          (
+            'guest-reboot',
+            ['guest', 'reboot', '--vm', 'vm1.conf'],
+            'guest.reboot',
+            (b) => b.guestPower('vm1.conf', 'reboot'),
+          ),
+          (
+            'guest-freeze',
+            ['guest', 'fsfreeze', '--vm', 'vm1.conf', 'freeze'],
+            'guest.fsfreeze',
+            (b) => b.guestFsFreeze('vm1.conf', 'freeze'),
+          ),
+          (
+            'guest-thaw',
+            ['guest', 'fsfreeze', '--vm', 'vm1.conf', 'thaw'],
+            'guest.fsfreeze',
+            (b) => b.guestFsFreeze('vm1.conf', 'thaw'),
+          ),
+          (
+            'ssh-config',
+            ['ssh-config', '--vm', 'vm1.conf'],
+            'vm.ssh_config',
+            (b) => b.sshConfig('vm1.conf'),
+          ),
         ];
 
     for (final (command, args, envelopeCmd, invoke) in cases) {
@@ -863,6 +936,171 @@ void main() {
           '-c',
           'xterm -e ssh -p 22 fe80::1%eth0',
         ]);
+      });
+    });
+
+    group('guestExec', () {
+      const key =
+          'quickemu guest exec --vm vm1.conf --shell -- ls -la --format json';
+
+      test('emits guest exec argv with -- separator and shell', () async {
+        final runner = FakeProcessRunner({
+          key: ProcessResult(
+            0,
+            0,
+            envelope(
+              'guest.exec',
+              '{"exitCode":0,"stdout":"total 8","stderr":""}',
+            ),
+            '',
+          ),
+        });
+        final data = await QuickemuBackend(runner)
+            .guestExec('vm1.conf', ['ls', '-la']);
+        expect(data?['exitCode'], 0);
+        expect(data?['stdout'], 'total 8');
+        expectInvocation(runner, 'quickemu', [
+          'guest',
+          'exec',
+          '--vm',
+          'vm1.conf',
+          '--shell',
+          '--',
+          'ls',
+          '-la',
+          '--format',
+          'json',
+        ]);
+      });
+
+      test('exec_failed is a result payload, not a thrown failure', () async {
+        // A guest command exiting non-zero arrives as success:false
+        // with the captured output still in data — the caller renders
+        // it instead of surfacing a transport error.
+        final runner = FakeProcessRunner({
+          key: ProcessResult(
+            0,
+            0,
+            '{"schemaVersion":1,"command":"guest.exec","success":false,"data":{"exitCode":2,"stdout":"","stderr":"ls: bad dir"},"warnings":[],"errors":[{"code":"exec_failed","message":"command exited 2","retryable":false}],"meta":{"quickemuVersion":"5.0.0","timestamp":"t"}}',
+            '',
+          ),
+        });
+        final data = await QuickemuBackend(runner)
+            .guestExec('vm1.conf', ['ls', '-la']);
+        expect(data?['exitCode'], 2);
+        expect(data?['stderr'], 'ls: bad dir');
+      });
+
+      test('non-exec failure codes still throw', () async {
+        final runner = FakeProcessRunner({
+          key: ProcessResult(
+            0,
+            1,
+            '{"schemaVersion":1,"command":"guest.exec","success":false,"data":null,"warnings":[],"errors":[{"code":"agent_not_ready","message":"guest agent is not answering","retryable":true}],"meta":{"quickemuVersion":"5.0.0","timestamp":"t"}}',
+            '',
+          ),
+        });
+        await expectLater(
+          QuickemuBackend(runner).guestExec('vm1.conf', ['ls', '-la']),
+          throwsA(
+            isA<AppFailure>().having((f) => f.code, 'code', 'agent_not_ready'),
+          ),
+        );
+      });
+    });
+
+    group('launchVmToolInTerminal', () {
+      test('serial-console wraps the quickemu verb in the terminal', () async {
+        final runner = FakeProcessRunner({
+          'sh -c xterm -e quickemu --serial-console --vm vm1.conf':
+              ProcessResult(0, 0, '', ''),
+        });
+        final r = await QuickemuBackend(runner)
+            .launchVmToolInTerminal('xterm', 'serial-console', 'vm1.conf');
+        expect(r.exitCode, 0);
+        expectInvocation(runner, 'sh', [
+          '-c',
+          'xterm -e quickemu --serial-console --vm vm1.conf',
+        ]);
+      });
+
+      test('sftp uses the bare subcommand form', () async {
+        final runner = FakeProcessRunner({
+          'sh -c gnome-terminal -- quickemu sftp --vm vm1.conf': ProcessResult(
+            0,
+            0,
+            '',
+            '',
+          ),
+        });
+        final r = await QuickemuBackend(runner)
+            .launchVmToolInTerminal('gnome-terminal', 'sftp', 'vm1.conf');
+        expect(r.exitCode, 0);
+        expectInvocation(runner, 'sh', [
+          '-c',
+          'gnome-terminal -- quickemu sftp --vm vm1.conf',
+        ]);
+      });
+
+      test('monitor-console via wezterm start convention', () async {
+        final runner = FakeProcessRunner({
+          'sh -c wezterm start quickemu --monitor-console --vm vm1.conf':
+              ProcessResult(0, 0, '', ''),
+        });
+        final r = await QuickemuBackend(runner)
+            .launchVmToolInTerminal('wezterm', 'monitor-console', 'vm1.conf');
+        expect(r.exitCode, 0);
+        expectInvocation(runner, 'sh', [
+          '-c',
+          'wezterm start quickemu --monitor-console --vm vm1.conf',
+        ]);
+      });
+
+      test(
+        'unknown tools and hostile conf paths never reach the shell',
+        () async {
+          final runner = FakeProcessRunner({});
+          final backend = QuickemuBackend(runner);
+          expect(
+            (await backend.launchVmToolInTerminal(
+              'xterm',
+              'rm',
+              'vm1.conf',
+            )).exitCode,
+            1,
+          );
+          expect(
+            (await backend.launchVmToolInTerminal(
+              'xterm',
+              'sftp',
+              'x.conf; rm -rf /',
+            )).exitCode,
+            1,
+          );
+          expect(runner.invocations, isEmpty);
+        },
+      );
+    });
+
+    group('sshConfig legacy fallback', () {
+      test('pre-contract backend falls back to exit-code argv', () async {
+        final runner = FakeProcessRunner({
+          'quickemu ssh-config --vm vm1.conf --format json': ProcessResult(
+            0,
+            1,
+            '',
+            '',
+          ),
+          'quickemu ssh-config --vm vm1.conf': ProcessResult(
+            0,
+            0,
+            'Host vm1\n  HostName 127.0.0.1\n',
+            '',
+          ),
+        });
+        final r = await QuickemuBackend(runner).sshConfig('vm1.conf');
+        expect(r.exitCode, 0);
+        expect(runner.invocations.last.$2, ['ssh-config', '--vm', 'vm1.conf']);
       });
     });
   });

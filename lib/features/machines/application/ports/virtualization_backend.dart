@@ -231,6 +231,60 @@ abstract class VirtualizationBackend {
   /// "no address yet" (QG-050).
   Future<Map<String, dynamic>?> guestIpInfo(String confPath);
 
+  /// Agent liveness probe (`guest ping` → `guest.ping`); returns
+  /// `{vm, alive}` or null when the backend lacks the guest verbs.
+  Future<Map<String, dynamic>?> guestPing(String confPath);
+
+  /// Guest OS facts reported by the agent (`guest info` →
+  /// `guest.info`) — hostname, osinfo, uptime, logged-in users.
+  /// Null on old backends.
+  Future<Map<String, dynamic>?> guestInfo(String confPath);
+
+  /// Runs [argv] inside the guest (`guest exec --vm <conf> -- <argv>`
+  /// → `guest.exec`). Returns the captured result map
+  /// `{exitCode, stdout, stderr, exited, truncated}` — a non-zero
+  /// guest exit is a *result*, not a transport failure. Null on old
+  /// backends; agent-missing codes propagate as AppFailure.
+  Future<Map<String, dynamic>?> guestExec(String confPath, List<String> argv);
+
+  /// Streams a file over the guest agent (`guest push|pull` →
+  /// `guest.push`/`guest.pull`). Returns `{bytes, sha256, verified,
+  /// truncated}`. [push] writes [localPath] into [guestPath] inside
+  /// the VM (restricted mode — absolute/deep paths may be refused);
+  /// otherwise reads [guestPath] out to [localPath] ([force] allows
+  /// overwriting an existing local file). Null on old backends.
+  Future<Map<String, dynamic>?> guestTransfer(
+    String confPath, {
+    required bool push,
+    required String localPath,
+    required String guestPath,
+    bool force = false,
+  });
+
+  /// Graceful power action over the guest agent
+  /// (`guest shutdown|reboot|halt` → `guest.<action>`). The backend
+  /// falls back to the ACPI monitor path when the agent is absent.
+  Future<ProcResult> guestPower(String confPath, String action);
+
+  /// Filesystem freeze state (`guest fsfreeze status|freeze|thaw` →
+  /// `guest.fsfreeze`) — quiesce the guest before consistent
+  /// snapshots/backups. Returns `{vm, state}` or null on old backends.
+  Future<Map<String, dynamic>?> guestFsFreeze(String confPath, String sub);
+
+  /// Opens [terminalEmulator] running an interactive backend session —
+  /// `quickemu <tool> --vm <conf>`. Interactive tools (sftp, scp with
+  /// prompts, telnet consoles) need a real TTY; [tool] is validated
+  /// before reaching the `sh -c` string.
+  Future<ProcResult> launchVmToolInTerminal(
+    String terminalEmulator,
+    String tool,
+    String confPath,
+  );
+
+  /// Writes a `~/.ssh/config` stanza for the VM
+  /// (`quickemu ssh-config --vm <conf>` → `vm.ssh_config`).
+  Future<ProcResult> sshConfig(String confPath);
+
   /// Global VM inventory (`--inventory` -> vms.json).
   Future<Map<String, dynamic>> listInventory();
 

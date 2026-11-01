@@ -406,6 +406,51 @@ class _TrackedBackend implements VirtualizationBackend {
       backend.guestIpInfo(confPath);
 
   @override
+  Future<Map<String, dynamic>?> guestPing(String confPath) =>
+      backend.guestPing(confPath);
+
+  @override
+  Future<Map<String, dynamic>?> guestInfo(String confPath) =>
+      backend.guestInfo(confPath);
+
+  @override
+  Future<Map<String, dynamic>?> guestExec(String confPath, List<String> argv) =>
+      backend.guestExec(confPath, argv);
+
+  @override
+  Future<Map<String, dynamic>?> guestTransfer(
+    String confPath, {
+    required bool push,
+    required String localPath,
+    required String guestPath,
+    bool force = false,
+  }) => backend.guestTransfer(
+    confPath,
+    push: push,
+    localPath: localPath,
+    guestPath: guestPath,
+    force: force,
+  );
+
+  @override
+  Future<ProcResult> guestPower(String confPath, String action) =>
+      backend.guestPower(confPath, action);
+
+  @override
+  Future<Map<String, dynamic>?> guestFsFreeze(String confPath, String sub) =>
+      backend.guestFsFreeze(confPath, sub);
+
+  @override
+  Future<ProcResult> launchVmToolInTerminal(
+    String terminalEmulator,
+    String tool,
+    String confPath,
+  ) => backend.launchVmToolInTerminal(terminalEmulator, tool, confPath);
+
+  @override
+  Future<ProcResult> sshConfig(String confPath) => backend.sshConfig(confPath);
+
+  @override
   Future<ProcResult> monitorCommand(String target, String command) =>
       backend.monitorCommand(target, command);
 

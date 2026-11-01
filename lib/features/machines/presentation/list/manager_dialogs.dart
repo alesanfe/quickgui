@@ -134,10 +134,12 @@ class _BackupsDialog extends StatefulWidget {
   const _BackupsDialog({
     required this.backend,
     required this.vm,
+    required this.confPath,
     required this.onChanged,
   });
   final VirtualizationBackend backend;
   final String vm;
+  final String confPath;
   final VoidCallback onChanged;
 
   @override
@@ -266,6 +268,39 @@ class _BackupsDialogState extends State<_BackupsDialog> {
             : () => _run(() => widget.backend.pruneBackups(widget.vm)),
         icon: const Icon(Icons.delete_sweep),
         label: Text(context.t('Prune old')),
+      ),
+      PopupMenuButton<String>(
+        enabled: !_busy,
+        icon: const Icon(Icons.more_vert),
+        tooltip: context.t('Incremental backups'),
+        onSelected: (verb) => _run(() async {
+          final r = await runVmActionOrLegacy(widget.backend, verb, [
+            '--vm',
+            widget.confPath,
+            '--$verb',
+          ]);
+          if (!context.mounted) return;
+          showProcessOutputDialog(context, [r]);
+        }),
+        itemBuilder: (context) => [
+          PopupMenuItem(
+            value: 'backup-incr',
+            child: ListTile(
+              dense: true,
+              leading: const Icon(Icons.add_task),
+              title: Text(context.t('Create incremental')),
+              subtitle: Text(context.t('Requires a running VM')),
+            ),
+          ),
+          PopupMenuItem(
+            value: 'backup-incr-list',
+            child: ListTile(
+              dense: true,
+              leading: const Icon(Icons.list_alt),
+              title: Text(context.t('List increments')),
+            ),
+          ),
+        ],
       ),
       TextButton(
         onPressed: () => Navigator.pop(context),
@@ -541,6 +576,307 @@ class _MoveRenameDialogState extends State<_MoveRenameDialog> {
                 ),
               ),
         child: Text(context.t('Rename')),
+      ),
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: Text(context.t('Close')),
+      ),
+    ],
+  );
+}
+
+/// QEMU Guest Agent console (`quickemu guest …`): liveness, guest OS
+/// facts, in-guest command execution, file transfer, filesystem
+/// freeze and graceful power actions. Verbs that predate the backend
+/// surface as "unsupported" rather than errors.
+class _GuestAgentDialog extends StatefulWidget {
+  const _GuestAgentDialog({
+    required this.backend,
+    required this.vm,
+    required this.confPath,
+  });
+  final VirtualizationBackend backend;
+  final String vm;
+  final String confPath;
+
+  @override
+  State<_GuestAgentDialog> createState() => _GuestAgentDialogState();
+}
+
+class _GuestAgentDialogState extends State<_GuestAgentDialog> {
+  final _cmdCtrl = TextEditingController();
+  final _localCtrl = TextEditingController();
+  final _remoteCtrl = TextEditingController();
+  bool _push = true;
+  bool _busy = false;
+  String? _output;
+
+  @override
+  void initState() {
+    super.initState();
+    _cmdCtrl.addListener(() => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _cmdCtrl.dispose();
+    _localCtrl.dispose();
+    _remoteCtrl.dispose();
+    super.dispose();
+  }
+
+  String _unsupported() => context.t(
+    'Unsupported — this Quickemu does not implement the guest verbs.',
+  );
+
+  /// Runs a read verb and renders the returned map (or the
+  /// unsupported/null result) into the output area.
+  Future<void> _report(Future<Map<String, dynamic>?> Function() call) async {
+    setState(() {
+      _busy = true;
+      _output = null;
+    });
+    try {
+      final data = await call();
+      if (!mounted) return;
+      setState(
+        () => _output = data == null
+            ? _unsupported()
+            : data.entries.map((e) => '${e.key}: ${e.value}').join('\n'),
+      );
+    } on AppFailure catch (e) {
+      if (mounted) setState(() => _output = e.userMessage);
+    } catch (e) {
+      if (mounted) setState(() => _output = '$e');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _exec() async {
+    setState(() {
+      _busy = true;
+      _output = null;
+    });
+    try {
+      final data = await widget.backend.guestExec(widget.confPath, [
+        _cmdCtrl.text.trim(),
+      ]);
+      if (!mounted) return;
+      if (data == null) {
+        setState(() => _output = _unsupported());
+        return;
+      }
+      final buf = StringBuffer('exit ${data['exitCode']}\n');
+      if ('${data['stdout']}'.isNotEmpty) buf.write('${data['stdout']}');
+      if ('${data['stderr']}'.isNotEmpty) buf.write('${data['stderr']}');
+      if (data['truncated'] == true) buf.write('…\n(output truncated)');
+      setState(() => _output = buf.toString().trim());
+    } on AppFailure catch (e) {
+      if (mounted) setState(() => _output = e.userMessage);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _power(String action) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.t('Guest {0}', args: [action])),
+        content: Text(
+          context.t(
+            'Ask the guest to {0} via the agent (ACPI fallback when absent)?',
+            args: [action],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(context.t('Cancel')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(context.t('Confirm')),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() {
+      _busy = true;
+      _output = null;
+    });
+    try {
+      final r = await widget.backend.guestPower(widget.confPath, action);
+      if (!mounted) return;
+      setState(
+        () => _output = r.exitCode == 0
+            ? '${r.stdout}'.trim()
+            : '${context.t('Error')}: ${r.stderr}${r.stdout}'.trim(),
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    title: Text(context.t('Guest agent — {0}', args: [widget.vm])),
+    content: SizedBox(
+      width: 480,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                TextButton(
+                  onPressed: _busy
+                      ? null
+                      : () => _report(
+                          () => widget.backend.guestPing(widget.confPath),
+                        ),
+                  child: Text(context.t('Ping')),
+                ),
+                TextButton(
+                  onPressed: _busy
+                      ? null
+                      : () => _report(
+                          () => widget.backend.guestInfo(widget.confPath),
+                        ),
+                  child: Text(context.t('Info')),
+                ),
+                TextButton(
+                  onPressed: _busy
+                      ? null
+                      : () => _report(
+                          () => widget.backend.guestFsFreeze(
+                            widget.confPath,
+                            'status',
+                          ),
+                        ),
+                  child: Text(context.t('Freeze status')),
+                ),
+                TextButton(
+                  onPressed: _busy
+                      ? null
+                      : () => _report(
+                          () => widget.backend.guestFsFreeze(
+                            widget.confPath,
+                            'freeze',
+                          ),
+                        ),
+                  child: Text(context.t('Freeze')),
+                ),
+                TextButton(
+                  onPressed: _busy
+                      ? null
+                      : () => _report(
+                          () => widget.backend.guestFsFreeze(
+                            widget.confPath,
+                            'thaw',
+                          ),
+                        ),
+                  child: Text(context.t('Thaw')),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _cmdCtrl,
+              decoration: InputDecoration(
+                labelText: context.t('Command to run in the guest'),
+                isDense: true,
+              ),
+              onSubmitted: (_) =>
+                  _cmdCtrl.text.trim().isNotEmpty ? _exec() : null,
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                ChoiceChip(
+                  label: Text(context.t('Push (to guest)')),
+                  selected: _push,
+                  onSelected: (_) => setState(() => _push = true),
+                ),
+                const SizedBox(width: 8),
+                ChoiceChip(
+                  label: Text(context.t('Pull (from guest)')),
+                  selected: !_push,
+                  onSelected: (_) => setState(() => _push = false),
+                ),
+              ],
+            ),
+            TextField(
+              controller: _localCtrl,
+              decoration: InputDecoration(
+                labelText: context.t('Local path'),
+                isDense: true,
+              ),
+            ),
+            TextField(
+              controller: _remoteCtrl,
+              decoration: InputDecoration(
+                labelText: context.t('Guest path'),
+                isDense: true,
+              ),
+            ),
+            if (_output != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Container(
+                  width: double.infinity,
+                  constraints: const BoxConstraints(maxHeight: 180),
+                  padding: const EdgeInsets.all(8),
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  child: SingleChildScrollView(
+                    child: SelectableText(
+                      _output!,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed:
+            _busy ||
+                _localCtrl.text.trim().isEmpty ||
+                _remoteCtrl.text.trim().isEmpty
+            ? null
+            : () => _report(
+                () => widget.backend.guestTransfer(
+                  widget.confPath,
+                  push: _push,
+                  localPath: _localCtrl.text.trim(),
+                  guestPath: _remoteCtrl.text.trim(),
+                ),
+              ),
+        child: Text(context.t('Transfer')),
+      ),
+      TextButton(
+        onPressed: _busy || _cmdCtrl.text.trim().isEmpty ? null : _exec,
+        child: Text(context.t('Run')),
+      ),
+      TextButton(
+        onPressed: _busy ? null : () => _power('shutdown'),
+        child: Text(context.t('Shutdown')),
+      ),
+      TextButton(
+        onPressed: _busy ? null : () => _power('reboot'),
+        child: Text(context.t('Reboot')),
+      ),
+      TextButton(
+        onPressed: _busy ? null : () => _power('halt'),
+        child: Text(context.t('Halt')),
       ),
       TextButton(
         onPressed: () => Navigator.pop(context),

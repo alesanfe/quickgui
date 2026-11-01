@@ -2013,3 +2013,108 @@ msgstr ""
 
 msgid "Start with profile"
 msgstr ""
+
+msgid "Apply policy"
+msgstr ""
+
+msgid "Command to run in the guest"
+msgstr ""
+
+msgid "Confirm"
+msgstr ""
+
+msgid "Create desktop shortcut"
+msgstr ""
+
+msgid "Create incremental"
+msgstr ""
+
+msgid "Description (--snapshot-desc)"
+msgstr ""
+
+msgid "Freeze"
+msgstr ""
+
+msgid "Freeze status"
+msgstr ""
+
+msgid "Guest agent — {0}"
+msgstr ""
+
+msgid "Guest agent…"
+msgstr ""
+
+msgid "Guest path"
+msgstr ""
+
+msgid "Guest {0}"
+msgstr ""
+
+msgid "Halt"
+msgstr ""
+
+msgid "Include memory (--memory)"
+msgstr ""
+
+msgid "Incremental backups"
+msgstr ""
+
+msgid "List increments"
+msgstr ""
+
+msgid "Local path"
+msgstr ""
+
+msgid "Monitor console"
+msgstr ""
+
+msgid "Open SFTP"
+msgstr ""
+
+msgid "Ping"
+msgstr ""
+
+msgid "Policy"
+msgstr ""
+
+msgid "Pull (from guest)"
+msgstr ""
+
+msgid "Push (to guest)"
+msgstr ""
+
+msgid "Quiesce filesystem"
+msgstr ""
+
+msgid "Reboot"
+msgstr ""
+
+msgid "Requires a running VM"
+msgstr ""
+
+msgid "SSH config entry written"
+msgstr ""
+
+msgid "Save to SSH config"
+msgstr ""
+
+msgid "Serial console"
+msgstr ""
+
+msgid "Shutdown"
+msgstr ""
+
+msgid "Start offline (no network)"
+msgstr ""
+
+msgid "Suspend to disk"
+msgstr ""
+
+msgid "Thaw"
+msgstr ""
+
+msgid "Transfer"
+msgstr ""
+
+msgid "ssh-config failed"
+msgstr ""

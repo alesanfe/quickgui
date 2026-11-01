@@ -7,6 +7,7 @@ import 'package:quickgui/infrastructure/process/process_runner.dart';
 import 'package:quickgui/infrastructure/quickemu/quickemu_contract.dart';
 import 'package:quickgui/infrastructure/quickemu/quickemu_parser.dart';
 import 'package:quickgui/infrastructure/quickemu/quickemu_process.dart';
+import 'package:quickgui/infrastructure/quickemu/quickemu_response.dart';
 import 'package:quickgui/infrastructure/quickemu/structured_quickemu.dart';
 import 'package:quickgui/core/errors/app_failure.dart';
 import 'package:quickgui/core/logging/app_logging.dart';
@@ -450,6 +451,109 @@ class QuickemuBackend implements VirtualizationBackend {
     }
   }
 
+  /// Shared guest-verb runner: `quickemu guest <verb> <args>` through
+  /// the structured contract; a pre-contract backend resolves to null
+  /// so callers can render "agent unsupported" instead of an error.
+  Future<Map<String, dynamic>?> _guestEnvelope(
+    String command,
+    String verb,
+    List<String> args,
+  ) async {
+    try {
+      final response = await _structured.run(command, ['guest', verb, ...args]);
+      return response.dataMap ?? const {};
+    } on AppFailure catch (e) {
+      if (isBackendEnvelopeMissing(e)) return null;
+      rethrow;
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>?> guestPing(String confPath) =>
+      _guestEnvelope('guest.ping', 'ping', ['--vm', confPath]);
+
+  @override
+  Future<Map<String, dynamic>?> guestInfo(String confPath) =>
+      _guestEnvelope('guest.info', 'info', ['--vm', confPath]);
+
+  @override
+  Future<Map<String, dynamic>?> guestExec(
+    String confPath,
+    List<String> argv,
+  ) async {
+    final args = [
+      'guest',
+      'exec',
+      '--vm',
+      confPath,
+      '--shell',
+      '--',
+      ...argv,
+      ...formatJsonArgs,
+    ];
+    // Parse the envelope directly rather than run(): a guest command
+    // that exits non-zero arrives as success:false with the captured
+    // output still in data — that is a result to display, not a
+    // transport failure to throw.
+    final r = await _process.quickemu(args);
+    final QuickemuResponse response;
+    try {
+      response = QuickemuResponse.parse(
+        '${r.stdout}',
+        command: 'guest.exec',
+        exitCode: r.exitCode,
+        stderr: '${r.stderr}',
+      );
+    } on AppFailure catch (e) {
+      if (isBackendEnvelopeMissing(e)) return null;
+      rethrow;
+    }
+    if (!response.success &&
+        (response.errors.isEmpty ||
+            response.errors.first.code != 'exec_failed')) {
+      throw response.toFailure();
+    }
+    return response.dataMap ?? const {};
+  }
+
+  @override
+  Future<Map<String, dynamic>?> guestTransfer(
+    String confPath, {
+    required bool push,
+    required String localPath,
+    required String guestPath,
+    bool force = false,
+  }) {
+    final verb = push ? 'push' : 'pull';
+    return _guestEnvelope('guest.$verb', verb, [
+      '--vm',
+      confPath,
+      if (force) '--force',
+      localPath,
+      guestPath,
+    ]);
+  }
+
+  @override
+  Future<ProcResult> guestPower(String confPath, String action) async {
+    final args = ['guest', action, '--vm', confPath];
+    try {
+      final r = await _structured.run('guest.$action', args);
+      return ProcResult(0, '${r.dataMap ?? ''}', '');
+    } on AppFailure catch (e) {
+      // Power ops only emit an envelope on the wait-path; text output
+      // (or an old backend) resolves through the exit-code path.
+      if (!isBackendEnvelopeMissing(e)) {
+        return ProcResult(1, '', e.userMessage);
+      }
+      return await _proc(_process.quickemu(args));
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>?> guestFsFreeze(String confPath, String sub) =>
+      _guestEnvelope('guest.fsfreeze', 'fsfreeze', ['--vm', confPath, sub]);
+
   @override
   Future<Map<String, dynamic>?> hostInfo() async {
     try {
@@ -696,6 +800,58 @@ class QuickemuBackend implements VirtualizationBackend {
     // The argument styles above embed shell quoting on purpose, so the
     // assembled command goes through `sh -c` exactly like before.
     return _proc(_runner.run('sh', ['-c', sshArgs.join(' ')]));
+  }
+
+  /// Interactive verbs a spawned terminal can host — interactive
+  /// tools exit with inherited stdio, so non-terminal invocation
+  /// (runAction) would hang on a captive pipe.
+  static const _terminalTools = {'sftp', 'serial-console', 'monitor-console'};
+
+  @override
+  Future<ProcResult> launchVmToolInTerminal(
+    String terminalEmulator,
+    String tool,
+    String confPath,
+  ) {
+    if (!_terminalTools.contains(tool)) {
+      return Future.value(ProcResult(1, '', 'unknown tool: $tool'));
+    }
+    // The conf path lands inside the `sh -c` string — confine it to
+    // the same characters the VM name allows (paths, dots, dashes).
+    if (!RegExp(r'^[a-zA-Z0-9_./\\: -]+\.conf$').hasMatch(confPath)) {
+      return Future.value(const ProcResult(1, '', 'invalid conf path'));
+    }
+    final verb = tool == 'sftp' ? ['sftp'] : <String>['--$tool'];
+    final args = <String>['quickemu', ...verb, '--vm', confPath];
+    switch (p.basenameWithoutExtension(terminalEmulator)) {
+      case 'gnome-terminal':
+      case 'mate-terminal':
+        args.insert(0, '--');
+      case 'kitty':
+      case 'foot':
+      case 'osascript':
+        break;
+      case 'wezterm':
+        args.insert(0, 'start');
+      default:
+        args.insert(0, '-e');
+    }
+    args.insert(0, terminalEmulator);
+    return _proc(_runner.run('sh', ['-c', args.join(' ')]));
+  }
+
+  @override
+  Future<ProcResult> sshConfig(String confPath) async {
+    final args = ['ssh-config', '--vm', confPath];
+    try {
+      final r = await _structured.run('ssh-config', args);
+      return ProcResult(0, '${r.dataMap ?? ''}', '');
+    } on AppFailure catch (e) {
+      if (!isBackendEnvelopeMissing(e)) {
+        return ProcResult(1, '', e.userMessage);
+      }
+      return await _proc(_process.quickemu(args));
+    }
   }
 
   @override

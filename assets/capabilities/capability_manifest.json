@@ -285,14 +285,17 @@
         "requirement": "optional",
         "status": "implemented",
         "entry_points": [
-          "vm_settings.network_key"
-        ],
-        "justification": "Equivalent reachable via the 'network' conf key the settings editor exposes"
+          "vm_settings.network_key",
+          "vm_menu.start_offline"
+        ]
       },
       "testing": {
         "surfaces": [
           "test/unit/infrastructure/vm_config_file_store_test.dart"
         ]
+      },
+      "architecture": {
+        "adapter_method": "runAction"
       }
     },
     {
@@ -787,8 +790,18 @@
       },
       "gui": {
         "requirement": "optional",
-        "status": "unsupported",
-        "justification": "Quickgui manages its own launcher UX; desktop .desktop files out of scope"
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.maintenance.shortcut"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runAction"
+      },
+      "testing": {
+        "surfaces": [
+          "test/capture/interface_capture_test.dart"
+        ]
       }
     },
     {
@@ -2068,8 +2081,6 @@
           "--snapshot-delete",
           "--snapshot-info",
           "--ignore-msrs",
-          "--serial-console",
-          "--monitor-console",
           "--disk-resize-commit",
           "--extra-args",
           "--keyboard-layout"
@@ -2843,6 +2854,304 @@
       "testing": {
         "surfaces": [
           "test/unit/features/activity/download_notification_policy_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.guest.agent",
+      "domain": "guest",
+      "title": "Guest agent operations (ping/info/exec/transfer/power/freeze)",
+      "criticality": "high",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "guest <verb>",
+        "flags": [
+          "guest ping",
+          "guest info",
+          "guest exec",
+          "guest push",
+          "guest pull",
+          "guest shutdown",
+          "guest reboot",
+          "guest halt",
+          "guest fsfreeze"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.guest_agent"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "guestPing"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart",
+          "test/widget/manager_workflows_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.lifecycle.suspend",
+      "domain": "lifecycle",
+      "title": "Suspend to disk (hibernate)",
+      "criticality": "high",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--suspend",
+        "flags": [
+          "--suspend"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.suspend"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runAction"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart",
+          "test/capture/interface_capture_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.console.serial",
+      "domain": "console",
+      "title": "Serial console attach (telnet)",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--serial-console",
+        "flags": [
+          "--serial-console"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.serial_console"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "launchVmToolInTerminal"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.console.monitor",
+      "domain": "console",
+      "title": "QEMU monitor console attach (telnet)",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--monitor-console",
+        "flags": [
+          "--monitor-console"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.monitor_console"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "launchVmToolInTerminal"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.backup.incremental",
+      "domain": "backup",
+      "title": "Incremental backups (dirty-bitmap)",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--backup-incr",
+        "flags": [
+          "--backup-incr",
+          "--backup-incr-list"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "vm_menu.maintenance.backups.incremental"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runAction"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.snapshot.policy",
+      "domain": "snapshots",
+      "title": "Snapshot retention policy",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--snapshot-policy",
+        "flags": [
+          "--snapshot-policy",
+          "--dry"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "vm_snapshots.policy"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runAction"
+      },
+      "testing": {
+        "surfaces": [
+          "test/widget/manager_workflows_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.ssh.config",
+      "domain": "network",
+      "title": "Write ~/.ssh/config stanza for a VM",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "ssh-config",
+        "flags": [
+          "ssh-config"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "vm_connect.ssh.save_config"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "sshConfig"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart",
+          "test/widget/dialogs_coverage_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.ssh.sftp",
+      "domain": "network",
+      "title": "SFTP session to a VM (terminal)",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "sftp",
+        "flags": [
+          "sftp"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "vm_connect.ssh.sftp"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "launchVmToolInTerminal"
+      },
+      "testing": {
+        "surfaces": [
+          "test/unit/infrastructure/quickemu/quickemu_backend_test.dart",
+          "test/widget/dialogs_coverage_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.snapshot.live_options",
+      "domain": "snapshots",
+      "title": "Live snapshot options (--memory/--quiesce/--snapshot-desc)",
+      "criticality": "medium",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "--snapshot create",
+        "flags": [
+          "--memory",
+          "--quiesce",
+          "--snapshot-desc"
+        ]
+      },
+      "gui": {
+        "requirement": "optional",
+        "status": "implemented",
+        "entry_points": [
+          "vm_snapshots.create_options"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "runAction"
+      },
+      "testing": {
+        "surfaces": [
+          "test/widget/manager_workflows_test.dart"
+        ]
+      }
+    },
+    {
+      "id": "vm.ssh.client",
+      "domain": "network",
+      "title": "SSH/SCP client and known-hosts forget",
+      "criticality": "high",
+      "backend": {
+        "executable": "quickemu",
+        "operation": "ssh|scp|ssh-forget",
+        "flags": [
+          "ssh",
+          "scp",
+          "ssh-forget"
+        ]
+      },
+      "gui": {
+        "requirement": "required",
+        "status": "implemented",
+        "entry_points": [
+          "vm_connect.ssh"
+        ]
+      },
+      "architecture": {
+        "adapter_method": "connectSsh"
+      },
+      "testing": {
+        "surfaces": [
+          "test/widget/dialogs_coverage_test.dart"
         ]
       }
     }

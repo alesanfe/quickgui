@@ -298,6 +298,51 @@ class ApiRoutingBackend implements VirtualizationBackend {
   @override
   Future<Map<String, dynamic>?> guestIpInfo(String confPath) =>
       _cli.guestIpInfo(confPath);
+
+  @override
+  Future<Map<String, dynamic>?> guestPing(String confPath) =>
+      _cli.guestPing(confPath);
+
+  @override
+  Future<Map<String, dynamic>?> guestInfo(String confPath) =>
+      _cli.guestInfo(confPath);
+
+  @override
+  Future<Map<String, dynamic>?> guestExec(String confPath, List<String> argv) =>
+      _cli.guestExec(confPath, argv);
+
+  @override
+  Future<Map<String, dynamic>?> guestTransfer(
+    String confPath, {
+    required bool push,
+    required String localPath,
+    required String guestPath,
+    bool force = false,
+  }) => _cli.guestTransfer(
+    confPath,
+    push: push,
+    localPath: localPath,
+    guestPath: guestPath,
+    force: force,
+  );
+
+  @override
+  Future<ProcResult> guestPower(String confPath, String action) =>
+      _cli.guestPower(confPath, action);
+
+  @override
+  Future<Map<String, dynamic>?> guestFsFreeze(String confPath, String sub) =>
+      _cli.guestFsFreeze(confPath, sub);
+
+  @override
+  Future<ProcResult> launchVmToolInTerminal(
+    String terminalEmulator,
+    String tool,
+    String confPath,
+  ) => _cli.launchVmToolInTerminal(terminalEmulator, tool, confPath);
+
+  @override
+  Future<ProcResult> sshConfig(String confPath) => _cli.sshConfig(confPath);
   @override
   // The daemon's `/v1/vms` is the same `vms.json` registry the CLI
   // reads — one HTTP call replaces a process spawn.

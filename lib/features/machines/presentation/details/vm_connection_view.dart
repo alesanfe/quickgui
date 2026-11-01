@@ -101,6 +101,7 @@ class _VmConnectionViewState extends ConsumerState<VmConnectionView> {
           backend: backend,
           prefs: preferences,
           vm: widget.vm,
+          confPath: widget.confPath,
           sshPort: port,
           terminalEmulator: terminal,
           guestAddresses:

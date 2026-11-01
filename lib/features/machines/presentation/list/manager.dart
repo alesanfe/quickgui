@@ -18,6 +18,7 @@ import 'package:quickgui/features/diagnostics/application/ports/host_probe.dart'
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_console_page.dart';
 import 'package:quickgui/features/machines/presentation/shared/new_vm_tag.dart';
+import 'package:quickgui/features/machines/presentation/shared/process_output_dialog.dart';
 import 'package:version/version.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,6 +27,7 @@ import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/features/settings/application/ports/preferences_repository.dart';
 import 'package:quickgui/core/constants/preference_keys.dart';
 import 'package:quickgui/core/extensions/preferences_repository_x.dart';
+import 'package:quickgui/core/errors/app_failure.dart';
 import 'package:quickgui/core/logging/app_logging.dart';
 import 'package:quickgui/features/machines/application/ports/proc.dart';
 import 'package:quickgui/features/machines/application/ports/virtualization_backend.dart';

@@ -1842,3 +1842,108 @@ msgstr "Registra el dispositivo conectado en la configuración de la MV (--persi
 
 msgid "Start with profile"
 msgstr "Iniciar con perfil"
+
+msgid "Apply policy"
+msgstr "Aplicar política"
+
+msgid "Command to run in the guest"
+msgstr "Comando a ejecutar en el invitado"
+
+msgid "Confirm"
+msgstr "Confirmar"
+
+msgid "Create desktop shortcut"
+msgstr "Crear acceso directo en el escritorio"
+
+msgid "Create incremental"
+msgstr "Crear incremental"
+
+msgid "Description (--snapshot-desc)"
+msgstr "Descripción (--snapshot-desc)"
+
+msgid "Freeze"
+msgstr "Congelar"
+
+msgid "Freeze status"
+msgstr "Estado de congelación"
+
+msgid "Guest agent — {0}"
+msgstr "Agente de invitado — {0}"
+
+msgid "Guest agent…"
+msgstr "Agente de invitado…"
+
+msgid "Guest path"
+msgstr "Ruta en el invitado"
+
+msgid "Guest {0}"
+msgstr "Invitado {0}"
+
+msgid "Halt"
+msgstr "Detener"
+
+msgid "Include memory (--memory)"
+msgstr "Incluir memoria (--memory)"
+
+msgid "Incremental backups"
+msgstr "Copias incrementales"
+
+msgid "List increments"
+msgstr "Listar incrementos"
+
+msgid "Local path"
+msgstr "Ruta local"
+
+msgid "Monitor console"
+msgstr "Consola de monitor"
+
+msgid "Open SFTP"
+msgstr "Abrir SFTP"
+
+msgid "Ping"
+msgstr "Ping"
+
+msgid "Policy"
+msgstr "Política"
+
+msgid "Pull (from guest)"
+msgstr "Traer (desde el invitado)"
+
+msgid "Push (to guest)"
+msgstr "Enviar (al invitado)"
+
+msgid "Quiesce filesystem"
+msgstr "Congelar sistema de ficheros"
+
+msgid "Reboot"
+msgstr "Reiniciar"
+
+msgid "Requires a running VM"
+msgstr "Requiere una VM en ejecución"
+
+msgid "SSH config entry written"
+msgstr "Entrada SSH escrita en la configuración"
+
+msgid "Save to SSH config"
+msgstr "Guardar en la config SSH"
+
+msgid "Serial console"
+msgstr "Consola serie"
+
+msgid "Shutdown"
+msgstr "Apagar"
+
+msgid "Start offline (no network)"
+msgstr "Arrancar sin red"
+
+msgid "Suspend to disk"
+msgstr "Suspender a disco"
+
+msgid "Thaw"
+msgstr "Descongelar"
+
+msgid "Transfer"
+msgstr "Transferencia"
+
+msgid "ssh-config failed"
+msgstr "ssh-config falló"

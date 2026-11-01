@@ -112,6 +112,7 @@ void main() {
           backend: backend,
           prefs: prefs,
           vm: 'vm1',
+          confPath: 'vm1.conf',
           sshPort: '2222',
           terminalEmulator: 'xterm',
         ),

@@ -62,14 +62,22 @@ class _VmSnapshotsViewState extends ConsumerState<VmSnapshotsView> {
   }
 
   final _tagController = TextEditingController();
+  final _descController = TextEditingController();
+  bool _withMemory = false;
+  bool _quiesce = false;
 
   @override
   void dispose() {
     _tagController.dispose();
+    _descController.dispose();
     super.dispose();
   }
 
-  Future<void> _run(String action, [String tag = '']) async {
+  Future<void> _run(
+    String action, [
+    String tag = '',
+    List<String>? extra,
+  ]) async {
     if (_busy) return;
     setState(() => _busy = true);
     try {
@@ -83,6 +91,7 @@ class _VmSnapshotsViewState extends ConsumerState<VmSnapshotsView> {
             '--snapshot',
             action,
             if (tag.isNotEmpty) tag,
+            ...?extra,
           ];
           return runVmActionOrLegacy(_backend, 'snapshot-$action', args);
         },
@@ -96,6 +105,38 @@ class _VmSnapshotsViewState extends ConsumerState<VmSnapshotsView> {
       if (mounted) setState(() => _busy = false);
     }
   }
+
+  /// `--snapshot-policy <verb>` — retention engine status / manual
+  /// run. `units` would install systemd timers, so it stays out.
+  Future<void> _policy(String verb) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      final r = await runVmActionOrLegacy(_backend, 'snapshot-policy', [
+        '--vm',
+        widget.confPath,
+        '--snapshot-policy',
+        verb,
+      ]);
+      if (!mounted) return;
+      showProcessOutputDialog(context, [r]);
+      await _load();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// Extra flags for `snapshot create` — `--memory` takes a live
+  /// vmstate snapshot, `--quiesce` freezes the guest fs first and
+  /// `--snapshot-desc` registers a description alongside it.
+  List<String> get _createExtra => [
+    if (_withMemory) '--memory',
+    if (_withMemory && _quiesce) '--quiesce',
+    if (_withMemory && _descController.text.trim().isNotEmpty) ...[
+      '--snapshot-desc',
+      _descController.text.trim(),
+    ],
+  ];
 
   Future<void> _verify() async {
     if (_busy) return;
@@ -208,6 +249,38 @@ class _VmSnapshotsViewState extends ConsumerState<VmSnapshotsView> {
             onChanged: (_) => setState(() {}),
           ),
         ),
+        Row(
+          children: [
+            Expanded(
+              child: CheckboxListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                title: Text(context.t('Include memory (--memory)')),
+                value: _withMemory,
+                onChanged: (v) => setState(() => _withMemory = v ?? false),
+              ),
+            ),
+            Expanded(
+              child: CheckboxListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                title: Text(context.t('Quiesce filesystem')),
+                value: _quiesce,
+                onChanged: _withMemory
+                    ? (v) => setState(() => _quiesce = v ?? false)
+                    : null,
+              ),
+            ),
+          ],
+        ),
+        if (_withMemory)
+          TextField(
+            controller: _descController,
+            decoration: InputDecoration(
+              labelText: context.t('Description (--snapshot-desc)'),
+              isDense: true,
+            ),
+          ),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Row(
@@ -217,7 +290,9 @@ class _VmSnapshotsViewState extends ConsumerState<VmSnapshotsView> {
                 child: Text(context.t('Info')),
               ),
               TextButton(
-                onPressed: tag.isEmpty ? null : () => _run('create', tag),
+                onPressed: tag.isEmpty
+                    ? null
+                    : () => _run('create', tag, _createExtra),
                 child: Text(context.t('Create')),
               ),
               TextButton(
@@ -235,6 +310,14 @@ class _VmSnapshotsViewState extends ConsumerState<VmSnapshotsView> {
               TextButton(
                 onPressed: _busy ? null : _verify,
                 child: Text(context.t('Verify')),
+              ),
+              TextButton(
+                onPressed: _busy ? null : () => _policy('status'),
+                child: Text(context.t('Policy')),
+              ),
+              TextButton(
+                onPressed: _busy ? null : () => _policy('run'),
+                child: Text(context.t('Apply policy')),
               ),
               const Spacer(),
               IconButton(
