@@ -2259,3 +2259,6 @@ msgstr ""
 
 msgid "telnet enables the matching Attach action in the VM menu; socket keeps a unix socket channel."
 msgstr ""
+
+msgid "Popular:"
+msgstr ""

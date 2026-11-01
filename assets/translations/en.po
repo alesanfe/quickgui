@@ -2264,3 +2264,6 @@ msgstr "local = host-only display access, remote = listen on all interfaces, or 
 
 msgid "telnet enables the matching Attach action in the VM menu; socket keeps a unix socket channel."
 msgstr "telnet enables the matching Attach action in the VM menu; socket keeps a unix socket channel."
+
+msgid "Popular:"
+msgstr ""

@@ -1,5 +1,11 @@
+import 'dart:async';
+import 'dart:io';
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
+import 'package:path/path.dart' as p;
+import 'package:quickgui/infrastructure/vnc/ppm.dart';
 
 /// Persistent details pane for the selected VM — the Quickgui equivalent
 /// of the details views in VirtualBox, virt-manager and GNOME Boxes
@@ -103,6 +109,7 @@ class VmDetailsPane extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
+          _VmScreenshot(name),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -160,6 +167,116 @@ class VmDetailsPane extends StatelessWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// Latest console screenshot for the selected VM, when one exists.
+/// `quickemu --screenshot` writes `<vm>/<vm>-YYYYMMDD-HHMMSS.ppm`
+/// (or .png) into the machine directory; the newest match is shown.
+class _VmScreenshot extends StatefulWidget {
+  const _VmScreenshot(this.vm);
+
+  final String vm;
+
+  @override
+  State<_VmScreenshot> createState() => _VmScreenshotState();
+}
+
+class _VmScreenshotState extends State<_VmScreenshot> {
+  ui.Image? _image;
+  String _loadedFor = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadedFor = widget.vm;
+    _load();
+  }
+
+  @override
+  void didUpdateWidget(_VmScreenshot old) {
+    super.didUpdateWidget(old);
+    if (old.vm != widget.vm) {
+      _loadedFor = widget.vm;
+      _load();
+    }
+  }
+
+  @override
+  void dispose() {
+    _image?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    final dir = Directory(widget.vm);
+    if (!dir.existsSync()) {
+      _setImage(null);
+      return;
+    }
+    final pattern = RegExp(
+      '^${RegExp.escape(widget.vm)}-\\d{8}-\\d{6}\\.(ppm|png)\$',
+    );
+    final shots =
+        dir
+            .listSync()
+            .whereType<File>()
+            .map((f) => f.path)
+            .where((path) => pattern.hasMatch(p.basename(path)))
+            .toList()
+          ..sort();
+    if (shots.isEmpty) {
+      _setImage(null);
+      return;
+    }
+    final path = shots.last;
+    final bytes = await File(path).readAsBytes();
+    ui.Image? image;
+    if (path.endsWith('.ppm')) {
+      image = await decodePpm(bytes);
+    } else {
+      final completer = Completer<ui.Image>();
+      ui.decodeImageFromList(bytes, completer.complete);
+      image = await completer.future;
+    }
+    _setImage(image);
+  }
+
+  void _setImage(ui.Image? image) {
+    if (!mounted || widget.vm != _loadedFor) {
+      image?.dispose();
+      return;
+    }
+    final old = _image;
+    _image = image;
+    old?.dispose();
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final image = _image;
+    if (image == null) return const SizedBox.shrink();
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Tooltip(
+        message: context.t('Latest console screenshot'),
+        child: Semantics(
+          image: true,
+          label: context.t('Latest console screenshot'),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: scheme.outlineVariant),
+              ),
+              child: RawImage(image: image, width: 320, fit: BoxFit.fitWidth),
+            ),
+          ),
+        ),
       ),
     );
   }

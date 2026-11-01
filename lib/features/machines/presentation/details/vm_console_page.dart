@@ -15,8 +15,10 @@ import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/shared/providers/preferences_providers.dart';
 import 'package:quickgui/infrastructure/vnc/console_scale.dart';
 import 'package:quickgui/infrastructure/vnc/keymap.dart';
+import 'package:quickgui/infrastructure/vnc/ppm.dart';
 import 'package:quickgui/infrastructure/vnc/reconnect_policy.dart';
 import 'package:quickgui/infrastructure/vnc/rfb_client.dart';
+import 'package:quickgui/infrastructure/vnc/sendkey_names.dart';
 import 'package:window_manager/window_manager.dart';
 
 /// Embedded console: prefers a live RFB/VNC stream (full physical
@@ -1095,7 +1097,7 @@ class _VmConsolePageState extends ConsumerState<VmConsolePage>
         _typeRfb(ch);
       } else {
         // --type maps chars to sendkey chords; do the same here via HMP.
-        _send('sendkey ${_keyName(ch)}');
+        _send('sendkey ${keyName(ch)}');
       }
     }
   }
@@ -1127,99 +1129,4 @@ class _VmConsolePageState extends ConsumerState<VmConsolePage>
       ..sendKey(keysym, down: false);
     if (shift) vnc.sendKey(Keysyms.shiftL, down: false);
   }
-}
-
-/// Maps a typed character to a QEMU `sendkey` name — parity with the
-/// `--type` loop in the Go CLI (letters/digits literal, shifted
-/// punctuation named, uppercase via `shift-`).
-String _keyName(String ch) {
-  const named = {
-    ' ': 'spc',
-    '!': 'shift-1',
-    '@': 'shift-2',
-    '#': 'shift-3',
-    r'$': 'shift-4',
-    '%': 'shift-5',
-    '^': 'shift-6',
-    '&': 'shift-7',
-    '*': 'shift-8',
-    '(': 'shift-9',
-    ')': 'shift-0',
-    '-': 'minus',
-    '_': 'shift-minus',
-    '=': 'equal',
-    '+': 'shift-equal',
-    '[': 'bracket_left',
-    ']': 'bracket_right',
-    '{': 'shift-bracket_left',
-    '}': 'shift-bracket_right',
-    ';': 'semicolon',
-    ':': 'shift-semicolon',
-    "'": 'apostrophe',
-    '"': 'shift-apostrophe',
-    '`': 'grave_accent',
-    '~': 'shift-grave_accent',
-    r'\': 'backslash',
-    '|': 'shift-backslash',
-    ',': 'comma',
-    '<': 'shift-comma',
-    '.': 'dot',
-    '>': 'shift-dot',
-    '/': 'slash',
-    '?': 'shift-slash',
-    '\n': 'ret',
-    '\t': 'tab',
-  };
-  if (named.containsKey(ch)) return named[ch]!;
-  if (RegExp(r'^[a-z0-9]$').hasMatch(ch)) return ch;
-  if (RegExp(r'^[A-Z]$').hasMatch(ch)) return 'shift-${ch.toLowerCase()}';
-  return 'spc';
-}
-
-/// Decodes a binary PPM (P6) framebuffer. QEMU screendump emits
-/// `P6 <w> <h> <maxval>` followed by w*h*3 bytes of RGB.
-Future<ui.Image?> decodePpm(Uint8List bytes) async {
-  var i = 0;
-  final tokens = <int>[];
-  while (tokens.length < 3 && i < bytes.length) {
-    // skip whitespace and '#' comments
-    while (i < bytes.length && (bytes[i] <= 0x20 || bytes[i] == 0x23)) {
-      if (bytes[i] == 0x23) {
-        while (i < bytes.length && bytes[i] != 0x0a) {
-          i++;
-        }
-      } else {
-        i++;
-      }
-    }
-    var v = 0;
-    final start = i;
-    if (i + 1 < bytes.length &&
-        bytes[i] == 0x50 /*P*/ &&
-        bytes[i + 1] == 0x36 /*6*/ ) {
-      tokens.add(-1); // magic consumed
-      i += 2;
-      continue;
-    }
-    while (i < bytes.length && bytes[i] > 0x20) {
-      v = v * 10 + (bytes[i] - 0x30);
-      i++;
-    }
-    if (i != start) tokens.add(v);
-  }
-  if (tokens.length < 3 || tokens[0] != -1) return null;
-  final w = tokens[1];
-  final h = tokens[2];
-  i++; // single whitespace after maxval
-  if (w <= 0 || h <= 0 || i + w * h * 3 > bytes.length) return null;
-  final rgba = Uint8List(w * h * 4);
-  for (var s = 0, d = 0; d < rgba.length; s += 3, d += 4) {
-    rgba[d] = bytes[i + s];
-    rgba[d + 1] = bytes[i + s + 1];
-    rgba[d + 2] = bytes[i + s + 2];
-    rgba[d + 3] = 0xff;
-  }
-  final c = Completer<ui.Image>();
-  ui.decodeImageFromPixels(rgba, w, h, ui.PixelFormat.rgba8888, c.complete);
-  return await c.future;
 }

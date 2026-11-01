@@ -136,17 +136,21 @@ void main() {
     Future<void> chooseAction(WidgetTester tester, String label) async {
       await tester.tap(find.byTooltip('More actions').first);
       await tester.pumpAndSettle();
-      // The menu is height-capped (~560) — items below the fold are not
-      // built until scrolled into view.
-      var item = find.text(label);
-      for (var i = 0; i < 6 && item.evaluate().isEmpty; i++) {
-        final scrollable = find.byType(Scrollable).last;
-        await tester.drag(scrollable, const Offset(0, -350));
+      // Match the button *containing* the label: a plain find.text also
+      // hits same-named controls under the open menu's barrier.
+      var item = find.widgetWithText(MenuItemButton, label);
+      // Rarely-used actions live in cascading SubmenuButtons — their
+      // children only enter the tree once the submenu is open, so open
+      // each submenu in turn until the item appears.
+      for (final sub in find.byType(SubmenuButton).evaluate().toList()) {
+        if (item.evaluate().isNotEmpty) break;
+        await tester.tap(find.byWidget(sub.widget));
         await tester.pumpAndSettle();
-        item = find.text(label);
+        item = find.widgetWithText(MenuItemButton, label);
       }
-      await tester.ensureVisible(item.last);
-      await tester.tap(item.last);
+      await tester.ensureVisible(item.first);
+      await tester.pumpAndSettle();
+      await tester.tap(item.first.hitTestable());
       await tester.pumpAndSettle();
     }
 

@@ -2088,3 +2088,6 @@ msgstr "local = acceso de pantalla solo en el host, remote = escuchar en todas l
 
 msgid "telnet enables the matching Attach action in the VM menu; socket keeps a unix socket channel."
 msgstr "telnet habilita la acción Attach correspondiente en el menú de la VM; socket mantiene un canal por socket unix."
+
+msgid "Popular:"
+msgstr "Populares:"

@@ -246,10 +246,21 @@ class DashboardPage extends ConsumerWidget {
           if (activity.active.isEmpty && activity.history.isEmpty)
             Padding(
               padding: const EdgeInsets.all(16),
-              child: Text(
-                context.t(
-                  'No activity yet. Downloads and machine operations will show up here.',
-                ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.history,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      context.t(
+                        'No activity yet. Downloads and machine operations will show up here.',
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
         ],

@@ -9,21 +9,22 @@ estimated.
 
 | Metric | Value | Reproduce |
 |---|---|---|
-| Product LOC (`lib/`) | 19,051 | `find lib -name '*.dart' \| xargs wc -l` |
-| Test LOC (`test/` + `integration_test/`) | 10,107 | same under `test/` |
-| Test/product ratio | **0.53** | — |
-| Test files | 64 | `find test -name '*_test.dart'` |
-| Test cases | 484 | `grep -c 'test(\|testWidgets(' -r test` |
-| Test categories | **15 dirs** | `ls test/` |
+| Product LOC (`lib/`) | 26,273 | `find lib -name '*.dart' \| xargs wc -l` |
+| Test LOC (`test/` + `integration_test/`) | 13,754 | same under `test/` |
+| Test/product ratio | **0.52** | — |
+| Test files | 87 | `find test -name '*_test.dart'` |
+| Test cases | 677 declared (824 executed) | `grep -c 'test(\|testWidgets(' -r test` |
+| Test categories | **16 dirs** | `ls test/` |
 | TODO/FIXME/HACK | **0** | `grep -rn 'TODO\|FIXME\|HACK' lib/` |
 | Direct `Process.*` outside process layer | 1 (borderline) | `grep -rln 'Process\.' lib/` minus infra |
-| Largest product file | `manager_rows.dart` 978 LOC | `wc -l lib/**/*.dart \| sort -rn` |
+| Largest product file | `vm_console_page.dart` 1,132 LOC | `wc -l lib/**/*.dart \| sort -rn` |
 | Architecture gate | filesystem-scan contract test | `test/architecture/arch_test.dart` |
+| Capability coverage | 108/116 implemented, score **99.7%** | `tool/generate_capability_matrix.dart` |
 
 Test categories: unit, widget, golden (Alchemist), contract,
 architecture, integration, e2e, capture, i18n, performance,
-resilience, security, smoke, state_machine, accessibility — breadth
-that exceeds the backend's own test taxonomy.
+resilience, security, smoke, state_machine, capabilities,
+accessibility — breadth that exceeds the backend's own test taxonomy.
 
 ## 1. ISO/IEC 25010
 
@@ -111,23 +112,32 @@ macOS PATH probing for minimal-launch environment is handled.
 | # | Weakness | Severity | Status |
 |---|---|---|---|
 | 1 | ~~`VirtualizationBackend` port leaks `Process`/`ProcessResult`~~ | — | **fixed** (`2c4a305`): `ProcResult`/`RunningProc` domain types + `SystemRunningProc` adapter; arch gate now forbids dart:io in all `application/ports/` |
-| 2 | `manager_rows` 978 / `vm_page` 888 / `manager_actions` 783 LOC | Low | cohesive presentation files, not god-classes |
+| 2 | ~~`manager_rows` 1,288 / `vm_console_page` 1,225 LOC~~ | — | **split**: `manager_rows` → 602 + `manager_vm_menu` 715 (`part of`, menu action switch + items); `vm_console_page` → 1,132 (pure helpers → `infrastructure/vnc/ppm.dart` + `sendkey_names.dart`). Largest file now `vm_console_page` 1,132 |
 | 3 | ~~`system_host_probe` calls `Process.run('sysctl')` directly~~ | — | **resolved**: deliberate — no Flatpak on macOS, nothing to escape; annotated in code and already allowlisted by the arch gate |
-| 4 | Test/product ratio 0.53 | Low | breadth compensates; flag if it drops under ~0.45 |
-| 5 | ~~`flutter analyze`/`test` not runnable~~ | — | **verified**: `analyze` 0 issues; `test` 618 pass, 15 `interface_capture` failures reproduce identically on HEAD (WSL headless environment) |
+| 4 | Test/product ratio 0.52 | Low | breadth compensates; flag if it drops under ~0.45 |
+| 5 | ~~`flutter analyze`/`test` not runnable~~ | — | **verified** on `12bb411`: `analyze` 0 issues; 843 tests — only the 2 environment-gated `interfaces_golden` (CI font diff) fail |
+| 6 | ~~4 `coverage_boost` Manager-dialog tests broken by the cascading-menu refactor~~ | — | **fixed**: `chooseAction` now opens `SubmenuButton` cascades (same pattern as `manager_workflows_test`) |
+| 7 | ~~`launch.extraArgs` misclassified as unsupported while `extra_args` was editable in VM settings~~ | — | **fixed**: manifest now says `implemented` via `vm_settings.tuning_keys` (VmConfigFileStore), score 99.5%→99.7% |
+| 8 | ~~real-backend `integration/` suite red vs upstream quickemu~~ | — | **fixed**: 53/53 green vs the sibling Go quickemu 5.0.0 (built `tools/` + `bin/` on PATH), including a real TCG-booted VM lifecycle (pause→resume→monitor→send→screenshot→kill). 5 contract-drift bugs in the battery test fixed (`conf`→`vmPath` targets, `snapshot.tree`→`snapshot-tree`, `delete`→`delete-vm` allowedOps) |
+| 9 | ~~`gen_manifest.py` drifted from the manifest (105 vs 116 caps)~~ | — | **fixed**: generator resynchronised — regeneration now reproduces the committed manifest 1:1 |
+| 10 | ~~WCAG 2.4.2: static window title~~ | — | **fixed**: window title + `Title` widget name the active section (`{Section} — Quickgui`), pinned by `app_widget_test` |
 
 ## 5. Verdict
 
 **ISO/IEC 25010 global: A−** — and architecturally the *better* of the
 pair. Where quickemu earned A by removing debt, quickgui was built on
 clean-architecture discipline from the start: a real architecture test
-gate, composition-root DI, typed errors, 15-category test taxonomy,
+gate, composition-root DI, typed errors, 16-category test taxonomy,
 and it already consumes the Go backend's structured contract through
-the intended dual-path seam.
+the intended dual-path seam — now verified end-to-end: the
+`integration/` suite runs green (53/53) against the real Go backend
+including a live TCG-booted VM lifecycle.
 
-All three path-to-A items are now closed (`2c4a305`): the port
-leak is fixed with a domain type *and* an architecture gate that makes
-the leak unrepresentable, the sysctl call is annotated as deliberate,
-and `flutter analyze` reports 0 issues with the suite green except
-pre-existing environment-gated capture tests. Residual: the >900-LOC
-presentation files and the 0.53 ratio — monitor, not debt.
+All three path-to-A items are closed (`2c4a305` + follow-ups on
+`12bb411`): the port leak is fixed with a domain type *and* an
+architecture gate that makes the leak unrepresentable, the sysctl call
+is annotated as deliberate, and `flutter analyze` reports 0 issues
+with the suite green except environment-gated real-backend/golden
+tests. The WCAG 200%-text/reflow audit added since found and fixed two
+real overflows (Create path button, Automation notice). Residual: the
+>1,200-LOC presentation files and the 0.52 ratio — monitor, not debt.

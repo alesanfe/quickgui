@@ -284,14 +284,26 @@ class _ActivityPageState extends ConsumerState<ActivityPage> {
             Padding(
               padding: const EdgeInsets.all(32),
               child: Center(
-                child: Text(
-                  !_filter.isActive
-                      ? context.t(
-                          'No activity yet. Downloads and machine '
-                          'operations will show up here.',
-                        )
-                      : context.t('No operations match the current filters.'),
-                  textAlign: TextAlign.center,
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.history,
+                      size: 48,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      !_filter.isActive
+                          ? context.t(
+                              'No activity yet. Downloads and machine '
+                              'operations will show up here.',
+                            )
+                          : context.t(
+                              'No operations match the current filters.',
+                            ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
               ),
             )

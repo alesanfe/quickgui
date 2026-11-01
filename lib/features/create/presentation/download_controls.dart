@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
+import 'package:quickgui/features/catalog/providers/catalog_providers.dart';
 import 'package:quickgui/shared/providers/preferences_providers.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
@@ -52,71 +54,121 @@ class _DownloadControlsState extends ConsumerState<DownloadControls> {
     if (_selectedOption?.option.isNotEmpty ?? false) {
       versionButtonLabel = "$versionButtonLabel (${_selectedOption!.option})";
     }
-    return Row(
+    return Column(
       children: [
-        DownloaderPageButton(
-          label: context.t("Operating system"),
-          text: _selectedOperatingSystem?.name ?? context.t('Select...'),
-          onPressed: () {
-            Navigator.of(context)
-                .push<OperatingSystem>(
-                  MaterialPageRoute(
-                    fullscreenDialog: true,
-                    builder: (context) => const OperatingSystemSelection(),
-                  ),
-                )
-                .then((selection) {
-                  if (selection != null) {
-                    setState(() {
-                      _selectedOperatingSystem = selection;
-                      if (selection.versions.length == 1 &&
-                          selection.versions.firstOrNull?.options.length == 1) {
-                        _selectedVersion = selection.versions.first;
-                        _selectedOption =
-                            selection.versions.first.options.first;
-                      } else {
-                        _selectedVersion = null;
-                        _selectedOption = null;
-                      }
+        _popularPicks(context),
+        Row(
+          children: [
+            DownloaderPageButton(
+              label: context.t("Operating system"),
+              text: _selectedOperatingSystem?.name ?? context.t('Select...'),
+              onPressed: () {
+                Navigator.of(context)
+                    .push<OperatingSystem>(
+                      MaterialPageRoute(
+                        fullscreenDialog: true,
+                        builder: (context) => const OperatingSystemSelection(),
+                      ),
+                    )
+                    .then((selection) {
+                      if (selection != null) _selectOs(selection);
                     });
-                  }
-                });
-          },
-        ),
-        DownloaderPageButton(
-          label: context.t('Version'),
-          text: versionButtonLabel,
-          onPressed: (_selectedOperatingSystem != null)
-              ? () {
-                  Navigator.of(context)
-                      .push<Tuple2<Version, Option?>>(
-                        MaterialPageRoute(
-                          fullscreenDialog: true,
-                          builder: (context) => VersionSelection(
-                            operatingSystem: _selectedOperatingSystem!,
-                          ),
-                        ),
-                      )
-                      .then((selection) {
-                        if (selection != null) {
-                          setState(() {
-                            _selectedVersion = selection.item1;
-                            _selectedOption = selection.item2;
+              },
+            ),
+            DownloaderPageButton(
+              label: context.t('Version'),
+              text: versionButtonLabel,
+              onPressed: (_selectedOperatingSystem != null)
+                  ? () {
+                      Navigator.of(context)
+                          .push<Tuple2<Version, Option?>>(
+                            MaterialPageRoute(
+                              fullscreenDialog: true,
+                              builder: (context) => VersionSelection(
+                                operatingSystem: _selectedOperatingSystem!,
+                              ),
+                            ),
+                          )
+                          .then((selection) {
+                            if (selection != null) {
+                              setState(() {
+                                _selectedVersion = selection.item1;
+                                _selectedOption = selection.item2;
+                              });
+                            }
                           });
-                        }
-                      });
-                }
-              : null,
-        ),
-        DownloaderPageButton(
-          label: context.t('Download'),
-          text: context.t('Download'),
-          busy: _checking,
-          onPressed: (_selectedVersion == null)
-              ? null
-              : () => _startDownload(context),
+                    }
+                  : null,
+            ),
+            DownloaderPageButton(
+              label: context.t('Download'),
+              text: context.t('Download'),
+              busy: _checking,
+              onPressed: (_selectedVersion == null)
+                  ? null
+                  : () => _startDownload(context),
+            ),
+          ],
         ),
       ],
+    );
+  }
+
+  void _selectOs(OperatingSystem selection) {
+    setState(() {
+      _selectedOperatingSystem = selection;
+      if (selection.versions.length == 1 &&
+          selection.versions.firstOrNull?.options.length == 1) {
+        _selectedVersion = selection.versions.first;
+        _selectedOption = selection.versions.first.options.first;
+      } else {
+        _selectedVersion = null;
+        _selectedOption = null;
+      }
+    });
+  }
+
+  /// One-tap picks for the most common guests — the "featured downloads"
+  /// pattern from GNOME Boxes: avoids searching a ~950-row catalogue.
+  Widget _popularPicks(BuildContext context) {
+    const codes = ['ubuntu', 'debian', 'fedora', 'windows', 'macos'];
+    final catalogue = ref.watch(osCatalogueProvider);
+    if (catalogue == null) return const SizedBox.shrink();
+    return FutureBuilder<List<OperatingSystem>>(
+      future: catalogue,
+      builder: (context, snapshot) {
+        final list = snapshot.data;
+        if (list == null) return const SizedBox.shrink();
+        final popular = [
+          for (final code in codes) ...list.where((os) => os.code == code),
+        ];
+        if (popular.isEmpty) return const SizedBox.shrink();
+        final icons = ref.watch(osIconsProvider);
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                context.t('Popular:'),
+                style: Theme.of(context).textTheme.labelMedium,
+              ),
+              for (final os in popular)
+                InputChip(
+                  avatar: icons.containsKey(os.code)
+                      ? SvgPicture.asset(icons[os.code]!, width: 18, height: 18)
+                      : null,
+                  label: Text(os.name),
+                  selected: identical(_selectedOperatingSystem, os),
+                  onPressed: () => _selectOs(os),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 

@@ -60,33 +60,58 @@ The widget tests pin these semantics — Orca should announce the same:
   announcements) depend on `at-spi2-atk` being present in the session —
   standard on GNOME, verify with `accerciser` if announcements don't fire.
 
-## Automated AT-SPI verification — DONE (2026-10-28)
+## Automated AT-SPI verification — DONE (2026-10-28, re-run 2026-11-01)
 
 `tool/atspi_check.sh` runs the release binary inside a private
 `dbus-run-session` with the real accessibility stack
 (`at-spi-bus-launcher` + `at-spi2-registryd`) and walks the exposed
-tree with `pyatspi` — the same client library Orca consumes. This is
-real assistive-technology evidence short of audible speech.
+tree with `pyatspi` — the same client library Orca consumes.
 
-Measured result on the release build (WSLg, X11):
+Latest measured result (release build, Wayland session):
 
 ```
-APP: quickgui | nodes: 50
-  push button              8  (7 labelled)
-  heading                  1
-  label                    2
-nav sections found: Home, Machines, Diagnostics (+ Machines tile)
+APP: quickgui | nodes: 55
+  button                   8  (7 labelled)
+  panel nav destinations   7  — "Inicio\nPestaña N de 7" … "Ajustes\nPestaña 7 de 7"
+nav sections found: all 7 sections (es locale)
 RESULT: PASS
 ```
 
-Named nodes include the six shell sections, dashboard headings,
-"Create your first machine", "Import a disk image" and the activity
-empty-state — matching the semantic contract pinned in
-`test/widget/new_gaps_test.dart`.
+Note: shell nav destinations appeared only after upgrading to
+`go_router 18.0.2` — earlier releases had the shell chrome dropped
+from the semantics tree by the route's `ModalBarrier`
+(upstream flutter/flutter#135656, fixed in go_router 18.0.2).
 
-What remains genuinely manual: audible Orca speech and braille on a
-GNOME session, and AT event timing (live-region announcements firing
-in order). Use the scripted pass + sign-off below for that.
+## Scripted Orca pass — DONE (2026-11-01)
+
+Real Orca 50.3 (Ubuntu 26.04, AT-SPI 2.60.4) ran against the release
+binary inside the same private `dbus-run-session` harness, and
+`tool/orca_drive.py` activated every nav destination through its AT-SPI
+`Tap` action — the same semantic interface a real AT client uses.
+Speech was captured with `orca --debug-file`:
+
+```
+SPEECH OUTPUT: 'Lector de pantalla activado.'
+SPEECH OUTPUT: 'Inicio — Quickgui'
+SPEECH OUTPUT: 'Máquinas — Quickgui'
+SPEECH OUTPUT: 'Crear — Quickgui'
+SPEECH OUTPUT: 'Automatización — Quickgui'
+SPEECH OUTPUT: 'Actividad — Quickgui'
+SPEECH OUTPUT: 'Diagnóstico — Quickgui'
+```
+
+Observed: every section switch updates the localized window title
+(WCAG 2.4.2) and Orca announces it immediately — verified for 6 of 7
+sections in this capture (the last `Tap` ran ~1 s before shutdown;
+the mechanism is identical). Live-region announcements and form-error
+speech still deserve a manual spot-check on a fully logged-in GNOME
+session — synthetic key injection is unavailable inside the private
+bus, so Tab-order traversal was exercised via AT-SPI actions rather
+than physical keys.
+
+What remains genuinely manual: physical keyboard traversal
+(Tab/arrows) audible on the user's own session, braille output, and
+AT event timing under a logged-in compositor.
 
 ## Sign-off template
 

@@ -48,7 +48,7 @@ void main() {
       final r = await backend.inspectVirtualMachine(vmPath);
       expect(r['state'], 'stopped');
       final allowed = (r['allowedOps'] as List).map((e) => '$e').toSet();
-      expect(allowed, containsAll(['start', 'delete', 'clone', 'rename']));
+      expect(allowed, containsAll(['start', 'delete-vm', 'clone', 'rename']));
     });
 
     test('listVms → the library listing runs cleanly', () async {
@@ -64,7 +64,7 @@ void main() {
     });
 
     test('listOperations → empty registry when nothing runs', () async {
-      final ops = await backend.listOperations(conf);
+      final ops = await backend.listOperations(vmPath);
       expect(ops, isA<List<dynamic>>());
     });
 
@@ -79,7 +79,7 @@ void main() {
     });
 
     test('snapshot-tree returns a map for the stopped VM', () async {
-      final r = await backend.runVmJson('snapshot.tree', [
+      final r = await backend.runVmJson('snapshot-tree', [
         '--vm',
         conf,
         '--snapshot-tree',
@@ -99,7 +99,7 @@ void main() {
     });
 
     test('readEvents returns a list (empty or replayable)', () async {
-      final events = await backend.readEvents(conf);
+      final events = await backend.readEvents(vmPath);
       expect(events, isA<List<dynamic>>());
     });
 
@@ -273,7 +273,7 @@ void main() {
     });
 
     test('events cursor at -1 replays from the start', () async {
-      final events = await backend.readEvents(conf, cursor: -1);
+      final events = await backend.readEvents(vmPath, cursor: -1);
       expect(events, isA<List<dynamic>>());
     });
   });

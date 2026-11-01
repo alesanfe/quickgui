@@ -114,22 +114,64 @@ void main() {
     tester,
   ) async {
     tester.view.devicePixelRatio = 1;
-    tester.view.physicalSize = const Size(692, 580);
     tester.platformDispatcher.textScaleFactorTestValue = 2;
     addTearDown(tester.view.reset);
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-    await pumpApp(tester, const SettingsState());
-    expect(tester.takeException(), isNull, reason: 'machines at 2x text');
-    final container = ProviderScope.containerOf(
-      tester.element(find.byType(App)),
-    );
-    final router = container.read(appRouterProvider);
-    for (final path in ['/settings', '/activity']) {
-      router.go(path);
-      await tester.pumpAndSettle();
-      expect(router.routeInformationProvider.value.uri.path, path);
-      expect(tester.takeException(), isNull);
+    // 692px is the wide (NavigationRail) layout at minimum size; 560px is
+    // below the 650 breakpoint, exercising the NavigationBar reflow.
+    // Bounded settle: providers with periodic refreshes never quiesce,
+    // so pumpAndSettle can time out under parallel-suite load. Layout
+    // errors (RenderFlex overflow) surface synchronously during pump —
+    // a fixed number of frames still catches every one of them.
+    Future<void> settle() async {
+      for (var i = 0; i < 60; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
     }
+
+    for (final size in [const Size(692, 580), const Size(560, 640)]) {
+      tester.view.physicalSize = size;
+      await pumpApp(tester, const SettingsState());
+      await settle();
+      expect(tester.takeException(), isNull, reason: '/home at 2x text, $size');
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(App)),
+      );
+      final router = container.read(appRouterProvider);
+      for (final path in [
+        '/machines',
+        '/create',
+        '/automation',
+        '/activity',
+        '/diagnostics',
+        '/settings',
+      ]) {
+        router.go(path);
+        await settle();
+        expect(router.routeInformationProvider.value.uri.path, path);
+        expect(
+          tester.takeException(),
+          isNull,
+          reason: '$path at 2x text, $size',
+        );
+      }
+    }
+  });
+
+  testWidgets('window title names the active section', (tester) async {
+    await pumpApp(tester, const SettingsState());
+    await tester.pumpAndSettle();
+    Finder titled(String t) =>
+        find.byWidgetPredicate((w) => w is Title && w.title == t);
+    expect(titled('Home'), findsOneWidget);
+    final router = ProviderScope.containerOf(tester.element(find.byType(App)))
+        .read(appRouterProvider);
+    router.go('/machines');
+    await tester.pumpAndSettle();
+    expect(titled('Machines'), findsOneWidget);
+    router.go('/diagnostics');
+    await tester.pumpAndSettle();
+    expect(titled('Diagnostics'), findsOneWidget);
   });
 
   testWidgets('theme mode follows the settings provider', (tester) async {

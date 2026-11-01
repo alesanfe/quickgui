@@ -75,13 +75,24 @@ def main():
     for n in named[:60]:
         print("  -", n)
 
-    # Contract assertions
-    buttons = [n for d, r, n, s in out if r == "push button"]
-    labelled = [n for d, r, n, s in out if r == "push button" and n]
+    print("\nTREE (first 120 nodes):")
+    for d, r, n, s in out[:120]:
+        print("  %s%-22s %r" % ("  " * min(d, 10), r, n))
+
+    # Contract assertions. Flutter exposes the AT-SPI role "button"
+    # (GTK would say "push button"), and nav labels are localized —
+    # accept the shipped en/es catalogues.
+    buttons = [n for d, r, n, s in out if "button" in r]
+    labelled = [n for d, r, n, s in out if "button" in r and n]
     texts = [r for _, r, _, _ in out if r in ("text", "label", "static")]
+    nav_names = {"Home", "Machines", "Create", "Activity",
+                 "Automation", "Settings", "Diagnostics",
+                 "Inicio", "Máquinas", "Crear", "Actividad",
+                 "Automatización", "Ajustes", "Diagnósticos",
+                 "Diagnóstico"}
+    # Flutter appends "Tab N of M" to each rail/bar destination.
     nav = [n for _, r, n, _ in out
-           if n in ("Home", "Machines", "Create", "Activity",
-                    "Settings", "Diagnostics")]
+           if n.split("\n", 1)[0].strip() in nav_names]
     print("\nASSERTIONS:")
     print("  buttons total/labelled: %d/%d" % (len(buttons), len(labelled)))
     print("  text-ish nodes: %d" % len(texts))

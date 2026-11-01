@@ -124,12 +124,26 @@ class _AppShellState extends ConsumerState<AppShell> {
     );
   }
 
+  String? _lastTitle;
+
+  /// WCAG 2.4.2: the window title names the active section so
+  /// task-switchers, AT and window lists announce where the user is.
+  void _syncWindowTitle(BuildContext context, int selected) {
+    final destinations = _destinations(context);
+    final label = selected < destinations.length
+        ? destinations[selected].label
+        : 'Quickgui';
+    final title = '$label — Quickgui';
+    if (title == _lastTitle) return;
+    _lastTitle = title;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(windowManager.setTitle(title));
+    });
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    windowManager.setTitle(
-      context.t('Quickgui : a Flutter frontend for Quickget and Quickemu'),
-    );
     // Tray labels need a Localizations context, unavailable in initState.
     _tray ??= AppTray(
       onRefresh: () {
@@ -181,15 +195,24 @@ class _AppShellState extends ConsumerState<AppShell> {
     });
     final destinations = _destinations(context);
     final selected = widget.shell.currentIndex;
+    _syncWindowTitle(context, selected);
     return LayoutBuilder(
       builder: (context, constraints) {
         final wide = constraints.maxWidth >= 650;
         final expanded = constraints.maxWidth >= 1100;
-        final body = Column(
-          children: [
-            const DependencyWarning(),
-            Expanded(child: widget.shell),
-          ],
+        // Title exposes the section name to semantics/task switchers;
+        // _syncWindowTitle mirrors it on the native window chrome.
+        final body = Title(
+          title: selected < destinations.length
+              ? destinations[selected].label
+              : 'Quickgui',
+          color: Theme.of(context).colorScheme.primary,
+          child: Column(
+            children: [
+              const DependencyWarning(),
+              Expanded(child: widget.shell),
+            ],
+          ),
         );
         // Ctrl+1..6 jumps between the six sections from anywhere in the
         // app — section keys are not consumed by text fields, so they

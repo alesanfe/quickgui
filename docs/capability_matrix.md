@@ -89,7 +89,7 @@ Generated from `assets/capabilities/capability_manifest.json` by `tool/generate_
 | `launch.netTuning` | launch | `--ssh-port, --spice-port, --ssh-access, --access` | vm_settings.network_extra_keys | 1 | Sí |
 | `launch.hwTuning` | launch | `--monitor, --monitor-telnet-host, --monitor-telnet-port, --serial, --serial-telnet-host, --serial-telnet-port, --keyboard, --keyboard_layout, --mouse, --usb-controller, --keyboard-layout` | vm_settings.console_input_keys | 1 | Sí |
 | `launch.quirks` | launch | `--cpu-pinning, --braille, --ignore-msrs-always, --ignore-tsc-warning, --extra-args` | vm_settings.tuning_keys | 1 | Sí |
-| `launch.extraArgs` | launch | `--extra_args` | — | 0 | No |
+| `launch.extraArgs` | launch | `--extra_args` | vm_settings.tuning_keys | 1 | Sí |
 | `vm.autostart` | desktop | `--autostart` | vm_page.advanced.autostart | 1 | Sí |
 | `catalog.list` | catalog | `--list-json, --list, --list-csv` | create.catalog, home.quick_create | 2 | Sí |
 | `catalog.show` | catalog | `--show` | catalog.os_details.show | 1 | Sí |
@@ -126,8 +126,8 @@ Generated from `assets/capabilities/capability_manifest.json` by `tool/generate_
 | Metric | Value |
 |---|---|
 | Capabilities | 116 |
-| implemented | 107 |
-| unsupported | 2 |
+| implemented | 108 |
+| unsupported | 1 |
 | notApplicable | 7 |
-| Weighted coverage score | 99.5% |
+| Weighted coverage score | 99.7% |
 

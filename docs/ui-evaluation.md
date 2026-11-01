@@ -9,15 +9,17 @@ code-measured — counts cite real usages, not impressions.
 
 | Signal | Count | Command |
 |---|---|---|
-| `Semantics`/`semanticLabel`/`tooltip:` usages | 54 | `grep -rc 'Semantics\|semanticLabel\|tooltip:' lib/` |
-| Progress/feedback widgets | 50 | `grep -rc 'ProgressIndicator\|SnackBar' lib/` |
+| `Semantics`/`semanticLabel`/`tooltip:` usages | 79 | `grep -rc 'Semantics\|semanticLabel\|tooltip:' lib/` |
+| `liveRegion` announcements | 5 surfaces | dashboard, details pane, console, manager rows, activity |
+| Progress/feedback widgets | 69 | `grep -rc 'ProgressIndicator\|SnackBar' lib/` |
 | Files with dialogs/confirmations | 28 | — |
-| `context.mounted` async guards | 133 | convention enforced in AGENTS |
+| `context.mounted` async guards | 180 | convention enforced in AGENTS |
 | Files with adaptive layout (`LayoutBuilder`/`Expanded`/`Wrap`) | 19 | — |
-| Files surfacing errors (`SnackBar`/`failure.message`) | 46 | — |
-| Files with input validation (`showValidatedTextDialog`/Formz) | 9 | — |
+| Shell reflow breakpoint | 650px rail→NavigationBar | `app_shell.dart`; verified at 560px + 2x text |
+| 200%-text audit | all 7 sections × 2 layouts | `app_widget_test.dart` "minimum window supports large text" |
 | `accessibility_tools` | declared dep | pubspec |
 | a11y test directory | `test/accessibility/` | exists |
+| AT-SPI verification | automated PASS | `tool/atspi_check.sh` (see `docs/accessibility/orca-verification.md`) |
 | Golden screenshots | Alchemist suite | `test/golden/` |
 
 ## 1. ISO 9241-110 — dialogue principles
@@ -84,7 +86,11 @@ with OK badges, snapshot dialog with five clear text actions — all
 legible, consistent and uncluttered.
 
 Residuals (real, not invented):
-- The 978/888-LOC presentation files risk creeping density — monitor
+- ~~The >1,200-LOC presentation files~~ **resolved**: `manager_rows` split (602 + `manager_vm_menu` 715), `vm_console_page` helpers extracted to `infrastructure/vnc/` (1,132) — largest file now 1,132 LOC
 - Localization breadth beyond en/es depends on `.pot` contributions
+  (20 locales ship; en/es are the verified-complete pair)
 - `interface_capture` goldens need a display environment to gate
   visual regressions in CI (they fail headless by design)
+- Audible Orca speech + live-region event timing still need a manual
+  GNOME-session pass (sign-off template in `orca-verification.md`);
+  the automated AT-SPI tree walk already passes

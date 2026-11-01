@@ -124,8 +124,15 @@ void _resetVmDir() {
   if (_vmDir.existsSync()) _vmDir.deleteSync(recursive: true);
   _vmDir.createSync(recursive: true);
   for (final name in ['ubuntu-24.04', 'windows-11', 'debian-12']) {
-    File('${_vmDir.path}/$name.conf')
-        .writeAsStringSync('guest_os="linux"\ndisk_img="$name/disk.qcow2"\n');
+    File('${_vmDir.path}/$name.conf').writeAsStringSync(
+      'guest_os="linux"\n'
+      'disk_img="$name/disk.qcow2"\n'
+      'ram="4G"\n'
+      'cpu_cores="2"\n'
+      'disk_size="32G"\n'
+      'boot="efi"\n'
+      'display="spice"\n',
+    );
     Directory('${_vmDir.path}/$name').createSync();
   }
 }
@@ -228,7 +235,15 @@ Widget _app({
     // fixed library so captures are host-independent.
     vmLibraryProvider.overrideWith((ref) async => _captureMachines),
   ],
-  child: testApp(theme: dark ? AppTheme.dark() : AppTheme.light(), home: home),
+  // platform: linux — captures must match the shipped desktop app;
+  // the default test platform (Android) paints mobile selection
+  // handles/carets on focused fields that desktop builds never show.
+  child: testApp(
+    theme: (dark ? AppTheme.dark() : AppTheme.light()).copyWith(
+      platform: TargetPlatform.linux,
+    ),
+    home: home,
+  ),
 );
 
 Future<void> _capture(

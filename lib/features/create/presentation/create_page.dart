@@ -163,29 +163,42 @@ class _CreatePageState extends ConsumerState<CreatePage> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        "${context.t('Directory where the machines are stored')}:",
+                      Flexible(
+                        child: Text(
+                          "${context.t('Directory where the machines are stored')}:",
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                       const SizedBox(width: 8),
-                      ElevatedButton(
-                        onPressed: () async {
-                          final folder = await FilePicker.getDirectoryPath(
-                            dialogTitle: context.t('Pick a folder'),
-                          );
-                          if (folder != null && folder.isNotEmpty) {
-                            setState(() {
-                              Directory.current = folder;
-                              _currentPath = folder;
-                            });
-                            ref
-                                .read(preferencesRepositoryProvider)
-                                .set(
-                                  prefWorkingDirectory,
-                                  Directory.current.path,
-                                );
-                          }
-                        },
-                        child: Text(_currentPath),
+                      Flexible(
+                        flex: 2,
+                        child: Tooltip(
+                          message: _currentPath,
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              final folder = await FilePicker.getDirectoryPath(
+                                dialogTitle: context.t('Pick a folder'),
+                              );
+                              if (folder != null && folder.isNotEmpty) {
+                                setState(() {
+                                  Directory.current = folder;
+                                  _currentPath = folder;
+                                });
+                                ref
+                                    .read(preferencesRepositoryProvider)
+                                    .set(
+                                      prefWorkingDirectory,
+                                      Directory.current.path,
+                                    );
+                              }
+                            },
+                            child: Text(
+                              _currentPath,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),

@@ -212,7 +212,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             child: RichText(
               textAlign: TextAlign.center,
               text: TextSpan(
-                style: DefaultTextStyle.of(context).style,
+                // Not DefaultTextStyle.of(context): this context is the
+                // page's own element, above the Scaffold's Material, so
+                // it resolves the WidgetsApp fallback style (48px
+                // monospace) instead of the body style.
+                style: Theme.of(context).textTheme.bodySmall,
                 children: [
                   const TextSpan(
                     text: 'Authors\n',

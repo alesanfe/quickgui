@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quickgui/features/create/presentation/create_page.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_console_page.dart';
+import 'package:quickgui/infrastructure/vnc/ppm.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_details_pane.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/shared/widgets/shortcuts_dialog.dart';

@@ -226,7 +226,8 @@ class _AutomationPageState extends ConsumerState<AutomationPage> {
             const SizedBox(height: 8),
             Row(
               children: [
-                Expanded(
+                SizedBox(
+                  width: 260,
                   child: SwitchListTile(
                     dense: true,
                     title: Text(context.t('Shut down when done')),
@@ -235,6 +236,7 @@ class _AutomationPageState extends ConsumerState<AutomationPage> {
                   ),
                 ),
                 _field(_snapshot, context.t('Snapshot name'), width: 180),
+                const Spacer(),
               ],
             ),
             const SizedBox(height: 12),
@@ -352,7 +354,7 @@ class _AutomationPageState extends ConsumerState<AutomationPage> {
 class _UnavailableNotice extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Center(
-    child: Padding(
+    child: SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         mainAxisSize: MainAxisSize.min,

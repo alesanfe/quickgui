@@ -55,6 +55,7 @@ import 'package:quickgui/features/machines/presentation/shared/vm_input_messages
 part 'manager_actions.dart';
 part 'manager_dialogs.dart';
 part 'manager_rows.dart';
+part 'manager_vm_menu.dart';
 
 /// Displays a list of available VMs, running state and connection info,
 /// with buttons to start and stop VMs.

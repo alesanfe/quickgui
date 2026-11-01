@@ -290,13 +290,13 @@
           "vm_menu.start_offline"
         ]
       },
+      "architecture": {
+        "adapter_method": "runAction"
+      },
       "testing": {
         "surfaces": [
           "test/unit/infrastructure/vm_config_file_store_test.dart"
         ]
-      },
-      "architecture": {
-        "adapter_method": "runAction"
       }
     },
     {
@@ -2394,8 +2394,16 @@
       },
       "gui": {
         "requirement": "optional",
-        "status": "unsupported",
-        "justification": "Deliberately not exposed: raw QEMU args bypass validation and are a support/security surface"
+        "status": "implemented",
+        "entry_points": [
+          "vm_settings.tuning_keys"
+        ],
+        "justification": "Edited through the conf key editor in VM settings (VmConfigFileStore)"
+      },
+      "testing": {
+        "surfaces": [
+          "test/widget/vm_settings_page_test.dart"
+        ]
       }
     },
     {

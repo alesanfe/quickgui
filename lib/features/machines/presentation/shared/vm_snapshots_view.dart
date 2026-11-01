@@ -208,6 +208,10 @@ class _VmSnapshotsViewState extends ConsumerState<VmSnapshotsView> {
     final snapshots = _snapshots;
     final tag = _tagController.text.trim();
     return Column(
+      // mainAxisSize.min lets the dialog shrink to content when the
+      // snapshot list is empty; when rows exist the Expanded below
+      // still claims the bounded height.
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (_tree.isNotEmpty)
@@ -255,6 +259,7 @@ class _VmSnapshotsViewState extends ConsumerState<VmSnapshotsView> {
               child: CheckboxListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
                 title: Text(context.t('Include memory (--memory)')),
                 value: _withMemory,
                 onChanged: (v) => setState(() => _withMemory = v ?? false),
@@ -264,6 +269,7 @@ class _VmSnapshotsViewState extends ConsumerState<VmSnapshotsView> {
               child: CheckboxListTile(
                 dense: true,
                 contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
                 title: Text(context.t('Quiesce filesystem')),
                 value: _quiesce,
                 onChanged: _withMemory
@@ -392,9 +398,8 @@ Future<void> showSnapshotsDialog(
     context: context,
     builder: (context) => AlertDialog(
       title: Text(context.t('Snapshots {0}', args: [vm])),
-      content: SizedBox(
-        width: 720,
-        height: 480,
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 720, maxHeight: 480),
         child: VmSnapshotsView(vm: vm, confPath: confPath),
       ),
       actions: [
