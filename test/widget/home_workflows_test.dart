@@ -18,6 +18,7 @@ import 'package:quickgui/features/settings/presentation/settings_page.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_config_editor.dart';
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
 import 'package:quickgui/shared/providers/preferences_providers.dart';
+import 'package:quickgui/shared/providers/working_directory_provider.dart';
 import 'package:quickgui/shared/widgets/dependency_warning.dart';
 
 import '../support/fakes/fake_host_probe.dart';
@@ -101,8 +102,13 @@ void main() {
       preferences.store[prefWorkingDirectory] = stored.path;
       await open(tester, const CreatePage(), fullPage: true);
       expect(find.text(stored.path), findsOneWidget);
-      expect(Directory.current.path, stored.path);
-      Directory.current = directory;
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(CreatePage)),
+      );
+      expect(container.read(workingDirectoryProvider), stored.path);
+      // The provider resolves the directory; the process cwd is not
+      // mutated by the app anymore (QGUI-M-005).
+      expect(Directory.current.path, directory.path);
     });
 
     testWidgets('falls back to a writable directory when cwd is not', (
@@ -114,9 +120,12 @@ void main() {
         ..writable = false
         ..fallbackDir = fallback.path;
       await open(tester, const CreatePage(), fullPage: true);
-      expect(Directory.current.path, fallback.path);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(CreatePage)),
+      );
+      expect(container.read(workingDirectoryProvider), fallback.path);
       expect(preferences.store[prefWorkingDirectory], fallback.path);
-      Directory.current = directory;
+      expect(Directory.current.path, directory.path);
     });
   });
 

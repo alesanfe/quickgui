@@ -35,25 +35,27 @@ void main() {
     expect(container.read(workingDirectoryProvider), Directory.current.path);
   });
 
-  test('apply updates state and cwd without persisting the pref', () {
+  test('apply updates state without persisting the pref or touching cwd', () {
     container.read(workingDirectoryProvider.notifier).apply(sandbox.path);
     expect(container.read(workingDirectoryProvider), sandbox.path);
-    expect(Directory.current.path, sandbox.path);
+    // The process cwd is deliberately left alone — spawns carry the
+    // directory explicitly, so nothing needs the ambient cwd anymore.
+    expect(Directory.current.path, original.path);
     expect(prefs.store.containsKey(prefWorkingDirectory), isFalse);
   });
 
   test('set persists the pref and applies', () async {
     await container.read(workingDirectoryProvider.notifier).set(sandbox.path);
     expect(container.read(workingDirectoryProvider), sandbox.path);
-    expect(Directory.current.path, sandbox.path);
+    expect(Directory.current.path, original.path);
     expect(prefs.store[prefWorkingDirectory], sandbox.path);
   });
 
   // QGUI-M-005: the cwd can be deleted under the process (tmp purges,
   // external cleanup) — reads must degrade to an empty root instead of
-  // throwing PathNotFoundException, and apply() must still be able to
-  // repair the process cwd afterwards.
-  test('deleted cwd degrades to empty root and apply() repairs it', () {
+  // throwing PathNotFoundException, and apply() recovers at the state
+  // level without needing the (broken) cwd at all.
+  test('deleted cwd degrades to empty root and apply() recovers state', () {
     final gone = Directory.systemTemp.createTempSync('qg-wd-gone-');
     Directory.current = gone;
     gone.deleteSync();
@@ -63,7 +65,7 @@ void main() {
     addTearDown(c.dispose);
     expect(c.read(workingDirectoryProvider), '');
     c.read(workingDirectoryProvider.notifier).apply(sandbox.path);
-    expect(Directory.current.path, sandbox.path);
+    expect(c.read(workingDirectoryProvider), sandbox.path);
   });
 
   // Spawned processes carry the chosen directory explicitly: the

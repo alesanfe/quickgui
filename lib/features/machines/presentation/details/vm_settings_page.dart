@@ -3,6 +3,7 @@ import 'package:flutter/services.dart' show LogicalKeyboardKey;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path/path.dart' as p;
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
@@ -11,6 +12,7 @@ import 'package:quickgui/features/machines/domain/vm_config_value.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_config_editor.dart';
 import 'package:quickgui/shared/dialogs/conf_conflict.dart';
 import 'package:quickgui/features/settings/providers/ui_preferences_providers.dart';
+import 'package:quickgui/shared/providers/working_directory_provider.dart';
 import 'package:quickgui/shared/forms/mac_field.dart';
 import 'package:quickgui/shared/forms/path_picker_field.dart';
 import 'package:quickgui/shared/forms/port_forward_editor.dart';
@@ -110,7 +112,12 @@ class _VmSettingsPageState extends ConsumerState<VmSettingsPage> {
   final _form = GlobalKey<FormState>();
   static const _arrayKeys = {'port_forwards', 'usb_devices'};
 
+  /// Stays relative (`<name>.conf`): the conf store resolves it via its
+  /// injected baseDir and backend args expect the bare conf name.
+  /// For direct file IO use `_confAbs`.
   String get _confPath => '${widget.vmName}.conf';
+
+  String get _confAbs => p.join(ref.read(workingDirectoryProvider), _confPath);
 
   List<String>? get _sectionFilter => widget.section
       ?.split(',')
@@ -384,7 +391,7 @@ class _VmSettingsPageState extends ConsumerState<VmSettingsPage> {
       if (raw != _rawLines.join('\n')) {
         final result = await showConfConflictDialog(
           context,
-          confPath: _confPath,
+          confPath: _confAbs,
           original: _rawLines.join('\n'),
           local: merged,
           disk: raw,
@@ -399,7 +406,7 @@ class _VmSettingsPageState extends ConsumerState<VmSettingsPage> {
           case ConfConflictAction.overwrite:
             break;
           case ConfConflictAction.saveCopy:
-            final path = await pickAndSaveConfCopy(context, _confPath, merged);
+            final path = await pickAndSaveConfCopy(context, _confAbs, merged);
             if (!mounted) return;
             if (path != null) {
               ScaffoldMessenger.of(context).showSnackBar(

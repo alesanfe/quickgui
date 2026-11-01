@@ -358,7 +358,9 @@ extension on _ManagerState {
       case 'export':
         // Export writes <vm>.tar.gz in the working directory —
         // confirm before overwriting an existing archive.
-        if (File('$currentVm.tar.gz').existsSync()) {
+        if (File(
+          path.join(ref.read(workingDirectoryProvider), '$currentVm.tar.gz'),
+        ).existsSync()) {
           final overwrite = await showDialog<bool>(
             context: context,
             builder: (context) => AlertDialog(

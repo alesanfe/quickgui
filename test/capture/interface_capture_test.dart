@@ -5,6 +5,8 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -174,15 +176,21 @@ const _captureMachines = <LibraryMachine>[
 /// microtask queue so dialogs never wait on real file IO inside
 /// `testWidgets`.
 class _SyncVmConfigStore extends VmConfigFileStore {
-  const _SyncVmConfigStore();
+  /// [dir] mirrors the app's baseDir injection — relative confs resolve
+  /// inside the VM sandbox, not the ambient process cwd (QGUI-M-005).
+  _SyncVmConfigStore(String dir) : _dir = dir, super(baseDir: () => dir);
+  final String _dir;
+
+  String _resolve(String confPath) =>
+      p.isAbsolute(confPath) ? confPath : p.join(_dir, confPath);
 
   @override
   Future<String> loadRaw(String confPath) =>
-      Future.value(File(confPath).readAsStringSync());
+      Future.value(File(_resolve(confPath)).readAsStringSync());
 
   @override
   Future<void> saveRaw(String confPath, String content) async =>
-      File(confPath).writeAsStringSync(content);
+      File(_resolve(confPath)).writeAsStringSync(content);
 }
 
 Widget _app({
@@ -218,7 +226,7 @@ Widget _app({
     ),
     // Reads/writes the real .conf files on disk, but stays synchronous so
     // captures don't depend on real file IO completing under FakeAsync.
-    vmConfigStoreProvider.overrideWithValue(const _SyncVmConfigStore()),
+    vmConfigStoreProvider.overrideWithValue(_SyncVmConfigStore(_vmDir.path)),
     preferencesRepositoryProvider.overrideWithValue(
       FakePreferencesRepository()
         ..store['workingDirectory'] = _vmDir.path

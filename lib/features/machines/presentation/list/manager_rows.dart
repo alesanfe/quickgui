@@ -420,8 +420,20 @@ extension on _ManagerState {
               ),
             ],
             if (newVM) const NewVmTag() else const SizedBox.shrink(),
-            if (File('$currentVm/virtio-win.iso').existsSync() ||
-                File('$currentVm/unattended.iso').existsSync())
+            if (File(
+                  path.join(
+                    ref.read(workingDirectoryProvider),
+                    currentVm,
+                    'virtio-win.iso',
+                  ),
+                ).existsSync() ||
+                File(
+                  path.join(
+                    ref.read(workingDirectoryProvider),
+                    currentVm,
+                    'unattended.iso',
+                  ),
+                ).existsSync())
               Tooltip(
                 message: context.t(
                   'VirtIO drivers / unattended install present',

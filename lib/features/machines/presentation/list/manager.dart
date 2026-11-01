@@ -223,7 +223,9 @@ class _ManagerState extends ConsumerState<Manager> with WidgetsBindingObserver {
   /// Edits one or more `key="value"` entries of a VM .conf file.
   VmInfo _parseVmInfo(String name) {
     final VmInfo info = VmInfo();
-    final File portsFile = File('$name/$name.ports');
+    final File portsFile = File(
+      path.join(ref.read(workingDirectoryProvider), name, '$name.ports'),
+    );
     if (portsFile.existsSync()) {
       final List<String> lines = portsFile.readAsLinesSync();
       for (final line in lines) {

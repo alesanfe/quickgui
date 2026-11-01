@@ -24,13 +24,24 @@ class VmConfigWriteException implements Exception {
 /// `<name>.conf.bak` (last three writes kept: `.bak`, `.bak.1`, `.bak.2`).
 /// Symlinked confs are resolved so the link itself is never replaced.
 class VmConfigFileStore implements VmConfigStore {
-  const VmConfigFileStore();
+  const VmConfigFileStore({this.baseDir});
+
+  /// Working-directory resolver for relative `confPath` arguments
+  /// (`<name>.conf`). Absolute paths pass through untouched — callers
+  /// keep working when no baseDir is injected (tests, CLI contexts).
+  final String Function()? baseDir;
+
+  String _abs(String confPath) {
+    if (p.isAbsolute(confPath)) return confPath;
+    final base = baseDir?.call();
+    return (base == null || base.isEmpty) ? confPath : p.join(base, confPath);
+  }
 
   static const _maxBackups = 3;
 
   @override
   String? read(String confPath, String key) {
-    final file = File(confPath);
+    final file = File(_abs(confPath));
     if (!file.existsSync()) return null;
     final re = RegExp('^$key="(.*)"');
     for (final line in file.readAsLinesSync()) {
@@ -121,7 +132,7 @@ class VmConfigFileStore implements VmConfigStore {
 
   @override
   void write(String confPath, String key, String value) {
-    final file = File(confPath);
+    final file = File(_abs(confPath));
     final lines = file.existsSync() ? file.readAsLinesSync() : <String>[];
     final re = RegExp('^$key=');
     final safe = _sanitize(value);
@@ -140,7 +151,7 @@ class VmConfigFileStore implements VmConfigStore {
   @override
   void writeAll(String confPath, Map<String, String> entries) {
     if (entries.isEmpty) return;
-    final file = File(confPath);
+    final file = File(_abs(confPath));
     final lines = file.existsSync() ? file.readAsLinesSync() : <String>[];
     final remaining = Map<String, String>.of(entries);
     for (var i = 0; i < lines.length; i++) {
@@ -189,11 +200,11 @@ class VmConfigFileStore implements VmConfigStore {
 
   @override
   Future<String> loadRaw(String confPath) async {
-    final file = File(confPath);
+    final file = File(_abs(confPath));
     return file.existsSync() ? await file.readAsString() : '';
   }
 
   @override
   Future<void> saveRaw(String confPath, String content) =>
-      writeAtomic(confPath, content);
+      writeAtomic(_abs(confPath), content);
 }

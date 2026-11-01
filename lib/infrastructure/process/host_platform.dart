@@ -23,7 +23,13 @@ bool isWritableDirectory(String path) {
 /// A sensible writable fallback for the working directory. The app can be
 /// started from a read-only location (e.g. an AppImage mount point).
 String fallbackWorkingDirectory() {
-  return Platform.environment['HOME'] ??
-      Platform.environment['USERPROFILE'] ??
-      Directory.current.path;
+  final home =
+      Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
+  if (home != null) return home;
+  try {
+    return Directory.current.path;
+  } on FileSystemException {
+    // cwd was deleted under us — callers treat '' as "no usable dir".
+    return '';
+  }
 }

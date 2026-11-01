@@ -661,7 +661,9 @@ class QuickemuBackend implements VirtualizationBackend {
   Future<ProcResult> killVmProcess(String vmName) {
     // Kill by pid from <vm>/<vm>.pid — `killall <name>` matches by process
     // name and can hit unrelated processes.
-    final pidFile = File('$vmName/$vmName.pid');
+    final pidFile = File(
+      p.join(_wd?.call() ?? Directory.current.path, vmName, '$vmName.pid'),
+    );
     if (pidFile.existsSync()) {
       final pid = _safePid(pidFile.readAsStringSync().trim());
       if (pid != null) {

@@ -10,6 +10,7 @@ import 'package:quickgui/features/machines/presentation/details/vm_health_card.d
 import 'package:quickgui/features/machines/domain/forms/vm_inputs.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_settings_page.dart';
 import 'package:quickgui/shared/dialogs/validated_text_dialog.dart';
+import 'package:quickgui/shared/providers/working_directory_provider.dart';
 import 'package:quickgui/features/machines/presentation/shared/stop_vm_dialog.dart';
 import 'package:quickgui/features/machines/presentation/shared/process_output_dialog.dart';
 import 'package:quickgui/shared/widgets/bytes_formatter.dart';
@@ -36,6 +37,9 @@ class VmPage extends ConsumerStatefulWidget {
 }
 
 class _VmPageState extends ConsumerState<VmPage> {
+  /// Stays relative (`<name>.conf`): backend args and the conf store
+  /// (via its injected baseDir) both resolve it inside the VM dir.
+  /// Direct file IO resolves it explicitly against the provider.
   String get _confPath => '${widget.vmName}.conf';
   Map<String, dynamic> _status = const {};
   List<Map<String, dynamic>> _ops = const [];
@@ -327,7 +331,8 @@ class _VmPageState extends ConsumerState<VmPage> {
     final exists =
         p.basename(widget.vmName) == widget.vmName &&
         !widget.vmName.contains(r'\') &&
-        File(_confPath).existsSync();
+        File(p.join(ref.read(workingDirectoryProvider), _confPath))
+            .existsSync();
     return DefaultTabController(
       length: 8,
       child: Scaffold(
@@ -582,7 +587,9 @@ class _VmPageState extends ConsumerState<VmPage> {
   }
 
   Future<void> _export() async {
-    final archive = File('${widget.vmName}.tar.gz');
+    final archive = File(
+      p.join(ref.read(workingDirectoryProvider), '${widget.vmName}.tar.gz'),
+    );
     if (archive.existsSync()) {
       final overwrite = await showDialog<bool>(
         context: context,

@@ -42,7 +42,7 @@ final backendCapabilitiesProvider = FutureProvider<Map<String, dynamic>?>((
 
 /// .conf file access behind the [VmConfigStore] port.
 final vmConfigStoreProvider = Provider<VmConfigStore>(
-  (ref) => const VmConfigFileStore(),
+  (ref) => VmConfigFileStore(baseDir: () => ref.read(workingDirectoryProvider)),
 );
 
 /// Global VM inventory (`--inventory` -> vms.json): the local DB of

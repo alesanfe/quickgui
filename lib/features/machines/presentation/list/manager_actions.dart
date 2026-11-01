@@ -315,9 +315,12 @@ extension on _ManagerState {
     // The editor speaks key="value" .conf syntax - a migrated VM may
     // expose its .toml as the backend path, so always edit the .conf
     // and re-migrate afterwards to keep TOML in sync.
-    final confPath = (_vmConfFiles[currentVm] ?? '$currentVm.conf').replaceAll(
-      RegExp(r'\.toml$'),
-      '.conf',
+    final confPath = path.join(
+      ref.read(workingDirectoryProvider),
+      (_vmConfFiles[currentVm] ?? '$currentVm.conf').replaceAll(
+        RegExp(r'\.toml$'),
+        '.conf',
+      ),
     );
     final file = File(confPath);
     final existedAtOpen = file.existsSync();

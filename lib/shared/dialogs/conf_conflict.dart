@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
+import 'package:path/path.dart' as p;
 import 'package:quickgui/infrastructure/storage/conf_document.dart';
 import 'package:quickgui/infrastructure/storage/vm_config.dart';
 
@@ -137,7 +138,9 @@ class _ConflictDialogState extends State<_ConflictDialog> {
             Text(
               context.t(
                 'The file {0} was modified by Quickemu, another editor or an external operation since it was opened.',
-                args: [widget.confPath],
+                // Basename keeps the dialog compact — callers pass the
+                // resolved absolute path (QGUI-M-005).
+                args: [p.basename(widget.confPath)],
               ),
             ),
             if (unresolved > 0) ...[

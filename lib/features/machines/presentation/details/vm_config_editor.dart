@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gettext_i18n/gettext_i18n.dart';
+import 'package:path/path.dart' as p;
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:quickgui/features/machines/providers/backend_providers.dart';
+import 'package:quickgui/shared/providers/working_directory_provider.dart';
 import 'package:quickgui/infrastructure/storage/vm_config.dart';
 import 'package:quickgui/shared/dialogs/conf_conflict.dart';
 import 'package:quickgui/shared/widgets/lined_text_field.dart';
@@ -28,6 +30,11 @@ class VmConfigEditorDialog extends ConsumerStatefulWidget {
 }
 
 class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
+  /// `widget.confPath` may arrive relative (`<name>.conf`) — resolve it
+  /// inside the working directory for every file/fingerprint call.
+  String get _conf => p.isAbsolute(widget.confPath)
+      ? widget.confPath
+      : p.join(ref.read(workingDirectoryProvider), widget.confPath);
   final TextEditingController _editorController = TextEditingController();
   final FocusNode _editorFocus = FocusNode(debugLabel: 'conf-editor');
   bool _loading = true;
@@ -115,10 +122,10 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
   @override
   void initState() {
     super.initState();
-    ref.read(vmConfigStoreProvider).loadRaw(widget.confPath).then((content) {
+    ref.read(vmConfigStoreProvider).loadRaw(_conf).then((content) {
       _editorController.text = content;
       _initialContent = content;
-      _fingerprint = VmConfigFileStore.fingerprint(widget.confPath);
+      _fingerprint = VmConfigFileStore.fingerprint(_conf);
       setState(() => _loading = false);
     });
   }
@@ -157,8 +164,8 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
     if (!mounted) return;
     await ref
         .read(vmConfigStoreProvider)
-        .saveRaw(widget.confPath, _editorController.text);
-    _fingerprint = VmConfigFileStore.fingerprint(widget.confPath);
+        .saveRaw(_conf, _editorController.text);
+    _fingerprint = VmConfigFileStore.fingerprint(_conf);
     _initialContent = _editorController.text; // saved — no longer dirty
     if (!mounted) return;
     _releaseAndPop();
@@ -168,14 +175,14 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
   /// resolves it via the conflict dialog. Returns true when the save may
   /// proceed, false when the user reloaded/aborted.
   Future<bool> _checkExternalChange() async {
-    if (VmConfigFileStore.fingerprint(widget.confPath) == _fingerprint) {
+    if (VmConfigFileStore.fingerprint(_conf) == _fingerprint) {
       return true;
     }
-    final disk = await ref.read(vmConfigStoreProvider).loadRaw(widget.confPath);
+    final disk = await ref.read(vmConfigStoreProvider).loadRaw(_conf);
     if (!mounted) return false;
     final result = await showConfConflictDialog(
       context,
-      confPath: widget.confPath,
+      confPath: _conf,
       original: _initialContent,
       local: _editorController.text,
       disk: disk,
@@ -184,7 +191,7 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
       case ConfConflictAction.reload:
         _editorController.text = disk;
         _initialContent = disk;
-        _fingerprint = VmConfigFileStore.fingerprint(widget.confPath);
+        _fingerprint = VmConfigFileStore.fingerprint(_conf);
         return false;
       case ConfConflictAction.merge:
         _editorController.text = result?.merged ?? _editorController.text;
@@ -195,7 +202,7 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
         if (!mounted) return false;
         final path = await pickAndSaveConfCopy(
           context,
-          widget.confPath,
+          _conf,
           _editorController.text,
         );
         if (mounted && path != null) {
@@ -216,7 +223,7 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
   /// atomically — the current content is backed up first so the restore
   /// is itself undoable.
   Future<void> _restoreBackup() async {
-    final backups = VmConfigFileStore.listBackups(widget.confPath);
+    final backups = VmConfigFileStore.listBackups(_conf);
     if (backups.isEmpty) return;
     final chosen = await showDialog<String>(
       context: context,
@@ -243,13 +250,12 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
       ),
     );
     if (chosen == null || !mounted) return;
-    VmConfigFileStore.restoreBackup(widget.confPath, chosen);
-    _editorController.text =
-        VmConfigFileStore.fingerprint(widget.confPath).isNotEmpty
-        ? File(widget.confPath).readAsStringSync()
+    VmConfigFileStore.restoreBackup(_conf, chosen);
+    _editorController.text = VmConfigFileStore.fingerprint(_conf).isNotEmpty
+        ? File(_conf).readAsStringSync()
         : _editorController.text;
     _initialContent = _editorController.text;
-    _fingerprint = VmConfigFileStore.fingerprint(widget.confPath);
+    _fingerprint = VmConfigFileStore.fingerprint(_conf);
     if (mounted) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(context.t('Backup restored'))));
@@ -299,7 +305,7 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
             onPressed: () => Navigator.of(context).pop(),
             child: Text(context.t('Cancel')),
           ),
-          if (VmConfigFileStore.listBackups(widget.confPath).isNotEmpty)
+          if (VmConfigFileStore.listBackups(_conf).isNotEmpty)
             TextButton.icon(
               onPressed: _restoreBackup,
               icon: const Icon(Icons.restore),
@@ -322,9 +328,9 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
                     children: [
                       Expanded(
                         child: Tooltip(
-                          message: widget.confPath,
+                          message: _conf,
                           child: Text(
-                            widget.confPath,
+                            _conf,
                             overflow: TextOverflow.ellipsis,
                             style: mono.copyWith(
                               fontSize: 12,
@@ -339,9 +345,7 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
                         tooltip: context.t('Copy path'),
                         icon: const Icon(Icons.copy, size: 16),
                         onPressed: () async {
-                          await Clipboard.setData(
-                            ClipboardData(text: widget.confPath),
-                          );
+                          await Clipboard.setData(ClipboardData(text: _conf));
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text(context.t('Copied'))),
