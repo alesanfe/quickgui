@@ -6,6 +6,46 @@
 part of 'manager.dart';
 
 extension on _ManagerState {
+  /// Routes a mutating VM action through the activity coordinator
+  /// (QGUI-X-003): the op becomes visible in the Activity centre with
+  /// the shared OperationState machine, and a second op on the same VM
+  /// is refused instead of interleaving quickemu invocations (the UI
+  /// half of R-001 — the file lock stays the backend's job). Returns
+  /// null when the machine is already busy.
+  Future<ProcResult?> _runVmOp(
+    OperationKind kind,
+    String vm,
+    String command,
+    List<String> args,
+  ) =>
+      _runVmOpRaw(kind, vm, () => runVmActionOrLegacy(_backend, command, args));
+
+  /// Coordinator guard for use cases that do not return [ProcResult]
+  /// (StartVm/StopVm/exportVm/linkedClone/...). Same busy semantics
+  /// as [_runVmOp].
+  Future<T?> _runVmOpRaw<T>(
+    OperationKind kind,
+    String vm,
+    Future<T> Function() action,
+  ) async {
+    final activity = ref.read(activityProvider.notifier);
+    if (activity.isBusyOn(vm)) {
+      if (mounted) _operationBusySnack(vm);
+      return null;
+    }
+    return await activity.run(kind, vm, (op) => action());
+  }
+
+  void _operationBusySnack(String vm) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          context.t('Another operation is already running for {0}', args: [vm]),
+        ),
+      ),
+    );
+  }
+
   /// Fresh state for one VM — registry inspect when the contract
   /// supports it, pid-file probe otherwise; when both are available
   /// and disagree, the live pid wins (registry and pid file derive
@@ -203,9 +243,14 @@ extension on _ManagerState {
             continue;
           }
           final result = action == 'export'
-              ? await _backend.exportVm(name)
-              : await runVmActionOrLegacy(
-                  _backend,
+              ? await _runVmOpRaw(
+                  OperationKind.export,
+                  name,
+                  () => _backend.exportVm(name),
+                )
+              : await _runVmOp(
+                  action == 'stop' ? OperationKind.stop : OperationKind.command,
+                  name,
                   switch (action) {
                     'stop' => 'powerdown',
                     'pause' => 'pause',
@@ -223,7 +268,7 @@ extension on _ManagerState {
                     },
                   ],
                 );
-          if (result.exitCode != 0) failures.add(name);
+          if (result == null || result.exitCode != 0) failures.add(name);
         } catch (_) {
           failures.add(name);
         }
@@ -719,7 +764,11 @@ extension on _ManagerState {
     if (name == null || name.isEmpty || !mounted) return;
     if (linked) {
       try {
-        await _backend.linkedClone(currentVm, name);
+        await _runVmOpRaw(
+          OperationKind.clone,
+          currentVm,
+          () => _backend.linkedClone(currentVm, name),
+        );
       } catch (e) {
         if (!mounted) return;
         _showProcessOutput([ProcResult(1, '', '$e')]);
@@ -729,13 +778,13 @@ extension on _ManagerState {
       _getVms();
       return;
     }
-    final r = await runVmActionOrLegacy(_backend, 'clone', [
+    final r = await _runVmOp(OperationKind.clone, currentVm, 'clone', [
       '--vm',
       _vmConfFiles[currentVm] ?? '$currentVm.conf',
       '--clone',
       name,
     ]);
-    if (!mounted) return;
+    if (!mounted || r == null) return;
     _showProcessOutput([r]);
     _getVms();
   }
@@ -758,13 +807,17 @@ extension on _ManagerState {
     } else if (_spicy) {
       command.addAll(['--display', 'spice']);
     }
-    final startResult = await StartVm(_backend)(
+    final startResult = await _runVmOpRaw(
+      OperationKind.start,
       currentVm,
-      display: command.contains('--display')
-          ? command[command.indexOf('--display') + 1]
-          : null,
+      () => StartVm(_backend)(
+        currentVm,
+        display: command.contains('--display')
+            ? command[command.indexOf('--display') + 1]
+            : null,
+      ),
     );
-    if (!mounted) return;
+    if (!mounted || startResult == null) return;
     if (startResult is Err) {
       _showProcessOutput([ProcResult(1, '', startResult.failure.message)]);
     }
@@ -783,12 +836,17 @@ extension on _ManagerState {
       return;
     }
     final paused = _vmStates[currentVm] == 'paused';
-    final r = await runVmActionOrLegacy(_backend, paused ? 'resume' : 'pause', [
-      '--vm',
-      _vmConfFiles[currentVm] ?? '$currentVm.conf',
-      if (paused) '--resume' else '--pause',
-    ]);
-    if (!mounted) return;
+    final r = await _runVmOp(
+      OperationKind.command,
+      currentVm,
+      paused ? 'resume' : 'pause',
+      [
+        '--vm',
+        _vmConfFiles[currentVm] ?? '$currentVm.conf',
+        if (paused) '--resume' else '--pause',
+      ],
+    );
+    if (!mounted || r == null) return;
     _showProcessOutput([r]);
     if (r.exitCode == 0) {
       setState(() => _vmStates[currentVm] = paused ? 'running' : 'paused');
@@ -832,13 +890,13 @@ extension on _ManagerState {
     if (choice == 'shutdown') {
       // ACPI powerdown via the QEMU monitor socket; the
       // VM keeps running until the guest OS finishes.
-      final r = await runVmActionOrLegacy(_backend, 'monitor-cmd', [
+      final r = await _runVmOp(OperationKind.stop, currentVm, 'monitor-cmd', [
         '--vm',
         _vmConfFiles[currentVm] ?? '$currentVm.conf',
         '--monitor-cmd',
         'system_powerdown',
       ]);
-      if (!mounted) return;
+      if (!mounted || r == null) return;
       _showProcessOutput([r]);
       // QGUI-STOP-002: a graceful powerdown request does not mean the
       // machine is off — offer a visible force-stop path for guests
@@ -873,7 +931,11 @@ extension on _ManagerState {
       // which is macOS compatible.
       final quickemuVersion = Version.parse(await _backend.version());
       if (quickemuVersion >= Version(4, 9, 6)) {
-        StopVm(_backend)(currentVm);
+        await _runVmOpRaw(
+          OperationKind.stop,
+          currentVm,
+          () => StopVm(_backend)(currentVm),
+        );
       } else {
         unawaitedLogged(
           _backend.killVmProcess(currentVm),
@@ -881,6 +943,7 @@ extension on _ManagerState {
           'kill $currentVm',
         );
       }
+      if (!mounted) return;
       setState(() {
         _activeVms.remove(currentVm);
         _vmStates[currentVm] = 'stopped';

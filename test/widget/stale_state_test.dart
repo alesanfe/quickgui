@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:quickgui/core/constants/preference_keys.dart';
+import 'package:quickgui/features/activity/domain/app_operation.dart';
+import 'package:quickgui/features/activity/providers/activity_providers.dart';
 import 'package:quickgui/features/catalog/providers/catalog_providers.dart';
 import 'package:quickgui/features/diagnostics/providers/diagnostics_providers.dart';
 import 'package:quickgui/features/machines/presentation/list/manager.dart';
@@ -178,5 +180,51 @@ void main() {
     await tester.tap(find.text('Reload from disk'));
     await tester.pumpAndSettle();
     expect(conf.readAsStringSync(), contains('external_edit="yes"'));
+  });
+
+  // QGUI-X-003: VM actions run through the activity coordinator — a
+  // second op on the same machine is refused instead of interleaving
+  // quickemu invocations, and the refused action never reaches the
+  // backend.
+  testWidgets('action is refused while another op occupies the VM', (
+    tester,
+  ) async {
+    await open(tester);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(Manager)),
+    );
+    container
+        .read(activityProvider.notifier)
+        .start(OperationKind.download, 'linux-test');
+    backend.jsonCalls.clear();
+    backend.actionCalls.clear();
+    await chooseAction(tester, 'Start');
+    expect(backend.jsonCalls, isEmpty);
+    expect(backend.actionCalls, isEmpty);
+    expect(
+      find.textContaining('already running for linux-test'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('successful action registers a completed operation', (
+    tester,
+  ) async {
+    await open(tester);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(Manager)),
+    );
+    await chooseAction(tester, 'Start');
+    await tester.pumpAndSettle();
+    expect(
+      backend.actionCalls.any((args) => args.contains('linux-test.conf')),
+      isTrue,
+    );
+    final history = container.read(activityProvider).history;
+    expect(
+      history.any((e) => e.target == 'linux-test'),
+      isTrue,
+      reason: 'the tracked op should land in activity history',
+    );
   });
 }

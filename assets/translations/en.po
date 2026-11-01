@@ -2757,3 +2757,6 @@ msgstr "{0} no longer exists — the machine list was refreshed."
 
 msgid "{0} is now \"{1}\" — the action no longer applies. The list was refreshed."
 msgstr "{0} is now \"{1}\" — the action no longer applies. The list was refreshed."
+
+msgid "Another operation is already running for {0}"
+msgstr "Another operation is already running for {0}"

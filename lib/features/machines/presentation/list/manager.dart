@@ -45,6 +45,8 @@ import 'package:quickgui/features/machines/domain/vm_profile.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_config_editor.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_details_pane.dart';
 import 'package:quickgui/features/machines/presentation/details/vm_settings_page.dart';
+import 'package:quickgui/features/activity/domain/app_operation.dart';
+import 'package:quickgui/features/activity/providers/activity_providers.dart';
 import 'package:quickgui/shared/dialogs/conf_conflict.dart';
 import 'package:quickgui/shared/forms/path_picker_field.dart';
 import 'package:quickgui/shared/forms/size_field.dart';

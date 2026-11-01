@@ -174,7 +174,7 @@ extension on _ManagerState {
       case 'devices':
         _openVmSettings(currentVm, 'devices');
       case 'pause':
-        await runVmActionOrLegacy(_backend, 'pause', [
+        await _runVmOp(OperationKind.command, currentVm, 'pause', [
           '--vm',
           _vmConfFiles[currentVm] ?? '$currentVm.conf',
           '--pause',
@@ -182,7 +182,7 @@ extension on _ManagerState {
       case 'start':
         _startVm(currentVm);
       case 'resume':
-        await runVmActionOrLegacy(_backend, 'resume', [
+        await _runVmOp(OperationKind.command, currentVm, 'resume', [
           '--vm',
           _vmConfFiles[currentVm] ?? '$currentVm.conf',
           '--resume',
@@ -232,24 +232,28 @@ extension on _ManagerState {
           ),
         );
         if (profileId == null || !context.mounted) return;
-        await _backend.startWithProfile(currentVm, profileId);
+        await _runVmOpRaw(
+          OperationKind.start,
+          currentVm,
+          () => _backend.startWithProfile(currentVm, profileId),
+        );
         _getVms();
       case 'start-offline':
-        final r = await runVmActionOrLegacy(_backend, 'start', [
+        final r = await _runVmOp(OperationKind.start, currentVm, 'start', [
           '--vm',
           _vmConfFiles[currentVm] ?? '$currentVm.conf',
           '--offline',
         ]);
-        if (!context.mounted) return;
+        if (!context.mounted || r == null) return;
         _showProcessOutput([r]);
         _getVms();
       case 'suspend':
-        final r = await runVmActionOrLegacy(_backend, 'suspend', [
+        final r = await _runVmOp(OperationKind.command, currentVm, 'suspend', [
           '--vm',
           _vmConfFiles[currentVm] ?? '$currentVm.conf',
           '--suspend',
         ]);
-        if (!context.mounted) return;
+        if (!context.mounted || r == null) return;
         _showProcessOutput([r]);
         _getVms();
       case 'guest-agent':
@@ -326,13 +330,18 @@ extension on _ManagerState {
           ),
         );
         if (confirm != true) return;
-        final resetResult = await runVmActionOrLegacy(_backend, 'monitor-cmd', [
-          '--vm',
-          _vmConfFiles[currentVm] ?? '$currentVm.conf',
-          '--monitor-cmd',
-          'system_reset',
-        ]);
-        if (!context.mounted) return;
+        final resetResult = await _runVmOp(
+          OperationKind.command,
+          currentVm,
+          'monitor-cmd',
+          [
+            '--vm',
+            _vmConfFiles[currentVm] ?? '$currentVm.conf',
+            '--monitor-cmd',
+            'system_reset',
+          ],
+        );
+        if (!context.mounted || resetResult == null) return;
         _showProcessOutput([resetResult]);
       case 'doctor':
         final r = await runVmActionOrLegacy(_backend, 'doctor', [
@@ -373,8 +382,12 @@ extension on _ManagerState {
           );
           if (overwrite != true) return;
         }
-        final r = await _backend.exportVm(currentVm);
-        if (!context.mounted) return;
+        final r = await _runVmOpRaw(
+          OperationKind.export,
+          currentVm,
+          () => _backend.exportVm(currentVm),
+        );
+        if (!context.mounted || r == null) return;
         _showProcessOutput([r]);
       case 'settings':
         // Same surface as the details pane Configure button:
@@ -390,8 +403,12 @@ extension on _ManagerState {
             .read(vmConfigStoreProvider)
             .read(_vmConfFiles[currentVm] ?? '$currentVm.conf', 'iso');
         if (iso != null) {
-          final r = await _backend.verifyImage(iso);
-          if (!context.mounted) return;
+          final r = await _runVmOpRaw(
+            OperationKind.verify,
+            currentVm,
+            () => _backend.verifyImage(iso),
+          );
+          if (!context.mounted || r == null) return;
           _showProcessOutput([r]);
         }
       case 'delete':

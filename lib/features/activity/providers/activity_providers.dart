@@ -255,6 +255,13 @@ class ActivityController extends Notifier<ActivityState> {
     }
   }
 
+  /// True while any tracked operation still occupies [target]
+  /// (queued/running/paused/cancelling). Callers use it to refuse a
+  /// second op on the same VM instead of interleaving backend
+  /// invocations (QGUI-X-003).
+  bool isBusyOn(String target) =>
+      state.active.any((op) => op.target == target && op.state.isBusy);
+
   /// Subscribes to the backend's push stream (`--op-watch`) so live
   /// ops update without polling op-list. Events carry the op state
   /// file; we map them onto the matching in-flight AppOperation.
