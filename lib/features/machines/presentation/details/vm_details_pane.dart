@@ -155,11 +155,14 @@ class VmDetailsPane extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Row(
                 children: [
-                  SizedBox(
-                    width: 140,
-                    child: Text(
-                      label,
-                      style: TextStyle(color: scheme.onSurfaceVariant),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 140),
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 16),
+                      child: Text(
+                        label,
+                        style: TextStyle(color: scheme.onSurfaceVariant),
+                      ),
                     ),
                   ),
                   Expanded(child: Text(value)),

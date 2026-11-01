@@ -253,10 +253,15 @@ Future<void> _capture(
   Future<void> Function(WidgetTester t)? interact,
   String? runningVm,
   Size? size,
+  double? textScale,
 }) async {
   t.view.physicalSize = size ?? windowSize;
   t.view.devicePixelRatio = 1.0;
   addTearDown(t.view.reset);
+  if (textScale != null) {
+    t.platformDispatcher.textScaleFactorTestValue = textScale;
+    addTearDown(t.platformDispatcher.clearTextScaleFactorTestValue);
+  }
   if (runningVm != null) {
     // The Manager marks a VM active when <vm>/<vm>.pid contains a pid the
     // HostProbe reports alive. A synthetic pid + the injected FakeHostProbe
@@ -568,5 +573,32 @@ VM is stopped.
         );
       });
     }
+  }
+
+  // QGUI-X-001 robustness pass: every page is additionally captured at
+  // the minimum supported window (1024x600, both themes) and at 200 %
+  // text scale — the two conditions that most often reveal overflow.
+  for (final dark in [false, true]) {
+    final theme = dark ? 'dark' : 'light';
+    for (final e in pages.entries) {
+      testWidgets('${e.key}_1024x600 ($theme)', (t) async {
+        await _capture(
+          t,
+          _app(home: e.value, dark: dark),
+          '${e.key}_1024x600_$theme',
+          size: const Size(1024, 600),
+        );
+      });
+    }
+  }
+  for (final e in pages.entries) {
+    testWidgets('${e.key}_text200 (light)', (t) async {
+      await _capture(
+        t,
+        _app(home: e.value, dark: false),
+        '${e.key}_text200_light',
+        textScale: 2.0,
+      );
+    });
   }
 }

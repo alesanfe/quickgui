@@ -2751,3 +2751,9 @@ msgstr "version {0}"
 
 msgid "{0} s"
 msgstr "{0} s"
+
+msgid "{0} no longer exists — the machine list was refreshed."
+msgstr "{0} no longer exists — the machine list was refreshed."
+
+msgid "{0} is now \"{1}\" — the action no longer applies. The list was refreshed."
+msgstr "{0} is now \"{1}\" — the action no longer applies. The list was refreshed."

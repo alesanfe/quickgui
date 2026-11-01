@@ -6,6 +6,80 @@
 part of 'manager.dart';
 
 extension on _ManagerState {
+  /// Fresh state for one VM — registry inspect when the contract
+  /// supports it, pid-file probe otherwise; when both are available
+  /// and disagree, the live pid wins (registry and pid file derive
+  /// from the same process, and a live process is the ground truth
+  /// for "is it running") (QGUI-X-004).
+  Future<String> _freshVmState(String vm) async {
+    final pidFile = File('$vm/$vm.pid');
+    final pid = pidFile.existsSync()
+        ? int.tryParse(pidFile.readAsStringSync().trim())
+        : null;
+    final pidAlive = pid != null && await _probe.isPidAlive(pid);
+    final caps = _backendCaps?['capabilities'];
+    if (caps is Map && caps['structuredStatus'] == true) {
+      final inspected = await InspectVm(_backend)(vm);
+      if (inspected case Ok(:final value)) {
+        final s = '${value['state']}';
+        return pidAlive ? 'running' : s;
+      }
+    }
+    if (pid == null) return 'stopped';
+    return pidAlive ? 'running' : 'stale';
+  }
+
+  /// Re-checks the VM's .conf on disk and — for state-dependent
+  /// actions — its live state, before executing. The row data was
+  /// captured at the last refresh; an external start/stop/delete or a
+  /// removed .conf must not let a stale action run. On divergence the
+  /// library refreshes and the user is told why nothing ran
+  /// (QGUI-X-004).
+  Future<bool> _revalidateVm(
+    String currentVm, {
+    required bool stateSensitive,
+  }) async {
+    final conf = (_vmConfFiles[currentVm] ?? '$currentVm.conf').replaceAll(
+      RegExp(r'\.toml$'),
+      '.conf',
+    );
+    if (!File(conf).existsSync() || !_currentVms.contains(currentVm)) {
+      _getVms();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              context.t(
+                '{0} no longer exists — the machine list was refreshed.',
+                args: [currentVm],
+              ),
+            ),
+          ),
+        );
+      }
+      return false;
+    }
+    if (!stateSensitive) return true;
+    final fresh = await _freshVmState(currentVm);
+    if (!mounted) return false;
+    final cached = _vmStates[currentVm] ?? 'stopped';
+    if (fresh != cached) {
+      _getVms();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.t(
+              '{0} is now "{1}" — the action no longer applies. The list was refreshed.',
+              args: [currentVm, fresh],
+            ),
+          ),
+        ),
+      );
+      return false;
+    }
+    return true;
+  }
+
   Future<void> _editTags(Iterable<String> machines) async {
     final targets = machines.toList();
     final controller = TextEditingController(
@@ -117,6 +191,13 @@ extension on _ManagerState {
       for (final name in included) {
         try {
           final conf = _vmConfFiles[name] ?? '$name.conf';
+          // Revalidate per item — a VM deleted between selection and
+          // execution fails individually instead of erroring oddly.
+          if (!File(conf.replaceAll(RegExp(r'\.toml$'), '.conf'))
+              .existsSync()) {
+            failures.add(name);
+            continue;
+          }
           if (action == 'start') {
             await _startVm(name);
             continue;
@@ -180,6 +261,9 @@ extension on _ManagerState {
     Map<String, Widget Function(BuildContext, TextEditingController)>?
     fieldBuilders,
     Map<String, String>? helpers,
+    // Pending edits carried across a conflict-cancel reopen so no user
+    // input is lost (QGUI-X-004).
+    Map<String, String>? initialValues,
   }) async {
     // The editor speaks key="value" .conf syntax - a migrated VM may
     // expose its .toml as the backend path, so always edit the .conf
@@ -189,7 +273,16 @@ extension on _ManagerState {
       '.conf',
     );
     final file = File(confPath);
-    final lines = file.existsSync() ? await file.readAsLines() : <String>[];
+    final existedAtOpen = file.existsSync();
+    final originalContent = existedAtOpen ? await file.readAsString() : '';
+    // Baseline for the external-edit check — same fingerprint the raw
+    // editor uses, so both surfaces agree on what "changed" means.
+    final originalFingerprint = VmConfigFileStore.fingerprintOf(
+      originalContent,
+    );
+    final lines = originalContent.isEmpty
+        ? <String>[]
+        : originalContent.split('\n');
     final controllers = <String, TextEditingController>{};
     for (final key in keys.keys) {
       final re = RegExp('^$key="(.*)"');
@@ -198,7 +291,9 @@ extension on _ManagerState {
         final m = re.firstMatch(l);
         if (m != null) current = m.group(1)!;
       }
-      controllers[key] = TextEditingController(text: current);
+      controllers[key] = TextEditingController(
+        text: initialValues?[key] ?? current,
+      );
     }
     if (!mounted) return;
     final result = await QDialog.show<bool>(
@@ -286,9 +381,57 @@ extension on _ManagerState {
       }
       if (!replaced) lines.add('$key="$value"');
     }
+    var content = '${lines.join('\n')}\n';
+    // QGUI-X-004: the .conf may have been modified by Quickemu, another
+    // editor or an external operation while this dialog was open. Never
+    // overwrite silently — resolve via the shared 3-way merge dialog,
+    // same contract as the raw config editor.
+    final changedExternally = file.existsSync()
+        ? VmConfigFileStore.fingerprint(confPath) != originalFingerprint
+        : existedAtOpen; // deleted while editing is a conflict too
+    if (changedExternally) {
+      final disk = file.existsSync() ? await file.readAsString() : '';
+      if (!mounted) return;
+      final conflict = await showConfConflictDialog(
+        context,
+        confPath: confPath,
+        original: originalContent,
+        local: content,
+        disk: disk,
+      );
+      switch (conflict?.action) {
+        case ConfConflictAction.merge:
+          content = conflict!.merged ?? content;
+        case ConfConflictAction.overwrite:
+          break;
+        case ConfConflictAction.reload:
+          // The on-disk version wins — nothing to write.
+          return;
+        case ConfConflictAction.saveCopy:
+          if (mounted) {
+            await pickAndSaveConfCopy(context, confPath, content);
+          }
+          return;
+        case ConfConflictAction.cancel:
+        case null:
+          // Keep editing: reopen seeded with the pending edits so no
+          // input is lost; the fresh disk state becomes the new
+          // baseline.
+          if (!mounted) return;
+          return await _editVmConfValues(
+            currentVm,
+            keys,
+            title: title,
+            options: options,
+            fieldBuilders: fieldBuilders,
+            helpers: helpers,
+            initialValues: {for (final k in keys.keys) k: controllers[k]!.text},
+          );
+      }
+    }
     // Atomic commit (temp + verify + .bak + rename) — a torn write must
     // never corrupt the VM configuration.
-    VmConfigFileStore.unawaitedWrite(confPath, '${lines.join('\n')}\n');
+    VmConfigFileStore.unawaitedWrite(confPath, content);
     // Keep a migrated .toml in sync — the backend prefers it over .conf.
     if (File(confPath.replaceAll(RegExp(r'\.conf$'), '.toml')).existsSync()) {
       try {
@@ -300,6 +443,11 @@ extension on _ManagerState {
   }
 
   void _confirmDeleteVm(BuildContext context, String currentVm) async {
+    // Revalidate right before the destructive plan runs — the VM may
+    // have started (or vanished) since the menu was opened (QGUI-X-004).
+    if (!await _revalidateVm(currentVm, stateSensitive: true) || !mounted) {
+      return;
+    }
     // Preview what will be deleted via the backend's safe delete plan.
     final planResult = await DeleteVm(_backend).plan(currentVm);
     var planText = switch (planResult) {
@@ -593,6 +741,9 @@ extension on _ManagerState {
   }
 
   Future<void> _startVm(String currentVm) async {
+    if (!await _revalidateVm(currentVm, stateSensitive: true) || !mounted) {
+      return;
+    }
     final Map<String, VmInfo> activeVms = _activeVms;
     final List<String> command = ['quickemu', '--vm', '$currentVm.conf'];
     // Respect a display= setting in the .conf; fall back
@@ -628,6 +779,9 @@ extension on _ManagerState {
   /// Card quick-action (QG-031): pause a running VM or resume a
   /// paused one — the batch path already proves the command pair.
   Future<void> _pauseResumeVm(String currentVm) async {
+    if (!await _revalidateVm(currentVm, stateSensitive: true) || !mounted) {
+      return;
+    }
     final paused = _vmStates[currentVm] == 'paused';
     final r = await runVmActionOrLegacy(_backend, paused ? 'resume' : 'pause', [
       '--vm',
@@ -642,6 +796,9 @@ extension on _ManagerState {
   }
 
   Future<void> _stopVm(String currentVm) async {
+    if (!await _revalidateVm(currentVm, stateSensitive: true) || !mounted) {
+      return;
+    }
     final choice = await showDialog<String>(
       context: context,
       builder: (BuildContext context) {

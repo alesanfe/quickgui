@@ -4,8 +4,42 @@
 part of 'manager.dart';
 
 extension on _ManagerState {
+  /// Choices whose execution depends on the VM's live state — these
+  /// revalidate before running so a stale menu can never start an
+  /// already-running VM or delete one that changed (QGUI-X-004).
+  static const _stateDependentChoices = {
+    'start',
+    'pause',
+    'resume',
+    'suspend',
+    'reset',
+    'send-keys',
+    'screenshot',
+    'start-offline',
+    'start-profile',
+    'guest-agent',
+    'serial-console',
+    'monitor-console',
+    'verify',
+    'export',
+    'launch-plan',
+    'doctor',
+    'shortcut',
+    'remove-shortcut',
+  };
+
   /// Dispatches a VmActionsMenu selection for [currentVm].
   Future<void> _vmMenuAction(String currentVm, String choice) async {
+    // Never act on the state captured when the menu was rendered:
+    // revalidate the conf and, for state-dependent actions, the live
+    // state (QGUI-X-004 / QGUI-MENU-103).
+    if (!await _revalidateVm(
+          currentVm,
+          stateSensitive: _stateDependentChoices.contains(choice),
+        ) ||
+        !mounted) {
+      return;
+    }
     switch (choice) {
       case 'migrate-toml':
         _migrateToToml(currentVm);
