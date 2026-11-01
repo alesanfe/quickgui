@@ -711,7 +711,11 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   /// width; unbounded labels get clipped on narrow layouts, which trips
   /// the debug semantics assertion (`!semantics.parentDataDirty`).
   Widget _boundedText(String label) => ConstrainedBox(
-    constraints: const BoxConstraints(maxWidth: 120),
+    // VISTA-027 V-200-3: scale the bound with the text scaler — a fixed
+    // 120px clips "Automatic" to "Autom…" at 200%.
+    constraints: BoxConstraints(
+      maxWidth: 120 * MediaQuery.textScalerOf(context).scale(1).clamp(1, 2),
+    ),
     child: Text(label, overflow: TextOverflow.ellipsis),
   );
 

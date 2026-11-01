@@ -157,9 +157,10 @@ class _CreatePageState extends ConsumerState<CreatePage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Flexible(
+                        // Wraps to a second line at large text scales
+                        // instead of truncating mid-sentence (VISTA-027).
                         child: Text(
                           "${context.t('Directory where the machines are stored')}:",
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -167,7 +168,14 @@ class _CreatePageState extends ConsumerState<CreatePage> {
                         flex: 2,
                         child: Tooltip(
                           message: ref.watch(workingDirectoryProvider),
-                          child: ElevatedButton(
+                          child: OutlinedButton(
+                            // Neutral styling — accent-colored path text
+                            // reads as an error at first glance.
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface,
+                            ),
                             onPressed: () async {
                               final folder = await FilePicker.getDirectoryPath(
                                 dialogTitle: context.t('Pick a folder'),

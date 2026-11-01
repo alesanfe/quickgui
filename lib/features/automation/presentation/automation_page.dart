@@ -308,19 +308,25 @@ class _AutomationPageState extends ConsumerState<AutomationPage> {
     );
   }
 
-  Widget _field(TextEditingController c, String label, {double width = 200}) =>
-      SizedBox(
-        width: width,
-        child: TextField(
-          controller: c,
-          decoration: InputDecoration(
-            labelText: label,
-            isDense: true,
-            border: const OutlineInputBorder(),
-          ),
-          onChanged: (_) => setState(() {}),
+  Widget _field(TextEditingController c, String label, {double width = 200}) {
+    // VISTA-027 V-200-2: the input label lives inside the border — at
+    // large text scales a fixed 110px field truncates it ("CPU …").
+    // Scale the field width with the text scaler (capped) so the label
+    // always fits.
+    final scale = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 2.0);
+    return SizedBox(
+      width: width * scale,
+      child: TextField(
+        controller: c,
+        decoration: InputDecoration(
+          labelText: label,
+          isDense: true,
+          border: const OutlineInputBorder(),
         ),
-      );
+        onChanged: (_) => setState(() {}),
+      ),
+    );
+  }
 
   Future<void> _pickOs(BuildContext context) async {
     final selection = await Navigator.of(context).push<OperatingSystem>(

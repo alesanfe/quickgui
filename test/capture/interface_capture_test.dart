@@ -310,6 +310,16 @@ Future<void> _capture(
       await t.pump(const Duration(milliseconds: 200));
     }
   }
+  // FakeAsync pumps never let real image decoders (Image.asset in Logo)
+  // finish — precache the asset on a real-async window so the logo renders
+  // deterministically instead of flaking between captures (VISTA-027).
+  await t.runAsync(() async {
+    await precacheImage(
+      const AssetImage('assets/images/logo_pink.png'),
+      t.element(find.byType(MaterialApp)),
+    );
+  });
+  await t.pump();
   // matchesGoldenFile rasterizes the whole window via captureImage; run with
   // --update-goldens so the PNG is written next to this file under out/.
   await expectLater(

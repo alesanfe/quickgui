@@ -314,6 +314,13 @@ class DashboardPage extends ConsumerWidget {
   }) {
     final scheme = Theme.of(context).colorScheme;
     final iconColor = warning ? scheme.error : scheme.primary;
+    final chevron = route != null
+        ? Icon(Icons.chevron_right, size: 18, color: scheme.onSurfaceVariant)
+        : null;
+    // At large text scales the horizontal layout leaves ~120px for text
+    // and labels wrap mid-word ("Machine s") — stack vertically so value
+    // and label use the full card width (VISTA-027 V-200-1).
+    final stacked = MediaQuery.textScalerOf(context).scale(1) > 1.4;
     return SizedBox(
       width: 220,
       child: Card(
@@ -323,30 +330,45 @@ class DashboardPage extends ConsumerWidget {
           borderRadius: BorderRadius.circular(12),
           child: Padding(
             padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Icon(icon, color: iconColor),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
+            child: stacked
+                ? Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
+                      Row(
+                        children: [
+                          Icon(icon, color: iconColor),
+                          const Spacer(),
+                          ?chevron,
+                        ],
+                      ),
+                      const SizedBox(height: 12),
                       Text(
                         value,
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
                       Text(label),
                     ],
+                  )
+                : Row(
+                    children: [
+                      Icon(icon, color: iconColor),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              value,
+                              style: Theme.of(context).textTheme.headlineSmall,
+                            ),
+                            Text(label),
+                          ],
+                        ),
+                      ),
+                      ?chevron,
+                    ],
                   ),
-                ),
-                if (route != null)
-                  Icon(
-                    Icons.chevron_right,
-                    size: 18,
-                    color: scheme.onSurfaceVariant,
-                  ),
-              ],
-            ),
           ),
         ),
       ),
