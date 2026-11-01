@@ -83,7 +83,10 @@ Widget reasonedIconButton({
         : tooltip,
     icon: Icon(
       icon,
-      color: onPressed == null ? null : color,
+      // `outline` is a neutral desaturated grey in both themes, while
+      // the theme's disabledColor reads as a muted primary — disabled
+      // icons stayed visually close to enabled ones (QGUI-UX-002).
+      color: onPressed == null ? Theme.of(context).colorScheme.outline : color,
       semanticLabel: semanticLabel ?? tooltip,
     ),
     onPressed: onPressed,

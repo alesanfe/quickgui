@@ -2625,3 +2625,6 @@ msgstr "Quickemu forwards both TCP and UDP on all host interfaces. Only availabl
 msgid "Sharing"
 msgstr "Sharing"
 
+msgid "Shut down {0}?"
+msgstr "Shut down {0}?"
+

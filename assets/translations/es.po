@@ -2445,3 +2445,6 @@ msgstr "Quickemu reenvía tanto TCP como UDP en todas las interfaces del anfitri
 msgid "Sharing"
 msgstr "Compartición"
 
+msgid "Shut down {0}?"
+msgstr "¿Apagar {0}?"
+

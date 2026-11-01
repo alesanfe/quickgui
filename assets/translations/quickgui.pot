@@ -2620,3 +2620,6 @@ msgstr ""
 msgid "Sharing"
 msgstr ""
 
+msgid "Shut down {0}?"
+msgstr ""
+

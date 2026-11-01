@@ -275,6 +275,12 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
   @override
   Widget build(BuildContext context) {
     const mono = TextStyle(fontFamily: 'monospace', fontSize: 13, height: 1.4);
+    // Content-adaptive editor height: grows with the line count so
+    // short .conf files don't leave dead space, bounded so long files
+    // stay inside the scrollable dialog body. 18.2 = 13pt × 1.4.
+    final editorHeight =
+        ((_editorController.text.split('\n').length + 1) * 18.2 + 40)
+            .clamp(160.0, 560.0);
     return PopScope(
       canPop: _allowPop,
       onPopInvokedWithResult: (_, _) => _onPopAttempt(),
@@ -344,25 +350,20 @@ class _VmConfigEditorDialogState extends ConsumerState<VmConfigEditorDialog> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  // Fixed-height editor region inside the scrollable
-                  // dialog body: the gutter scrolls with the text.
                   SizedBox(
-                    height: (MediaQuery.sizeOf(context).height * 0.5).clamp(
-                      200.0,
-                      560.0,
-                    ),
+                    height: editorHeight,
                     child: LinedTextField(
                       controller: _editorController,
                       focusNode: _editorFocus,
                       style: mono,
                       errorLines: _badLines.toSet(),
                       onChanged: (_) {
-                        if (_error != null || _badLines.isNotEmpty) {
-                          setState(() {
-                            _error = null;
-                            _badLines = const [];
-                          });
-                        }
+                        // Rebuild either way: clearing the error and
+                        // recomputing the adaptive height both need it.
+                        setState(() {
+                          _error = null;
+                          _badLines = const [];
+                        });
                       },
                     ),
                   ),

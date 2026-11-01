@@ -647,7 +647,7 @@ extension on _ManagerState {
       builder: (BuildContext context) {
         final error = Theme.of(context).colorScheme.error;
         return AlertDialog(
-          title: Text(context.t('Stop {0}', args: [currentVm])),
+          title: Text(context.t('Shut down {0}?', args: [currentVm])),
           content: Text(
             context.t(
               'Shut down {0} gracefully, or force it to stop? Forcing discards unsaved changes in the guest.',
